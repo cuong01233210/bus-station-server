@@ -13,7 +13,7 @@ export class BusStationsDatabase {
 
   static getDb() {
     //console.log(1);
-    console.log(this.mongoClient.db());
+   // console.log(this.mongoClient.db());
     return this.mongoClient.db();
   }
 }
