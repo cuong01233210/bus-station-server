@@ -9,6 +9,7 @@ import * as userCoordinateController from "../controller/user-coordinate-control
 import * as kdTreeController from "../controller/kdTree-controller";
 import * as userStartStringController from "../controller/user-start-string-controller";
 import * as userEndStringController from "../controller/user-end-string-controller";
+import * as testGeocodingController from "../controller/test-geocoding-controller";
 const router = Router();
 const todoValidator = body("task").trim().notEmpty();
 router.get("/buses-data", busController.getAllBuses);
@@ -45,5 +46,7 @@ router.patch(
   "/user-end-string/:userEndStringID",
   userEndStringController.updateUserEndString
 );
+
+router.get("/test-geocoding", testGeocodingController.callGetUsersRoute);
 
 export default router;
