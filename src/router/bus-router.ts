@@ -47,6 +47,6 @@ router.patch(
   userEndStringController.updateUserEndString
 );
 
-router.get("/test-geocoding", testGeocodingController.callGetUsersRoute);
+//router.get("/test-geocoding", testGeocodingController.callGetUsersRoute);
 
 export default router;
