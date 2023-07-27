@@ -5,6 +5,7 @@ import { userStartStrings } from "./user-start-string-controller";
 import { Request, Response } from "express";
 
 import { convertIn4 } from "./test-geocoding-controller";
+import BusStationsByDistrict from "../models/bus-stations-by-district";
 
 interface UserString {
   id: String;
@@ -38,15 +39,25 @@ export const updateUserString = async (req: Request, res: Response) => {
     userString.startString = startString;
     let startString1 = startString;
     startString1 = startString1.concat(" Hà Nội, Việt Nam");
+    startString1 += " Hà Nội";
     //console.log(startString1);
     let endString1 = endString;
     endString1 = endString1.concat(" Hà Nội, Việt Nam");
+    endString1 += " Hà Nội";
+    const busStationsByDistrict =
+      await BusStationsByDistrict.getBusStationsByDistrictIn4();
     try {
       const convert = await convertIn4(startString1);
       if (convert.district.toLowerCase().includes("district")) {
         // Xoá xâu "District" khỏi "district" (không phân biệt chữ hoa/thường)
         convert.district = convert.district.replace(/district/gi, "").trim();
       }
+
+      const busStationsWithSameDistrict = busStationsByDistrict.filter(
+        (item) => item.district == convert.district
+      );
+
+      console.log(busStationsWithSameDistrict[0]);
       console.log({
         lat: convert.lat,
         long: convert.long,
@@ -64,6 +75,11 @@ export const updateUserString = async (req: Request, res: Response) => {
         // Xoá xâu "District" khỏi "district" (không phân biệt chữ hoa/thường)
         convert.district = convert.district.replace(/district/gi, "").trim();
       }
+      const busStationsWithSameDistrict = busStationsByDistrict.filter(
+        (item) => item.district == convert.district
+      );
+
+      console.log(busStationsWithSameDistrict[0]);
       console.log({
         lat: convert.lat,
         long: convert.long,
