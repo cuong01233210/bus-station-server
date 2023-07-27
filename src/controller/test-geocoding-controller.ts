@@ -13,11 +13,12 @@ export async function convertIn4(address: string): Promise<LocationIn4> {
     district: "ha noi",
   };
   let compoundCode = "";
-  const apiKey = "AIzaSyD_aa2r6r8WRRVHUpO8IU18gUD4evNmXt0";
+  const apiKey = "AIzaSyD7cbZWKU14bbQl9qv1G62kSH2gyyo8i0g";
   const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
     address
   )}&key=${apiKey}`;
 
+  console.log(url);
   try {
     const response = await axios.get(url);
     const data = response.data;

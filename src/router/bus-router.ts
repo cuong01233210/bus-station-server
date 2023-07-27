@@ -10,6 +10,7 @@ import * as kdTreeController from "../controller/kdTree-controller";
 import * as userStartStringController from "../controller/user-start-string-controller";
 import * as userEndStringController from "../controller/user-end-string-controller";
 import * as testGeocodingController from "../controller/test-geocoding-controller";
+import * as userInputStringController from "../controller/user-input-string.controller";
 const router = Router();
 const todoValidator = body("task").trim().notEmpty();
 router.get("/buses-data", busController.getAllBuses);
@@ -36,17 +37,18 @@ router.patch(
 );
 
 router.get("/user-start-string", userStartStringController.getUserStartString);
-router.patch(
-  "/user-start-string/:userStartStringID",
-  userStartStringController.updateUserStartString
-);
+// router.patch(
+//   "/user-start-string/:userStartStringID",
+//   userStartStringController.updateUserStartString
+// );
 
 router.get("/user-end-string", userEndStringController.getUserEndString);
-router.patch(
-  "/user-end-string/:userEndStringID",
-  userEndStringController.updateUserEndString
-);
-
+// router.patch(
+//   "/user-end-string/:userEndStringID",
+//   userEndStringController.updateUserEndString
+// );
+router.patch("/user-input-string", userInputStringController.updateUserString);
+router.get("/user-input-string", userInputStringController.getUserString);
 //router.get("/test-geocoding", testGeocodingController.callGetUsersRoute);
 
 export default router;
