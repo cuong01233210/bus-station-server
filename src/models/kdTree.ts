@@ -99,14 +99,14 @@ class KDTree {
 
     return bestPair;
   }
-  nearestDis(queryPoint: MyPoint): number {
+  nearestDis(queryPoint: MyPoint): BestPair {
     const bestTemp: BestPair = { point: null, dist: Infinity };
     const bestPair: BestPair = this.findNearestPoint(
       queryPoint,
       this.root,
       bestTemp
     );
-    return bestPair.dist;
+    return bestPair;
   }
 }
 
