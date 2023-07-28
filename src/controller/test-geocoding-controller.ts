@@ -41,6 +41,36 @@ export async function convertIn4(address: string): Promise<LocationIn4> {
     return ans;
   } catch (error) {
     console.error("Error retrieving geocode:", error);
-    throw error;
+    // throw error;
+    // chỗ này xử lý trường hợp định dạng json của link lại biến đổi
+    return ans;
   }
+}
+
+// Hàm lấy thông tin về đường đi giữa hai điểm A và B
+export async function getDirectionsAndDistance(
+  lat1: number,
+  lng1: number,
+  lat2: number,
+  lng2: number
+): Promise<number> {
+  const apiKey = "AIzaSyD7cbZWKU14bbQl9qv1G62kSH2gyyo8i0g";
+  const url = `https://maps.googleapis.com/maps/api/directions/json?origin=${lat1},${lng1}&destination=${lat2},${lng2}&key=${apiKey}`;
+
+  try {
+    const response = await axios.get(url);
+    const data = response.data;
+    if (data.routes.length > 0) {
+      const route = data.routes[0];
+      const distanceInMeters = route.legs.reduce(
+        (sum: number, leg: any) => sum + leg.distance.value,
+        0
+      );
+      return distanceInMeters;
+    }
+  } catch (error) {
+    console.error("Error retrieving directions:", error);
+  }
+
+  return 100000000;
 }
