@@ -13,7 +13,7 @@ export async function convertIn4(address: string): Promise<LocationIn4> {
     district: "ha noi",
   };
   let compoundCode = "";
-  const apiKey = "AIzaSyD7cbZWKU14bbQl9qv1G62kSH2gyyo8i0g";
+  const apiKey = "AIzaSyCtVO633Hic-Li4fzlY6A31ZO2joRaEJx8";
   const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
     address
   )}&key=${apiKey}`;
@@ -40,9 +40,28 @@ export async function convertIn4(address: string): Promise<LocationIn4> {
     }
     return ans;
   } catch (error) {
-    console.error("Error retrieving geocode:", error);
+    //console.error("Error retrieving geocode1:", error);
     // throw error;
     // chỗ này xử lý trường hợp định dạng json của link lại biến đổi
+    try {
+      const response = await axios.get(url);
+      const data = response.data;
+      const results = data.results;
+      if (results.length > 0) {
+        const firstResult = results[0];
+        const district = firstResult.address_components[1].long_name;
+        const lat = firstResult.geometry.location.lat;
+        const long = firstResult.geometry.location.lng;
+
+        ans.district = district;
+        ans.lat = lat;
+        ans.long = long;
+      }
+      return ans;
+      // console.log(results);
+    } catch (error) {
+      console.error("Error retrieving geocode2:", error);
+    }
     return ans;
   }
 }
@@ -54,7 +73,7 @@ export async function getDirectionsAndDistance(
   lat2: number,
   lng2: number
 ): Promise<number> {
-  const apiKey = "AIzaSyD7cbZWKU14bbQl9qv1G62kSH2gyyo8i0g";
+  const apiKey = "AIzaSyCtVO633Hic-Li4fzlY6A31ZO2joRaEJx8";
   const url = `https://maps.googleapis.com/maps/api/directions/json?origin=${lat1},${lng1}&destination=${lat2},${lng2}&key=${apiKey}`;
 
   try {
