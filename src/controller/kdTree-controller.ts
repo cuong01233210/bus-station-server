@@ -2,7 +2,7 @@ import KDTree from "../models/kdTree";
 import MyNode from "../models/my-node";
 import MyPoint from "../models/my-point";
 import BestPair from "../models/best-pair";
-import e, { Request, Response } from "express";
+import { Request, Response } from "express";
 import { userStrings } from "./user-input-string.controller";
 import { InputIn4 } from "./user-input-string.controller";
 import { updateUserString2 } from "./user-input-string.controller";
@@ -57,7 +57,7 @@ export async function findRouteAndStation(req: Request, res: Response) {
     (item) => item.district == inputIn4.endIn4.district
   );
 
-  if (busStationsWithSameDistrictNearStart[0]?.busStationIn4 !== undefined) {
+  try {
     for (
       let i = 0;
       i < busStationsWithSameDistrictNearStart[0].busStationIn4.length;
@@ -69,7 +69,7 @@ export async function findRouteAndStation(req: Request, res: Response) {
       };
       nearStartPoints.push(tempPoint);
     }
-  } else {
+  } catch (error) {
     // response người dùng nhập các khác (làm sau)
     let tempPoint: MyPoint = {
       x: 1000,
@@ -98,15 +98,22 @@ export async function findRouteAndStation(req: Request, res: Response) {
       xCoordinateStart,
       yCoordinateStart
     );
-    console.log("Distance:", distanceInMeters, "meters");
+    console.log("Distance1:", distanceInMeters, "meters");
 
-    const nearStartCandidate =
-      busStationsWithSameDistrictNearStart[0].busStationIn4.filter(
-        (item) => item.lat == xCoordinateStart && item.long == yCoordinateStart
+    // console.log(busStationsWithSameDistrictNearStart);
+    try {
+      const nearStartCandidate =
+        busStationsWithSameDistrictNearStart[0].busStationIn4.filter(
+          (item) =>
+            item.lat == xCoordinateStart && item.long == yCoordinateStart
+        );
+      console.log("nearStartCandidate: ");
+      console.log(nearStartCandidate);
+    } catch (error) {
+      console.log(
+        "nearStartCandidate is undefined because now don't have any matched district between db and input location. No matching candidate found."
       );
-
-    console.log("nearStartCandidate: ");
-    console.log(nearStartCandidate);
+    }
   }
 
   if (busStationsWithSameDistrictNearEnd[0]?.busStationIn4 !== undefined) {
@@ -137,7 +144,7 @@ export async function findRouteAndStation(req: Request, res: Response) {
 
   const endQueryPoint = new MyPoint(inputIn4.endIn4.lat, inputIn4.endIn4.long);
   const nearestDistanceNearEnd = endTree.nearestDis(endQueryPoint);
-  console.log("Nearest distance:", nearestDistanceNearStart);
+  console.log("Nearest distance2:", nearestDistanceNearEnd);
   const xCoordinateEnd = nearestDistanceNearEnd.point?.x;
   const yCoordinateEnd = nearestDistanceNearEnd.point?.y;
   if (xCoordinateEnd !== undefined && yCoordinateEnd !== undefined) {
@@ -147,7 +154,20 @@ export async function findRouteAndStation(req: Request, res: Response) {
       xCoordinateEnd,
       yCoordinateEnd
     );
-    console.log("Distance:", distanceInMeters, "meters");
+    console.log("Distance2:", distanceInMeters, "meters");
+
+    try {
+      const nearEndCandidate =
+        busStationsWithSameDistrictNearEnd[0].busStationIn4.filter(
+          (item) => item.lat === xCoordinateEnd && item.long === yCoordinateEnd
+        );
+      console.log("nearEndCandidate: ");
+      console.log(nearEndCandidate);
+    } catch (error) {
+      console.log(
+        "nearEndCandidate is undefined because now don't have any matched district between db and input location. No matching candidate found."
+      );
+    }
   }
   res.status(200);
 }
