@@ -2,27 +2,45 @@ import { BusesDatabase } from "../databases/buses-database";
 import { ObjectId, Db, Double } from "mongodb";
 
 class Bus {
-  id?: string;
-  busName: string;
-  price: Double;
+  bus: string;
+  price: number;
   activityTime: string;
-  timeInterval: string;
-  chieuDi: Array<string>;
-  chieuVe: Array<string>;
+  gianCachChayXe: string;
+  chieuDi: {
+    stationName: string;
+    hasBus: string[];
+    lat: number;
+    long: number;
+  }[];
+  chieuVe: {
+    stationName: string;
+    hasBus: string[];
+    lat: number;
+    long: number;
+  }[];
 
   constructor(
-    busName: string,
-    price: Double,
+    bus: string,
+    price: number,
     activityTime: string,
-    timeInterval: string,
-    chieuDi: Array<string>,
-    chieuVe: Array<string>,
-    id?: string
+    gianCachChayXe: string,
+    chieuDi: {
+      stationName: string;
+      hasBus: string[];
+      lat: number;
+      long: number;
+    }[],
+    chieuVe: {
+      stationName: string;
+      hasBus: string[];
+      lat: number;
+      long: number;
+    }[]
   ) {
-    this.busName = busName;
+    this.bus = bus;
     this.price = price;
     this.activityTime = activityTime;
-    this.timeInterval = timeInterval;
+    this.gianCachChayXe = gianCachChayXe;
     this.chieuDi = chieuDi;
     this.chieuVe = chieuVe;
   }
@@ -30,21 +48,18 @@ class Bus {
   static async getBusIn4() {
     const db: Db = BusesDatabase.getDb();
     const documents = await db.collection("routes").find().toArray();
-    // console.log(documents);
 
     const buses: Bus[] = documents.map(
       (doc) =>
         new Bus(
-          doc.busName,
+          doc.bus,
           doc.price,
           doc.activityTime,
-          doc.timeInterval,
+          doc.gianCachChayXe,
           doc.chieuDi,
-          doc.chieuVe,
-          doc._id.toString()
+          doc.chieuVe
         )
     );
-    //console.log(buses);
     return buses;
   }
 }
