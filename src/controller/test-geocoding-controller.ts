@@ -13,7 +13,7 @@ export async function convertIn4(address: string): Promise<LocationIn4> {
     district: "ha noi",
   };
   let compoundCode = "";
-  const apiKey = "AIzaSyCtVO633Hic-Li4fzlY6A31ZO2joRaEJx8";
+  const apiKey = "AIzaSyCWrq4a4r3qH8_3hzWRDuxfPdYO8z2LJSs";
   const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
     address
   )}&key=${apiKey}`;
@@ -73,9 +73,11 @@ export async function getDirectionsAndDistance(
   lat2: number,
   lng2: number
 ): Promise<number> {
-  const apiKey = "AIzaSyCtVO633Hic-Li4fzlY6A31ZO2joRaEJx8";
+  const apiKey = "AIzaSyCWrq4a4r3qH8_3hzWRDuxfPdYO8z2LJSs";
   const url = `https://maps.googleapis.com/maps/api/directions/json?origin=${lat1},${lng1}&destination=${lat2},${lng2}&key=${apiKey}`;
 
+  console.log("distance url");
+  console.log(url);
   try {
     const response = await axios.get(url);
     const data = response.data;
@@ -86,10 +88,12 @@ export async function getDirectionsAndDistance(
         0
       );
       return distanceInMeters;
+    } else {
+      console.log(data);
+      return 999999;
     }
   } catch (error) {
     console.error("Error retrieving directions:", error);
+    return 100000000;
   }
-
-  return 100000000;
 }

@@ -8,6 +8,7 @@ import { InputIn4 } from "./user-input-string.controller";
 import { updateUserString2 } from "./user-input-string.controller";
 import BusStationsByDistrict from "../models/bus-stations-by-district";
 import { getDirectionsAndDistance } from "./test-geocoding-controller";
+import Bus from "../models/bus";
 export function testKDtree(req: Request, res: Response) {
   const points: MyPoint[] = [
     new MyPoint(2, 3),
@@ -27,6 +28,12 @@ export function testKDtree(req: Request, res: Response) {
   res.status(200).json({ message: "test sucessfully" });
 }
 
+interface BusIn4Struct {
+  name: string;
+  bus: Array<string>;
+  lat: number;
+  long: number;
+}
 export async function findRouteAndStation(req: Request, res: Response) {
   let nearStartPoints: MyPoint[] = [];
   let nearEndPoints: MyPoint[] = [];
@@ -57,6 +64,8 @@ export async function findRouteAndStation(req: Request, res: Response) {
     (item) => item.district == inputIn4.endIn4.district
   );
 
+  let nearStartCandidate: Array<BusIn4Struct> = [];
+  let nearEndCandidate: Array<BusIn4Struct> = [];
   try {
     for (
       let i = 0;
@@ -76,44 +85,6 @@ export async function findRouteAndStation(req: Request, res: Response) {
       y: 1000,
     };
     nearStartPoints.push(tempPoint);
-  }
-
-  // kd tree cho nearest start point
-  const startTree = new KDTree(null, nearStartPoints);
-  startTree.build();
-  //startTree.printTree();
-
-  const startQueryPoint = new MyPoint(
-    inputIn4.startIn4.lat,
-    inputIn4.startIn4.long
-  );
-  const nearestDistanceNearStart = startTree.nearestDis(startQueryPoint);
-  console.log("Nearest distance:", nearestDistanceNearStart);
-  const xCoordinateStart = nearestDistanceNearStart.point?.x;
-  const yCoordinateStart = nearestDistanceNearStart.point?.y;
-  if (xCoordinateStart !== undefined && yCoordinateStart !== undefined) {
-    const distanceInMeters = await getDirectionsAndDistance(
-      inputIn4.startIn4.lat,
-      inputIn4.startIn4.long,
-      xCoordinateStart,
-      yCoordinateStart
-    );
-    console.log("Distance1:", distanceInMeters, "meters");
-
-    // console.log(busStationsWithSameDistrictNearStart);
-    try {
-      const nearStartCandidate =
-        busStationsWithSameDistrictNearStart[0].busStationIn4.filter(
-          (item) =>
-            item.lat == xCoordinateStart && item.long == yCoordinateStart
-        );
-      console.log("nearStartCandidate: ");
-      console.log(nearStartCandidate);
-    } catch (error) {
-      console.log(
-        "nearStartCandidate is undefined because now don't have any matched district between db and input location. No matching candidate found."
-      );
-    }
   }
 
   if (busStationsWithSameDistrictNearEnd[0]?.busStationIn4 !== undefined) {
@@ -137,29 +108,32 @@ export async function findRouteAndStation(req: Request, res: Response) {
     nearEndPoints.push(tempPoint);
   }
 
+  console.log("nearEndPoints: ", nearEndPoints);
+
   // kd tree cho nearest end point
   const endTree = new KDTree(null, nearEndPoints);
   endTree.build();
   //startTree.printTree();
 
-  const endQueryPoint = new MyPoint(inputIn4.endIn4.lat, inputIn4.endIn4.long);
-  const nearestDistanceNearEnd = endTree.nearestDis(endQueryPoint);
-  console.log("Nearest distance2:", nearestDistanceNearEnd);
-  const xCoordinateEnd = nearestDistanceNearEnd.point?.x;
-  const yCoordinateEnd = nearestDistanceNearEnd.point?.y;
-  if (xCoordinateEnd !== undefined && yCoordinateEnd !== undefined) {
+  const endQueryPointp = new MyPoint(inputIn4.endIn4.lat, inputIn4.endIn4.long);
+  const nearestDistanceNearEndp = endTree.nearestDis(endQueryPointp);
+  console.log("Nearest distance2:", nearestDistanceNearEndp);
+  const xCoordinateEndp = nearestDistanceNearEndp.point?.x;
+  const yCoordinateEndp = nearestDistanceNearEndp.point?.y;
+  if (xCoordinateEndp !== undefined && yCoordinateEndp !== undefined) {
     const distanceInMeters = await getDirectionsAndDistance(
       inputIn4.endIn4.lat,
       inputIn4.endIn4.long,
-      xCoordinateEnd,
-      yCoordinateEnd
+      xCoordinateEndp,
+      yCoordinateEndp
     );
-    console.log("Distance2:", distanceInMeters, "meters");
+    //console.log("Distance2:", distanceInMeters, "meters");
 
     try {
-      const nearEndCandidate =
+      nearEndCandidate =
         busStationsWithSameDistrictNearEnd[0].busStationIn4.filter(
-          (item) => item.lat === xCoordinateEnd && item.long === yCoordinateEnd
+          (item) =>
+            item.lat === xCoordinateEndp && item.long === yCoordinateEndp
         );
       console.log("nearEndCandidate: ");
       console.log(nearEndCandidate);
@@ -169,5 +143,215 @@ export async function findRouteAndStation(req: Request, res: Response) {
       );
     }
   }
+
+  while (nearStartPoints.length > 0) {
+    // console.log("nearStartPoints: ", nearStartPoints);
+    // kd tree cho nearest start point
+    const startTree = new KDTree(null, nearStartPoints);
+    startTree.build();
+    //startTree.printTree();
+
+    const startQueryPoint = new MyPoint(
+      inputIn4.startIn4.lat,
+      inputIn4.startIn4.long
+    );
+    const nearestDistanceNearStart = startTree.nearestDis(startQueryPoint);
+    // console.log("Nearest distance:", nearestDistanceNearStart);
+    const xCoordinateStart = nearestDistanceNearStart.point?.x;
+    const yCoordinateStart = nearestDistanceNearStart.point?.y;
+    if (xCoordinateStart !== undefined && yCoordinateStart !== undefined) {
+      const distanceInMeters = await getDirectionsAndDistance(
+        inputIn4.startIn4.lat,
+        inputIn4.startIn4.long,
+        xCoordinateStart,
+        yCoordinateStart
+      );
+      console.log(
+        "khoảng cách cách điểm xuất phát:",
+        distanceInMeters,
+        "meters"
+      );
+
+      // console.log(busStationsWithSameDistrictNearStart);
+      try {
+        nearStartCandidate =
+          busStationsWithSameDistrictNearStart[0].busStationIn4.filter(
+            (item) =>
+              item.lat == xCoordinateStart && item.long == yCoordinateStart
+          );
+        //console.log("nearStartCandidate: ");
+        //console.log(nearStartCandidate);
+      } catch (error) {
+        console.log(
+          "nearStartCandidate is undefined because now don't have any matched district between db and input location. No matching candidate found."
+        );
+      }
+    }
+
+    // loop route cua UCV X
+    // for (let i = 0; i < nearStartCandidate[0].bus.length; i++) {
+    //   console.log(nearStartCandidate[0].bus[i]);
+    // }
+
+    const buses = await Bus.getBusIn4();
+    //console.log(buses);
+    const endQueryPoint = new MyPoint(
+      inputIn4.endIn4.lat,
+      inputIn4.endIn4.long
+    );
+    for (let busCount = 0; busCount < buses.length; busCount++) {
+      let chieuDiLength = buses[busCount].chieuDi.length;
+      let chieuVeLength = buses[busCount].chieuVe.length;
+
+      let f1Points: MyPoint[] = [];
+      let chieuDiCount = 0;
+      let chieuVeCount = 0;
+      for (; chieuDiCount < chieuDiLength; ) {
+        //console.log(buses[busCount].chieuDi[chieuDiCount]);
+        if (
+          // fix lại đoạn này là phải gần nearEndCandidate, bây giờ bước 1 là tìm lại nearEndCandidate đã
+          // kiểu đây là ngồi trên xe buýt từ vị trí X rồi nên xuống đâu chả được,chứ ai lại đi bộ tới tít cái nearEnd
+          buses[busCount].chieuDi[chieuDiCount].stationName ==
+          nearEndCandidate[0].name
+        ) {
+          // console.log(chieuDiCount);
+          //console.log(buses[busCount].chieuDi[chieuDiCount]);
+          for (; chieuDiCount < chieuDiLength; ) {
+            let f1Point = {
+              x: buses[busCount].chieuDi[chieuDiCount].lat,
+              y: buses[busCount].chieuDi[chieuDiCount].long,
+            };
+            f1Points.push(f1Point);
+            chieuDiCount++;
+          }
+        }
+        chieuDiCount++;
+      }
+      //console.log(f1Points);
+      console.log("");
+
+      if (f1Points.length > 0) {
+        const f1Tree = new KDTree(null, f1Points);
+        f1Tree.build();
+        const nearestDistanceNearEnd = f1Tree.nearestDis(endQueryPoint);
+
+        console.log(nearestDistanceNearEnd);
+        const xCoordinateEnd = nearestDistanceNearEnd.point?.x;
+        const yCoordinateEnd = nearestDistanceNearEnd.point?.y;
+        let distanceEndInMeters = -1;
+        if (xCoordinateEnd !== undefined && yCoordinateEnd !== undefined) {
+          distanceEndInMeters = await getDirectionsAndDistance(
+            inputIn4.endIn4.lat,
+            inputIn4.endIn4.long,
+            xCoordinateEnd,
+            yCoordinateEnd
+          );
+          console.log(
+            "khoảng cách cách điểm đích ở trạm xe buýt cuối:",
+            distanceEndInMeters,
+            "meters"
+          );
+        }
+
+        if (
+          distanceEndInMeters > 0 &&
+          distanceEndInMeters < inputIn4.userKm * 1000
+        ) {
+          try {
+            const nearEnd = busStationsByDistrict.flatMap((district) =>
+              district.busStationIn4.filter(
+                (station) =>
+                  station.lat === nearestDistanceNearEnd.point?.x &&
+                  station.long === nearestDistanceNearEnd.point.y
+              )
+            );
+            console.log("route: ", buses[busCount].bus);
+            console.log("trạm xe buýt gần đích người dùng cần đến", nearEnd);
+            return;
+          } catch (error) {
+            console.log("cùng quận ở địa điểm đích không có trạm xe buýt");
+          }
+        }
+        // nếu không khoảng cách > người dùng cho thì tìm tiếp
+        f1Points = [];
+      }
+
+      for (; chieuVeCount < chieuVeLength; ) {
+        if (
+          buses[busCount].chieuVe[chieuVeCount].stationName ==
+          nearEndCandidate[0].name
+        ) {
+          for (; chieuVeCount < chieuVeLength; ) {
+            let f1Point = {
+              x: buses[busCount].chieuVe[chieuVeCount].lat,
+              y: buses[busCount].chieuVe[chieuVeCount].long,
+            };
+            f1Points.push(f1Point);
+            chieuVeCount++;
+          }
+        }
+        chieuVeCount++;
+      }
+      if (f1Points.length > 0) {
+        const f1Tree = new KDTree(null, f1Points);
+        f1Tree.build();
+        const nearestDistanceNearEnd = f1Tree.nearestDis(endQueryPoint);
+
+        //console.log(nearestDistanceNearEnd);
+
+        const xCoordinateEnd = nearestDistanceNearEnd.point?.x;
+        const yCoordinateEnd = nearestDistanceNearEnd.point?.y;
+        let distanceEndInMeters = -1;
+        if (xCoordinateEnd !== undefined && yCoordinateEnd !== undefined) {
+          distanceEndInMeters = await getDirectionsAndDistance(
+            inputIn4.endIn4.lat,
+            inputIn4.endIn4.long,
+            xCoordinateEnd,
+            yCoordinateEnd
+          );
+
+          console.log(
+            "khoảng cách gần nhất với đích ở trạm xe buýt cuối:",
+            distanceEndInMeters,
+            "meters"
+          );
+        }
+
+        if (
+          distanceEndInMeters > 0 &&
+          distanceEndInMeters < inputIn4.userKm * 1000
+        ) {
+          try {
+            const nearEnd = busStationsByDistrict.flatMap((district) =>
+              district.busStationIn4.filter(
+                (station) =>
+                  station.lat === nearestDistanceNearEnd.point?.x &&
+                  station.long === nearestDistanceNearEnd.point.y
+              )
+            );
+            console.log("route: ", buses[busCount].bus);
+            console.log("trạm xe buýt gần đích người dùng cần đến", nearEnd);
+            return;
+          } catch (error) {
+            console.log("cùng quận ở địa điểm đích không có trạm xe buýt");
+          }
+        }
+        // nếu không khoảng cách > người dùng cho thì tìm tiếp
+        f1Points = [];
+      }
+    }
+
+    // Lọc các phần tử có giá trị x và y không trùng với nearestDistanceNearStart
+    const filteredNearStartPoints = nearStartPoints.filter(
+      (point) => point.x !== xCoordinateStart || point.y !== yCoordinateStart
+    );
+
+    // Gán lại mảng mới cho nearStartPoints để xoá các phần tử không thỏa mãn
+    nearStartPoints = filteredNearStartPoints;
+  }
+
   res.status(200);
 }
+
+// chưa giải quyết trường hợp nếu khoảng cách từ vị trí ng dùng -> trạm xuất phát > ng dùng nhập
+// chiều nghiên cứu nốt đoạn đó nên cắt gọt như nào là ok
