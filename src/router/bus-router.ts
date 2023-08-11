@@ -49,7 +49,7 @@ router.get("/user-end-string", userEndStringController.getUserEndString);
 // );
 
 //router.patch("/user-input-string", userInputStringController.updateUserString);
-router.get("/user-input-string", userInputStringController.getUserString);
+
 //router.get("/test-geocoding", testGeocodingController.callGetUsersRoute);
 router.patch("/user-input-string", kdTreeController.findRouteAndStation);
 export default router;
