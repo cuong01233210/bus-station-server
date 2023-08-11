@@ -283,6 +283,11 @@ export async function findRouteAndStation(req: Request, res: Response) {
             );
             console.log("route: ", buses[busCount].bus);
             console.log("trạm xe buýt gần đích người dùng cần đến", nearEnd);
+            res.status(200).json({
+              route: buses[busCount].bus,
+              stationName: nearEnd[0].name,
+              distanceInMeters: distanceEndInMeters,
+            });
             return;
           } catch (error) {
             console.log("cùng quận ở địa điểm đích không có trạm xe buýt");
@@ -348,7 +353,7 @@ export async function findRouteAndStation(req: Request, res: Response) {
             console.log("route: ", buses[busCount].bus, "\n xuong dong \n /n");
             console.log("trạm xe buýt gần đích người dùng cần đến", nearEnd);
             res.status(200).json({
-              route: buses[busCount],
+              route: buses[busCount].bus,
               stationName: nearEnd[0].name,
               distanceInMeters: distanceEndInMeters,
             });
@@ -356,8 +361,8 @@ export async function findRouteAndStation(req: Request, res: Response) {
           } catch (error) {
             console.log(error);
           }
-          res.status(300).json({ message: "success" });
-          return;
+          //res.status(300).json({ message: "success" });
+          //return;
         }
         // nếu không khoảng cách > người dùng cho thì tìm tiếp
         f1Points = [];
