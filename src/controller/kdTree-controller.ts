@@ -80,6 +80,8 @@ export async function findRouteAndStation(req: Request, res: Response) {
     }
   } catch (error) {
     // response người dùng nhập các khác (làm sau)
+    res.status(400).json({ message: "không có quận nào ở gần xuất phát đâu" });
+    return;
     let tempPoint: MyPoint = {
       x: 1000,
       y: 1000,
@@ -101,6 +103,10 @@ export async function findRouteAndStation(req: Request, res: Response) {
     }
   } else {
     // response người dùng nhập các khác (làm sau)
+    res
+      .status(400)
+      .json({ message: "không có trạm nào cùng quận ở gần đích đâu" });
+    return;
     let tempPoint: MyPoint = {
       x: 1000,
       y: 1000,
@@ -138,6 +144,11 @@ export async function findRouteAndStation(req: Request, res: Response) {
       console.log("nearEndCandidate: ");
       console.log(nearEndCandidate);
     } catch (error) {
+      res.status(400).json({
+        error:
+          "nearEndCandidate is undefined because now don't have any matched district between db and input location. No matching candidate found.",
+      });
+      return;
       console.log(
         "nearEndCandidate is undefined because now don't have any matched district between db and input location. No matching candidate found."
       );
@@ -192,6 +203,11 @@ export async function findRouteAndStation(req: Request, res: Response) {
     // for (let i = 0; i < nearStartCandidate[0].bus.length; i++) {
     //   console.log(nearStartCandidate[0].bus[i]);
     // }
+
+    // res
+    //   .status(200)
+    //   .json({ route: "01", stationName: "test", distanceInMeters: 1000 });
+    // đến đoạn này là thành công
 
     const buses = await Bus.getBusIn4();
     //console.log(buses);
@@ -329,12 +345,19 @@ export async function findRouteAndStation(req: Request, res: Response) {
                   station.long === nearestDistanceNearEnd.point.y
               )
             );
-            console.log("route: ", buses[busCount].bus);
+            console.log("route: ", buses[busCount].bus, "\n xuong dong \n /n");
             console.log("trạm xe buýt gần đích người dùng cần đến", nearEnd);
+            res.status(200).json({
+              route: buses[busCount],
+              stationName: nearEnd[0].name,
+              distanceInMeters: distanceEndInMeters,
+            });
             return;
           } catch (error) {
-            console.log("cùng quận ở địa điểm đích không có trạm xe buýt");
+            console.log(error);
           }
+          res.status(300).json({ message: "success" });
+          return;
         }
         // nếu không khoảng cách > người dùng cho thì tìm tiếp
         f1Points = [];
@@ -350,7 +373,8 @@ export async function findRouteAndStation(req: Request, res: Response) {
     nearStartPoints = filteredNearStartPoints;
   }
 
-  res.status(200);
+  res.status(200).json({ message: "end game" });
+  return;
 }
 
 // chưa giải quyết trường hợp nếu khoảng cách từ vị trí ng dùng -> trạm xuất phát > ng dùng nhập
