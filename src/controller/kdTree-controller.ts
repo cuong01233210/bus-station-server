@@ -34,9 +34,79 @@ interface BusIn4Struct {
   lat: number;
   long: number;
 }
+
+// hàm tìm các điểm cùng quận
+function findNearPoints(
+  busStationsWithSameDistrict: BusStationsByDistrict[]
+): MyPoint[] {
+  let nearPoints: MyPoint[] = [];
+  try {
+    for (
+      let i = 0;
+      i < busStationsWithSameDistrict[0].busStationIn4.length;
+      i++
+    ) {
+      let tempPoint: MyPoint = {
+        x: busStationsWithSameDistrict[0].busStationIn4[i].lat,
+        y: busStationsWithSameDistrict[0].busStationIn4[i].long,
+      };
+      nearPoints.push(tempPoint);
+    }
+  } catch (error) {
+    // response người dùng nhập các khác (làm sau)
+    //res.status(400).json({ message: "không có quận nào ở gần xuất phát //đâu" });
+    let tempPoint: MyPoint = {
+      x: 1000,
+      y: 1000,
+    };
+    nearPoints.push(tempPoint);
+  }
+  return nearPoints;
+}
+
+// hàm tìm các ứng cử viên, kiểu chọn ra điểm nào gần vị trí ng dùng yêu cầu nhất trong tập các điểm cùng quận đó
+function findCandidate(
+  nearPoints: MyPoint[],
+  queryPoint: MyPoint,
+  busStationsWithSameDistrict: BusStationsByDistrict[]
+): BusIn4Struct[] {
+  let nearCandidate: BusIn4Struct[] = [];
+  const tree = new KDTree(null, nearPoints);
+  tree.build();
+  const nearestDistanceLocate = tree.nearestDis(queryPoint);
+  const xCoor = nearestDistanceLocate.point?.x;
+  const yCoor = nearestDistanceLocate.point?.y;
+
+  if (xCoor !== undefined && yCoor !== undefined) {
+    try {
+      nearCandidate = busStationsWithSameDistrict[0].busStationIn4.filter(
+        (item) => item.lat === xCoor && item.long === yCoor
+      );
+    } catch (error) {
+      console.log(
+        "nearEndCandidate is undefined because now don't have any matched district between db and input location. No matching candidate found."
+      );
+      const falseCandidate = {
+        name: "falseCandidate",
+        bus: [],
+        lat: 1000,
+        long: 1000,
+      };
+      nearCandidate.push(falseCandidate);
+    }
+  } else {
+    const falseCandidate = {
+      name: "falseCandidate",
+      bus: [],
+      lat: 1000,
+      long: 1000,
+    };
+    nearCandidate.push(falseCandidate);
+  }
+  return nearCandidate;
+}
+
 export async function findRouteAndStation(req: Request, res: Response) {
-  let nearStartPoints: MyPoint[] = [];
-  let nearEndPoints: MyPoint[] = [];
   const userId = req.body.id;
   const startString = req.body.startString;
   const endString = req.body.endString;
@@ -50,164 +120,73 @@ export async function findRouteAndStation(req: Request, res: Response) {
     userKm
   );
 
-  // console.log(inputIn4.startIn4);
-  // console.log(inputIn4.endIn4);
-  // console.log(inputIn4.userKm);
-
   const busStationsByDistrict =
     await BusStationsByDistrict.getBusStationsByDistrictIn4();
-  const busStationsWithSameDistrictNearStart = busStationsByDistrict.filter(
-    (item) => item.district == inputIn4.startIn4.district
-  );
+  const busStationsWithSameDistrictNearStart: BusStationsByDistrict[] =
+    busStationsByDistrict.filter(
+      (item) => item.district == inputIn4.startIn4.district
+    );
 
   const busStationsWithSameDistrictNearEnd = busStationsByDistrict.filter(
     (item) => item.district == inputIn4.endIn4.district
   );
 
   let nearStartCandidate: Array<BusIn4Struct> = [];
-  let nearEndCandidate: Array<BusIn4Struct> = [];
-  try {
-    for (
-      let i = 0;
-      i < busStationsWithSameDistrictNearStart[0].busStationIn4.length;
-      i++
-    ) {
-      let tempPoint: MyPoint = {
-        x: busStationsWithSameDistrictNearStart[0].busStationIn4[i].lat,
-        y: busStationsWithSameDistrictNearStart[0].busStationIn4[i].long,
-      };
-      nearStartPoints.push(tempPoint);
-    }
-  } catch (error) {
+
+  // tìm các điểm cùng quận với nơi người dùng đứng
+  let nearStartPoints: MyPoint[] = findNearPoints(
+    busStationsWithSameDistrictNearStart
+  );
+  if (nearStartPoints[0].x == 1000) {
     // response người dùng nhập các khác (làm sau)
     res.status(400).json({ message: "không có quận nào ở gần xuất phát đâu" });
     return;
-    let tempPoint: MyPoint = {
-      x: 1000,
-      y: 1000,
-    };
-    nearStartPoints.push(tempPoint);
   }
 
-  if (busStationsWithSameDistrictNearEnd[0]?.busStationIn4 !== undefined) {
-    for (
-      let j = 0;
-      j < busStationsWithSameDistrictNearEnd[0].busStationIn4.length;
-      j++
-    ) {
-      let tempPoint: MyPoint = {
-        x: busStationsWithSameDistrictNearEnd[0].busStationIn4[j].lat,
-        y: busStationsWithSameDistrictNearEnd[0].busStationIn4[j].long,
-      };
-      nearEndPoints.push(tempPoint);
-    }
-  } else {
-    // response người dùng nhập các khác (làm sau)
+  // tìm các điểm cùng quận nơi đích người dùng muốn đến
+  let nearEndPoints: MyPoint[] = findNearPoints(
+    busStationsWithSameDistrictNearEnd
+  );
+  if (nearEndPoints[0].x == 1000) {
     res
       .status(400)
       .json({ message: "không có trạm nào cùng quận ở gần đích đâu" });
     return;
-    let tempPoint: MyPoint = {
-      x: 1000,
-      y: 1000,
-    };
-    nearEndPoints.push(tempPoint);
   }
 
-  console.log("nearEndPoints: ", nearEndPoints);
-
-  // kd tree cho nearest end point
-  const endTree = new KDTree(null, nearEndPoints);
-  endTree.build();
-  //startTree.printTree();
-
+  // tìm ứng cử viên cùng quận ng dùng nhập mà gần nhất của đích
   const endQueryPointp = new MyPoint(inputIn4.endIn4.lat, inputIn4.endIn4.long);
-  const nearestDistanceNearEndp = endTree.nearestDis(endQueryPointp);
-  console.log("Nearest distance2:", nearestDistanceNearEndp);
-  const xCoordinateEndp = nearestDistanceNearEndp.point?.x;
-  const yCoordinateEndp = nearestDistanceNearEndp.point?.y;
-  if (xCoordinateEndp !== undefined && yCoordinateEndp !== undefined) {
-    const distanceInMeters = await getDirectionsAndDistance(
-      inputIn4.endIn4.lat,
-      inputIn4.endIn4.long,
-      xCoordinateEndp,
-      yCoordinateEndp
-    );
-    //console.log("Distance2:", distanceInMeters, "meters");
-
-    try {
-      nearEndCandidate =
-        busStationsWithSameDistrictNearEnd[0].busStationIn4.filter(
-          (item) =>
-            item.lat === xCoordinateEndp && item.long === yCoordinateEndp
-        );
-      console.log("nearEndCandidate: ");
-      console.log(nearEndCandidate);
-    } catch (error) {
-      res.status(400).json({
-        error:
-          "nearEndCandidate is undefined because now don't have any matched district between db and input location. No matching candidate found.",
-      });
-      return;
-      console.log(
-        "nearEndCandidate is undefined because now don't have any matched district between db and input location. No matching candidate found."
-      );
-    }
+  let nearEndCandidate: Array<BusIn4Struct> = findCandidate(
+    nearEndPoints,
+    endQueryPointp,
+    busStationsWithSameDistrictNearEnd
+  );
+  if (nearEndCandidate[0].lat == 1000) {
+    res.status(400).json({
+      message:
+        "không tìm được ứng cử viên gần đích vì quận ở đích bạn nhập không có trong database",
+    });
+    return;
   }
 
   while (nearStartPoints.length > 0) {
-    // console.log("nearStartPoints: ", nearStartPoints);
-    // kd tree cho nearest start point
-    const startTree = new KDTree(null, nearStartPoints);
-    startTree.build();
-    //startTree.printTree();
-
     const startQueryPoint = new MyPoint(
       inputIn4.startIn4.lat,
       inputIn4.startIn4.long
     );
-    const nearestDistanceNearStart = startTree.nearestDis(startQueryPoint);
-    // console.log("Nearest distance:", nearestDistanceNearStart);
-    const xCoordinateStart = nearestDistanceNearStart.point?.x;
-    const yCoordinateStart = nearestDistanceNearStart.point?.y;
-    if (xCoordinateStart !== undefined && yCoordinateStart !== undefined) {
-      const distanceInMeters = await getDirectionsAndDistance(
-        inputIn4.startIn4.lat,
-        inputIn4.startIn4.long,
-        xCoordinateStart,
-        yCoordinateStart
-      );
-      console.log(
-        "khoảng cách cách điểm xuất phát:",
-        distanceInMeters,
-        "meters"
-      );
-
-      // console.log(busStationsWithSameDistrictNearStart);
-      try {
-        nearStartCandidate =
-          busStationsWithSameDistrictNearStart[0].busStationIn4.filter(
-            (item) =>
-              item.lat == xCoordinateStart && item.long == yCoordinateStart
-          );
-        //console.log("nearStartCandidate: ");
-        //console.log(nearStartCandidate);
-      } catch (error) {
-        console.log(
-          "nearStartCandidate is undefined because now don't have any matched district between db and input location. No matching candidate found."
-        );
-      }
+    // tìm ứng cử viên cùng quận ng dùng nhập mà gần nhất của xuất phát
+    nearStartCandidate = findCandidate(
+      nearStartPoints,
+      startQueryPoint,
+      busStationsWithSameDistrictNearStart
+    );
+    if (nearStartCandidate[0].lat == 1000) {
+      res.status(400).json({
+        message:
+          "không tìm được ứng cử viên gần vị trí xuất phát vì quận ở đích bạn nhập không có trong database",
+      });
+      return;
     }
-
-    // loop route cua UCV X
-    // for (let i = 0; i < nearStartCandidate[0].bus.length; i++) {
-    //   console.log(nearStartCandidate[0].bus[i]);
-    // }
-
-    // res
-    //   .status(200)
-    //   .json({ route: "01", stationName: "test", distanceInMeters: 1000 });
-    // đến đoạn này là thành công
 
     const buses = await Bus.getBusIn4();
     //console.log(buses);
@@ -361,8 +340,6 @@ export async function findRouteAndStation(req: Request, res: Response) {
           } catch (error) {
             console.log(error);
           }
-          //res.status(300).json({ message: "success" });
-          //return;
         }
         // nếu không khoảng cách > người dùng cho thì tìm tiếp
         f1Points = [];
@@ -371,14 +348,16 @@ export async function findRouteAndStation(req: Request, res: Response) {
 
     // Lọc các phần tử có giá trị x và y không trùng với nearestDistanceNearStart
     const filteredNearStartPoints = nearStartPoints.filter(
-      (point) => point.x !== xCoordinateStart || point.y !== yCoordinateStart
+      (point) =>
+        point.x !== nearStartCandidate[0].lat ||
+        point.y !== nearStartCandidate[0].long
     );
 
     // Gán lại mảng mới cho nearStartPoints để xoá các phần tử không thỏa mãn
     nearStartPoints = filteredNearStartPoints;
   }
 
-  res.status(200).json({ message: "end game" });
+  res.status(400).json({ message: "lọc hết rồi mà không có cái nào phù hợp" });
   return;
 }
 
