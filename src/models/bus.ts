@@ -7,14 +7,14 @@ class Bus {
   activityTime: string;
   gianCachChayXe: string;
   chieuDi: {
-    stationName: string;
-    hasBus: string[];
+    name: string;
+    bus: string[];
     lat: number;
     long: number;
   }[];
   chieuVe: {
-    stationName: string;
-    hasBus: string[];
+    name: string;
+    bus: string[];
     lat: number;
     long: number;
   }[];
@@ -25,14 +25,14 @@ class Bus {
     activityTime: string,
     gianCachChayXe: string,
     chieuDi: {
-      stationName: string;
-      hasBus: string[];
+      name: string;
+      bus: string[];
       lat: number;
       long: number;
     }[],
     chieuVe: {
-      stationName: string;
-      hasBus: string[];
+      name: string;
+      bus: string[];
       lat: number;
       long: number;
     }[]

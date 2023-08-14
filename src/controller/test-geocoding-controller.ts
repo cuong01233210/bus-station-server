@@ -5,7 +5,7 @@ interface LocationIn4 {
   long: number;
   district: string;
 }
-
+let API_KEY = "AIzaSyBBOZKnTM1fnmGD9vwXcWoJKl4EXE7kQmg";
 export async function convertIn4(address: string): Promise<LocationIn4> {
   const ans: LocationIn4 = {
     lat: 0.0,
@@ -13,7 +13,7 @@ export async function convertIn4(address: string): Promise<LocationIn4> {
     district: "ha noi",
   };
   let compoundCode = "";
-  const apiKey = "AIzaSyA_tFEjr7mEHVqvUUTQXVQDbNjnV3dYKPs";
+  const apiKey = API_KEY;
   const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
     address
   )}&key=${apiKey}`;
@@ -73,7 +73,7 @@ export async function getDirectionsAndDistance(
   lat2: number,
   lng2: number
 ): Promise<number> {
-  const apiKey = "AIzaSyA_tFEjr7mEHVqvUUTQXVQDbNjnV3dYKPs";
+  const apiKey = API_KEY;
   const url = `https://maps.googleapis.com/maps/api/directions/json?origin=${lat1},${lng1}&destination=${lat2},${lng2}&key=${apiKey}`;
 
   console.log("distance url");
