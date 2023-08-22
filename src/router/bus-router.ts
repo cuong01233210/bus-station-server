@@ -51,5 +51,6 @@ router.get("/user-end-string", userEndStringController.getUserEndString);
 //router.patch("/user-input-string", userInputStringController.updateUserString);
 
 //router.get("/test-geocoding", testGeocodingController.callGetUsersRoute);
-router.patch("/user-input-string", kdTreeController.findRouteAndStation);
+// router.patch("/user-input-string", kdTreeController.findRouteAndStation);
+router.patch("/user-input-string", kdTreeController.findByChangeRoute);
 export default router;
