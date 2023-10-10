@@ -12,6 +12,7 @@ export class BusesDatabase {
   }
 
   static getDb() {
+    //console.log(this.mongoClient.db());
     return this.mongoClient.db();
   }
 }
