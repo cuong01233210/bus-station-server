@@ -9,19 +9,22 @@ import * as userCoordinateController from "../controller/user-coordinate-control
 import * as kdTreeController from "../controller/kdTree-controller";
 import * as userStartStringController from "../controller/user-start-string-controller";
 import * as userEndStringController from "../controller/user-end-string-controller";
-import * as testGeocodingController from "../controller/test-geocoding-controller";
-import * as userInputStringController from "../controller/user-input-string.controller";
+
+import * as commentController from "../controller/comment-controller";
+import authValidator from "../middleware/auth-validation";
+
+import * as TodoController from "../controller/test-todo-controller";
 const router = Router();
-const todoValidator = body("task").trim().notEmpty();
+
 router.get("/buses-data", busController.getAllBuses);
 router.get("/bus-stations-data", busStationController.getAllBusStations);
 
-router.patch(
-  "/user-coordinate/:userCoordinateId",
-  todoValidator,
-  userCoordinateController.updateUserCoordinate
-);
-router.post("/user-coordinate", todoValidator);
+// router.patch(
+//   "/user-coordinate/:userCoordinateId",
+//   todoValidator,
+//   userCoordinateController.updateUserCoordinate
+// );
+// router.post("/user-coordinate", todoValidator);
 router.get("/user-coordinate", userCoordinateController.getUserCoordinate);
 router.patch(
   "/user-coordinate/:user-coorID",
@@ -51,6 +54,17 @@ router.get("/user-end-string", userEndStringController.getUserEndString);
 //router.patch("/user-input-string", userInputStringController.updateUserString);
 
 //router.get("/test-geocoding", testGeocodingController.callGetUsersRoute);
-// router.patch("/user-input-string", kdTreeController.findRouteAndStation);
-router.patch("/user-input-string", kdTreeController.findByChangeRoute);
+router.patch("/user-input-string", kdTreeController.findRouteAndStation);
+router.patch("/user-input-string2", kdTreeController.findByChangeRoute);
+
+router.patch("/find-bus-station-v1", kdTreeController.findBusStationsV1);
+
+router.post("/add-comment", authValidator, commentController.addComment);
+//router.patch("/");
+
+const todoValidator = body("task").trim().notEmpty();
+router.get("/todo", TodoController.getAllTodos);
+router.post("/todo", todoValidator, TodoController.addTodo);
+router.patch("/todo", todoValidator, TodoController.updateTodo);
+router.delete("/todo", TodoController.deleteTodo);
 export default router;

@@ -5,7 +5,7 @@ interface LocationIn4 {
   long: number;
   district: string;
 }
-let API_KEY = "AIzaSyBPEI1knB3WaJr0gBlYTBdmpS4CnPchSGc";
+let GOOGLEMAP_API_KEY = "AIzaSyCHFYiIDPNpHJn4mdjhhpLMpUk0qcUbFAI";
 export async function convertIn4(address: string): Promise<LocationIn4> {
   const ans: LocationIn4 = {
     lat: 0.0,
@@ -13,7 +13,7 @@ export async function convertIn4(address: string): Promise<LocationIn4> {
     district: "ha noi",
   };
   let compoundCode = "";
-  const apiKey = API_KEY;
+  const apiKey = GOOGLEMAP_API_KEY;
   const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
     address
   )}&key=${apiKey}`;
@@ -73,7 +73,7 @@ export async function getDirectionsAndDistance(
   lat2: number,
   lng2: number
 ): Promise<number> {
-  const apiKey = API_KEY;
+  const apiKey = GOOGLEMAP_API_KEY;
   const url = `https://maps.googleapis.com/maps/api/directions/json?origin=${lat1},${lng1}&destination=${lat2},${lng2}&key=${apiKey}`;
 
   console.log("distance url");
@@ -97,3 +97,53 @@ export async function getDirectionsAndDistance(
     return 100000000;
   }
 }
+
+// lấy lat long theo free geoconding api
+export async function convertIn4_2(address: String) {
+  const ans: LocationIn4 = {
+    lat: 0.0,
+    long: 0.0,
+    district: "ha noi",
+  };
+}
+
+// áp dụng công thức haversine để tính khoảng cách giữa 2 điểm với lat long cho trước (đường chim bay)
+export function haversineDistance(
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number
+) {
+  const R = 6371; // Bán kính trái đất ở đơn vị kilômét
+
+  // Đổi độ sang radian
+  const lat1Rad = (Math.PI / 180) * lat1;
+  const lon1Rad = (Math.PI / 180) * lon1;
+  const lat2Rad = (Math.PI / 180) * lat2;
+  const lon2Rad = (Math.PI / 180) * lon2;
+
+  // Độ thay đổi của latitude và longitude
+  const dLat = lat2Rad - lat1Rad;
+  const dLon = lon2Rad - lon1Rad;
+
+  // Sử dụng công thức Haversine để tính khoảng cách
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1Rad) *
+      Math.cos(lat2Rad) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  const distance = R * c;
+
+  return distance;
+}
+
+// Sử dụng hàm để tính khoảng cách giữa hai điểm
+const lat1 = 21.00365; // Vĩ độ điểm 1
+const lon1 = 105.6356667; // Kinh độ điểm 1
+const lat2 = 21.0495026; // Vĩ độ điểm 2
+const lon2 = 105.8849267; // Kinh độ điểm 2
+
+const result = haversineDistance(lat1, lon1, lat2, lon2);
+//console.log(`Khoảng cách giữa hai điểm là ${result.toFixed(2)} km`);

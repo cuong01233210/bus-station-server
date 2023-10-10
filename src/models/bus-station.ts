@@ -30,7 +30,7 @@ class BusStation {
     const documents = await db.collection("busStations").find().toArray();
     // console.log(documents);
 
-    const busStation: BusStation[] = documents.map(
+    const busStations: BusStation[] = documents.map(
       (doc) =>
         new BusStation(
           doc.name,
@@ -42,7 +42,7 @@ class BusStation {
         )
     );
     //console.log(buses);
-    return busStation;
+    return busStations;
   }
 }
 export default BusStation;

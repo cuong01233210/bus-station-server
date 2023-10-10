@@ -18,6 +18,8 @@ class KDTree {
 
     const k = points.length;
     const axis = d % k;
+    //console.log("points: ", points);
+    //console.log("d: ", d);
     const sortedPoints = points.sort((p1, p2) => {
       if (axis === 0) {
         return p1.x - p2.x;

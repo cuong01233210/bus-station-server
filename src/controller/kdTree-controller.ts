@@ -7,7 +7,11 @@ import { userStrings } from "./user-input-string.controller";
 import { InputIn4 } from "./user-input-string.controller";
 import { updateUserString2 } from "./user-input-string.controller";
 import BusStationsByDistrict from "../models/bus-stations-by-district";
-import { getDirectionsAndDistance } from "./test-geocoding-controller";
+import {
+  convertIn4,
+  getDirectionsAndDistance,
+  haversineDistance,
+} from "./test-geocoding-controller";
 import Bus from "../models/bus";
 export function testKDtree(req: Request, res: Response) {
   const points: MyPoint[] = [
@@ -40,6 +44,10 @@ interface OutputIn4 {
   stationStartName: string;
   stationEndName: string;
   distanceInMeters: number;
+  stationStartLat: number;
+  stationStartLong: number;
+  stationEndLat: number;
+  stationEndLong: number;
 }
 
 async function processDirection(
@@ -56,6 +64,10 @@ async function processDirection(
     stationStartName: "false station",
     stationEndName: "false station",
     distanceInMeters: -1,
+    stationStartLat: 21,
+    stationStartLong: 105,
+    stationEndLat: 21,
+    stationEndLong: 105,
   };
   let f1Points: MyPoint[] = [];
   let directionCount = 0;
@@ -126,6 +138,10 @@ async function processDirection(
           stationStartName: nearStartCandidate[0].name,
           stationEndName: nearEnd[0].name,
           distanceInMeters: distanceEndInMeters,
+          stationStartLat: nearStartCandidate[0].lat,
+          stationStartLong: nearStartCandidate[0].long,
+          stationEndLat: nearEnd[0].lat,
+          stationEndLong: nearEnd[0].long,
         };
         return outputIn4;
       } catch (error) {
@@ -250,7 +266,7 @@ export async function findRouteAndStation(req: Request, res: Response) {
   );
   if (nearStartPoints[0].x == 1000) {
     // response người dùng nhập các khác (làm sau)
-    res.status(400).json({ message: "không có quận nào ở gần xuất phát đâu" });
+    res.status(400).json({ message: "không tìm được trạm xe buýt phù hợp" });
     return;
   }
 
@@ -259,9 +275,7 @@ export async function findRouteAndStation(req: Request, res: Response) {
     busStationsWithSameDistrictNearEnd
   );
   if (nearEndPoints[0].x == 1000) {
-    res
-      .status(400)
-      .json({ message: "không có trạm nào cùng quận ở gần đích đâu" });
+    res.status(400).json({ message: "không tìm được trạm xe buýt phù hợp" });
     return;
   }
 
@@ -339,6 +353,10 @@ export async function findRouteAndStation(req: Request, res: Response) {
           stationStartName: outwardDirectionResult.stationStartName,
           stationEndName: outwardDirectionResult.stationEndName,
           distanceInMeters: outwardDirectionResult.distanceInMeters,
+          stationStartLat: outwardDirectionResult.stationStartLat,
+          stationStartLong: outwardDirectionResult.stationStartLong,
+          stationEndLat: outwardDirectionResult.stationEndLat,
+          stationEndLong: outwardDirectionResult.stationEndLong,
         });
         return;
       }
@@ -381,14 +399,32 @@ export async function findRouteAndStation(req: Request, res: Response) {
 function findSimilarBuses(busArr1: string[], busArr2: string[]): string[] {
   return busArr1.filter((bus) => busArr2.includes(bus));
 }
+interface OutputIn4V2 {
+  midStation: string;
+  midStationLat: number;
+  midStationLong: number;
+  midToEndRoute: string;
+  endStation: string;
+  endStationLat: number;
+  endStationLong: number;
+}
 // kiểm tra xem Y với outwardStation[k] có okela không
 function checkCanChangeRoute(
   outwardStationK: BusIn4Struct,
   nearEndCandidateK: BusIn4Struct,
   buses: Bus[]
-) {
+): OutputIn4V2 {
   //console.log("outwardStationK: ", outwardStationK.name);
   //console.log("nearEndCandidateK: ", nearEndCandidateK.name);
+  let outputIn4V2: OutputIn4V2 = {
+    midStation: "",
+    midStationLat: 0,
+    midStationLong: 0,
+    midToEndRoute: "",
+    endStation: "",
+    endStationLat: 0,
+    endStationLong: 0,
+  };
   const similarBuses1 = findSimilarBuses(
     outwardStationK.bus,
     nearEndCandidateK.bus
@@ -410,8 +446,15 @@ function checkCanChangeRoute(
             if (
               similarBus[0].chieuDi[outwardCount].name == nearEndCandidateK.name
             ) {
-              console.log("nhảy tuyến thành công tại trạm: ", outwardStationK);
-              return;
+              // console.log("nhảy tuyến thành công tại trạm: ", outwardStationK);
+              outputIn4V2.midStation = outwardStationK.name;
+              outputIn4V2.midStationLat = outwardStationK.lat;
+              outputIn4V2.midStationLong = outwardStationK.long;
+              outputIn4V2.endStation = nearEndCandidateK.name;
+              outputIn4V2.endStationLat = nearEndCandidateK.lat;
+              outputIn4V2.endStationLong = nearEndCandidateK.long;
+              outputIn4V2.midToEndRoute = similarBus[0].bus;
+              return outputIn4V2;
             }
           }
         }
@@ -429,8 +472,15 @@ function checkCanChangeRoute(
             if (
               similarBus[0].chieuVe[returnCount].name == nearEndCandidateK.name
             ) {
-              console.log("nhảy tuyến thành công tại trạm: ", outwardStationK);
-              return;
+              //console.log("nhảy tuyến thành công tại trạm: ", outwardStationK);
+              outputIn4V2.midStation = outwardStationK.name;
+              outputIn4V2.midStationLat = outwardStationK.lat;
+              outputIn4V2.midStationLong = outwardStationK.long;
+              outputIn4V2.endStation = nearEndCandidateK.name;
+              outputIn4V2.endStationLat = nearEndCandidateK.lat;
+              outputIn4V2.endStationLong = nearEndCandidateK.long;
+              outputIn4V2.midToEndRoute = similarBus[0].bus;
+              return outputIn4V2;
             }
           }
         }
@@ -438,6 +488,7 @@ function checkCanChangeRoute(
     }
   }
   //console.log(similarBuses1);
+  return outputIn4V2;
 }
 export async function findByChangeRoute(req: Request, res: Response) {
   const userId = req.body.id;
@@ -470,7 +521,7 @@ export async function findByChangeRoute(req: Request, res: Response) {
   );
   if (nearStartPoints[0].x == 1000) {
     // response người dùng nhập các khác (làm sau)
-    res.status(400).json({ message: "không có quận nào ở gần xuất phát đâu" });
+    res.status(400).json({ message: "không tìm được trạm nào phù hợp" });
     return;
   }
 
@@ -488,9 +539,7 @@ export async function findByChangeRoute(req: Request, res: Response) {
     busStationsWithSameDistrictNearEnd
   );
   if (nearEndPoints[0].x == 1000) {
-    res
-      .status(400)
-      .json({ message: "không có trạm nào cùng quận ở gần đích đâu" });
+    res.status(400).json({ message: "không tìm được trạm nào phù hợp" });
     return;
   }
 
@@ -570,11 +619,28 @@ export async function findByChangeRoute(req: Request, res: Response) {
           let endCandidateCount = 0;
           const endCandidateLength = nearEndCandidate.length;
           for (; endCandidateCount < endCandidateLength; endCandidateCount++) {
-            checkCanChangeRoute(
+            let outputIn4V2 = checkCanChangeRoute(
               busesInStartCandidate[0].chieuDi[outwardCount],
               nearEndCandidate[endCandidateCount],
               buses
             );
+            if (outputIn4V2.midStation != "") {
+              console.log("outputIn4V2: ", outputIn4V2);
+              res.status(200).json({
+                startStation: nearStartCandidate[0].name,
+                startStationLat: nearStartCandidate[0].lat,
+                startStationLong: nearStartCandidate[0].long,
+                midStation: outputIn4V2.midStation,
+                midStationLat: outputIn4V2.midStationLat,
+                midStationLong: outputIn4V2.midStationLong,
+                endStation: outputIn4V2.endStation,
+                endStationLat: outputIn4V2.endStationLat,
+                endStationLong: outputIn4V2.endStationLong,
+                startToMidRoute: busesInStartCandidate[0].bus,
+                midToEndRoute: outputIn4V2.midToEndRoute,
+              });
+              return;
+            }
           }
         }
       }
@@ -594,11 +660,28 @@ export async function findByChangeRoute(req: Request, res: Response) {
           let endCandidateCount = 0;
           const endCandidateLength = nearEndCandidate.length;
           for (; endCandidateCount < endCandidateLength; endCandidateCount++) {
-            checkCanChangeRoute(
+            let outputIn4V2 = checkCanChangeRoute(
               busesInStartCandidate[0].chieuVe[returnCount],
               nearEndCandidate[endCandidateCount],
               buses
             );
+            if (outputIn4V2.midStation != "") {
+              console.log("outputIn4V2: ", outputIn4V2);
+              res.status(200).json({
+                startStation: nearStartCandidate[0].name,
+                startStationLat: nearStartCandidate[0].lat,
+                startStationLong: nearStartCandidate[0].long,
+                midStation: outputIn4V2.midStation,
+                midStationLat: outputIn4V2.midStationLat,
+                midStationLong: outputIn4V2.midStationLong,
+                endStation: outputIn4V2.endStation,
+                endStationLat: outputIn4V2.endStationLat,
+                endStationLong: outputIn4V2.endStationLong,
+                startToMidRoute: busesInStartCandidate[0].bus,
+                midToEndRoute: outputIn4V2.midToEndRoute,
+              });
+              return;
+            }
           }
         }
       }
@@ -616,4 +699,182 @@ export async function findByChangeRoute(req: Request, res: Response) {
     nearStartCandidate: nearStartCandidate,
     nearEndCandidate: nearEndCandidate,
   });
+}
+
+// Đoạn tìm không cần theo quận version1
+export async function findBusStationsV1(req: Request, res: Response) {
+  const userId = req.body.id;
+  const startString = req.body.startString;
+  const endString = req.body.endString;
+  const userKm = req.body.userKm;
+  //const userString = userStrings.find((user) => user.id === userId);
+
+  let inputIn4: InputIn4 = await updateUserString2(
+    userId,
+    startString,
+    endString,
+    userKm
+  );
+
+  const startQueryPoint = new MyPoint(
+    inputIn4.startIn4.lat,
+    inputIn4.startIn4.long
+  );
+
+  const busStationsByDistrict =
+    await BusStationsByDistrict.getBusStationsByDistrictIn4();
+  //console.log("inputIn4: ", inputIn4);
+  let busStationsPoints: MyPoint[] = [];
+  let busStationsByDistrictLeng = busStationsByDistrict.length;
+  for (let i = 0; i < busStationsByDistrictLeng; i++) {
+    let busStationsIn4Leng = busStationsByDistrict[i].busStationIn4.length;
+    for (let j = 0; j < busStationsIn4Leng; j++) {
+      const point = {
+        x: busStationsByDistrict[i].busStationIn4[j].lat,
+        y: busStationsByDistrict[i].busStationIn4[j].long,
+      };
+      busStationsPoints.push(point);
+    }
+  }
+  // dựng cây kd tree với tất cả các trạm xe buýt
+  const startTree = new KDTree(null, busStationsPoints);
+  startTree.build();
+  // tìm trạm xuất phát gần nhất có thể
+  const startLocation = startTree.nearestDis(startQueryPoint);
+
+  // tìm thông tin chi tiết của trạm xuất phát
+  let startLocationIn4: BusIn4Struct = {
+    name: "",
+    bus: [],
+    lat: 0,
+    long: 0,
+  };
+  for (let i = 0; i < busStationsByDistrictLeng; i++) {
+    let busStationsIn4Leng = busStationsByDistrict[i].busStationIn4.length;
+    for (let j = 0; j < busStationsIn4Leng; j++) {
+      const point = {
+        x: busStationsByDistrict[i].busStationIn4[j].lat,
+        y: busStationsByDistrict[i].busStationIn4[j].long,
+      };
+      if (
+        startLocation.point?.x == point.x &&
+        startLocation.point?.y == point.y
+      ) {
+        startLocationIn4 = busStationsByDistrict[i].busStationIn4[j];
+      }
+    }
+  }
+  // tìm khoảng cách trạm xe buýt gần nhất với vị trí xuất phát
+  const startDistance = haversineDistance(
+    startLocationIn4.lat,
+    startLocationIn4.long,
+    inputIn4.startIn4.lat,
+    inputIn4.endIn4.long
+  );
+  //console.log(startLocationIn4);
+  // đi tìm in4 của các tuyến bus từ db
+  const buses = await Bus.getBusIn4();
+  //console.log(buses);
+
+  // lấy đầy đủ in4 các tuyến của trạm xuất phát
+  const routesIn4: Bus[] = [];
+  const startLocationIn4BusesLeng = startLocationIn4.bus.length;
+  const busesLeng = buses.length;
+  for (let i = 0; i < startLocationIn4BusesLeng; i++) {
+    for (let j = 0; j < busesLeng; j++) {
+      if (startLocationIn4.bus[i] == buses[j].bus) {
+        routesIn4.push(buses[j]);
+        j = busesLeng;
+      }
+    }
+  }
+
+  // mảng lưu các trạm gần nhất so với đích trên mỗi tuyến của trạm xuất phát và các khoảng cách so với đích của chúng
+  const minDistances = []; // mảng lưu khoảng cách oke nhất của trạm đích và đích đến theo các tuyến
+  const minDistancesStations = []; // mảng lưu các đích tương ứng mà oke nhất trên tuyến
+  const minRoutes = []; // mảng lưu tuyến xe buýt để đến trạm tương ứng
+
+  // vòng for các route của trạm xuất phát
+  const routesIn4Leng = routesIn4.length;
+
+  for (let i = 0; i < routesIn4Leng; i++) {
+    let minDis = Infinity;
+    let minDisStation = "";
+    const chieuDiLeng = routesIn4[i].chieuDi.length;
+    const chieuVeLeng = routesIn4[i].chieuVe.length;
+
+    // xét chiều đi của route đó
+    let j = 0;
+    for (; j < chieuDiLeng; j++) {
+      if (routesIn4[i].chieuDi[j].name == startLocationIn4.name) {
+        console.log(
+          "common name: ",
+          startLocationIn4.name,
+          routesIn4[i].chieuDi[j].name
+        );
+        break;
+      }
+    }
+    for (; j < chieuDiLeng; j++) {
+      const tempDis = haversineDistance(
+        inputIn4.endIn4.lat,
+        inputIn4.endIn4.long,
+        routesIn4[i].chieuDi[j].lat,
+        routesIn4[i].chieuDi[j].long
+      );
+      if (tempDis < minDis) {
+        minDis = tempDis;
+        minDisStation = routesIn4[i].chieuDi[j].name;
+      }
+    }
+    if (minDisStation != "") {
+      minDistances.push(minDis);
+      minDistancesStations.push(minDisStation);
+      minRoutes.push(routesIn4[i].bus);
+    }
+
+    minDis = Infinity;
+    minDisStation = "";
+    j = 0;
+    // xét chiều về của route đó
+    for (; j < chieuVeLeng; j++) {
+      if (routesIn4[i].chieuVe[j].name == startLocationIn4.name) {
+        console.log(
+          "common name: ",
+          startLocationIn4.name,
+          routesIn4[i].chieuVe[j].name
+        );
+        break;
+      }
+    }
+    for (; j < chieuVeLeng; j++) {
+      const tempDis = haversineDistance(
+        inputIn4.endIn4.lat,
+        inputIn4.endIn4.long,
+        routesIn4[i].chieuVe[j].lat,
+        routesIn4[i].chieuVe[j].long
+      );
+      if (tempDis < minDis) {
+        minDis = tempDis;
+        minDisStation = routesIn4[i].chieuVe[j].name;
+      }
+    }
+    if (minDisStation != "") {
+      minDistances.push(minDis);
+      minDistancesStations.push(minDisStation);
+      minRoutes.push(routesIn4[i].bus);
+    }
+  }
+  res.status(200).json({
+    startLocation: startLocationIn4.name,
+    startLocationLat: startLocationIn4.lat,
+    startLocationLong: startLocationIn4.long,
+    minDistances: minDistances,
+    minDistancesStations: minDistancesStations,
+    minRoutes: minRoutes,
+    startDistance: startDistance,
+    startStationLat: inputIn4.startIn4.lat,
+    startStationLong: inputIn4.startIn4.long,
+  });
+  //res.status(200).json({ busStationsByDistrict: busStationsByDistrict });
 }
