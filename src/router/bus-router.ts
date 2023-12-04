@@ -14,6 +14,9 @@ import * as commentController from "../controller/comment-controller";
 import authValidator from "../middleware/auth-validation";
 
 import * as TodoController from "../controller/test-todo-controller";
+import changePasswordController from "../controller/change-password";
+
+import { testLocationIQ } from "../controller/LocationIQ";
 const router = Router();
 
 router.get("/buses-data", busController.getAllBuses);
@@ -67,4 +70,22 @@ router.get("/todo", TodoController.getAllTodos);
 router.post("/todo", todoValidator, TodoController.addTodo);
 router.patch("/todo", todoValidator, TodoController.updateTodo);
 router.delete("/todo", TodoController.deleteTodo);
+
+router.patch(
+  "/change-password",
+  [
+    body("newPassword")
+      .trim()
+      .isLength({ min: 5 })
+      .withMessage("Bạn nhập mật khẩu quá ngắn"),
+    body("email")
+      .trim()
+      .isEmail()
+      .withMessage("Xin hãy nhập đúng định dạng email")
+      .normalizeEmail(),
+  ],
+  changePasswordController
+);
+
+router.get("/test-location-iq", testLocationIQ);
 export default router;

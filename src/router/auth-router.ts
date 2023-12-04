@@ -6,17 +6,20 @@ const authRouter = Router();
 authRouter.put(
   "/signup",
   [
-    body("name").trim().isLength({ min: 3 }).withMessage("Too small name"),
+    body("name")
+      .trim()
+      .isLength({ min: 3 })
+      .withMessage("Tên của bạn quá ngắn"),
     body("email")
       .trim()
       .isEmail()
-      .withMessage("Please enter a valid email")
+      .withMessage("Xin hãy nhập đúng định dạng email")
       .normalizeEmail(),
 
     body("password")
       .trim()
       .isLength({ min: 5 })
-      .withMessage("To small password"),
+      .withMessage("Mật khẩu của bạn quá ngắn"),
   ],
   authController.signupController
 );
@@ -26,13 +29,13 @@ authRouter.post(
     body("email")
       .trim()
       .isEmail()
-      .withMessage("Please enter a valid email")
+      .withMessage("Xin hãy nhập đúng định dạng email")
       .normalizeEmail(),
 
     body("password")
       .trim()
       .isLength({ min: 5 })
-      .withMessage("To small password"),
+      .withMessage("Mật khẩu của bạn quá ngắn"),
   ],
   authController.loginController
 );

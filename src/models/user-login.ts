@@ -46,5 +46,30 @@ class LoginUser {
       );
     } else return LoginUser.empty;
   }
+
+  async updatePassword(email: string, newPassword: string) {
+    const db: Db = LoginDbs.getDb();
+
+    // Kiểm tra xem người dùng có tồn tại dựa trên email
+    const user = await db.collection("users").findOne({ email: email });
+
+    if (user) {
+      // Người dùng tồn tại, cập nhật mật khẩu
+      const updateResult = await db
+        .collection("users")
+        .updateOne({ email: email }, { $set: { password: newPassword } });
+
+      if (updateResult.modifiedCount === 1) {
+        // Cập nhật mật khẩu thành công
+        return true;
+      } else {
+        // Cập nhật mật khẩu thất bại
+        return false;
+      }
+    } else {
+      // Người dùng không tồn tại
+      return false;
+    }
+  }
 }
 export default LoginUser;

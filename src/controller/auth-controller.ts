@@ -43,6 +43,7 @@ export const loginController = async (req: Request, res: Response) => {
   }
 
   const { email, password } = req.body;
+  console.log("email dùng để login là: ", email);
   const loginUser = await LoginUser.getUser(email);
 
   if (loginUser === LoginUser.empty) {
@@ -63,8 +64,8 @@ export const loginController = async (req: Request, res: Response) => {
       email: email,
       userId: loginUser.id,
     },
-    "mySecretKey",
-    { expiresIn: "1h" }
+    "mySecretKey"
+    //{ expiresIn: "1h" }
   );
 
   res.status(200).json({ token: token, userId: loginUser.id });
