@@ -1,6 +1,6 @@
 import NodeGeocoder, { Options } from "node-geocoder";
 import { Request, Response } from "express";
-
+import LatLong from "../models/lat-long";
 const options: Options = {
   provider: "locationiq",
   apiKey: "pk.f9d511f00dc9fe72f59065eb39ef79e5",
@@ -35,4 +35,40 @@ export function testLocationIQ(req: Request, res: Response) {
     .catch(function (err) {
       console.log(err);
     });
+}
+
+export async function getLatLong(location: string): Promise<LatLong> {
+  const geocoder = NodeGeocoder(options);
+
+  try {
+    const response = await geocoder.geocode(location);
+
+    if (
+      response[0].latitude !== undefined &&
+      response[0].longitude !== undefined
+    ) {
+      const latlong: LatLong = {
+        lat: response[0].latitude,
+        long: response[0].longitude,
+      };
+
+      return latlong;
+    } else {
+      const latLong: LatLong = {
+        lat: 0,
+        long: 0,
+      };
+
+      return latLong;
+    }
+  } catch (err) {
+    console.error(err);
+
+    const latLong: LatLong = {
+      lat: 0,
+      long: 0,
+    };
+
+    return latLong;
+  }
 }

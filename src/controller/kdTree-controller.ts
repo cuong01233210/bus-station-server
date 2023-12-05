@@ -4,7 +4,7 @@ import MyPoint from "../models/my-point";
 import BestPair from "../models/best-pair";
 import { Request, Response } from "express";
 import { userStrings } from "./user-input-string.controller";
-import { InputIn4 } from "./user-input-string.controller";
+import { InputIn4 } from "../models/input-in4";
 import { updateUserString2 } from "./user-input-string.controller";
 import BusStationsByDistrict from "../models/bus-stations-by-district";
 import {
