@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
-import Todo from "../models/test-todo";
+import Todo from "../../models/test-todo";
 import { validationResult } from "express-validator";
-import Bus from "../models/bus";
+import Bus from "../../models/bus";
 
 export const getAllTodos = async (req: Request, res: Response) => {
   try {

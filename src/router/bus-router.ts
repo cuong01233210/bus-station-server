@@ -1,22 +1,22 @@
-import { updateUserCoordinate } from "./../controller/user-coordinate-controller";
+import { updateUserCoordinate } from "../controller/customer's-controller/user-coordinate-controller";
 import { Double } from "mongodb";
 import { Router } from "express";
-import * as busController from "../controller/bus-controller";
-import * as busStationController from "../controller/bus-station-controller";
+import * as busController from "../controller/customer's-controller/bus-controller";
+import * as busStationController from "../controller/customer's-controller/bus-station-controller";
 import { body } from "express-validator";
 import UserCoordinate from "../models/user-coordinate";
-import * as userCoordinateController from "../controller/user-coordinate-controller";
-import * as kdTreeController from "../controller/kdTree-controller";
-import * as userStartStringController from "../controller/user-start-string-controller";
-import * as userEndStringController from "../controller/user-end-string-controller";
+import * as userCoordinateController from "../controller/customer's-controller/user-coordinate-controller";
+import * as kdTreeController from "../controller/customer's-controller/kdTree-controller";
+import * as userStartStringController from "../controller/customer's-controller/user-start-string-controller";
+import * as userEndStringController from "../controller/customer's-controller/user-end-string-controller";
 
-import * as commentController from "../controller/comment-controller";
+import * as commentController from "../controller/customer's-controller/comment-controller";
 import authValidator from "../middleware/auth-validation";
 
-import * as TodoController from "../controller/test-todo-controller";
-import changePasswordController from "../controller/change-password";
+import * as TodoController from "../controller/customer's-controller/test-todo-controller";
+import changePasswordController from "../controller/customer's-controller/change-password";
 
-import { testLocationIQ } from "../controller/LocationIQ";
+import { testLocationIQ } from "../controller/customer's-controller/LocationIQ";
 const router = Router();
 
 router.get("/buses-data", busController.getAllBuses);

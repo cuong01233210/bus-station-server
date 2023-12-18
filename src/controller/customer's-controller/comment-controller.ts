@@ -1,4 +1,4 @@
-import Comment from "../models/user-comment";
+import Comment from "../../models/user-comment";
 
 import { Request, Response } from "express";
 
@@ -14,13 +14,11 @@ export async function addComment(req: Request, res: Response) {
     // const comments = Comment.getComments("1");
     const comments = await comment.createComment(userId);
     console.log(comments);
-    res
-      .status(200)
-      .json({
-        suggestion: comments[0].suggestion,
-        date: comments[0].date,
-        rating: comments[0].rating,
-      });
+    res.status(200).json({
+      suggestion: comments[0].suggestion,
+      date: comments[0].date,
+      rating: comments[0].rating,
+    });
   } catch (error) {
     res.status(400).json({ message: "failed to load" });
   }

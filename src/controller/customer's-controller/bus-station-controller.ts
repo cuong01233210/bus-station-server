@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
-import BusStation from "../models/bus-station";
-import BusStationsByDistrict from "../models/bus-stations-by-district";
+import BusStation from "../../models/bus-station";
+import BusStationsByDistrict from "../../models/bus-stations-by-district";
 export const getAllBusStations = async (req: Request, res: Response) => {
   try {
     //const busStations = await BusStation.getBusStationIn4();

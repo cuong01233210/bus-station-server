@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import UserStartString from "../models/user-start-string";
+import UserStartString from "../../models/user-start-string";
 import { convertIn4 } from "./test-geocoding-controller";
 
 // use array for future has many user, one user has one id and one thread to solve the problem

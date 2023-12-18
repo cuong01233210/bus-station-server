@@ -1,11 +1,11 @@
 //import { updateUserCoordinate } from "./user-coordinate-controller";
 import { Request, Response } from "express";
-import UserCoordinate from "../models/user-coordinate";
+import UserCoordinate from "../../models/user-coordinate";
 import { validationResult } from "express-validator";
 import { testKDtree } from "./kdTree-controller";
-import KDTree from "../models/kdTree";
-import MyPoint from "../models/my-point";
-import BusStation from "../models/bus-station";
+import KDTree from "../../models/kdTree";
+import MyPoint from "../../models/my-point";
+import BusStation from "../../models/bus-station";
 // chú ý sau này phải sửa lại cái id theo user id để tránh trường hợp nhiều người dùng 1 lúc mà 1 cái server thì loạn
 export let userCoordinates: UserCoordinate[] = [
   {

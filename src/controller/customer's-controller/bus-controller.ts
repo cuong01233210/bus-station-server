@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import Bus from "../models/bus";
+import Bus from "../../models/bus";
 
 export const getAllBuses = async (req: Request, res: Response) => {
   try {

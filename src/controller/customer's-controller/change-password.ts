@@ -1,6 +1,6 @@
 import { validationResult } from "express-validator";
 import { Request, Response } from "express";
-import LoginUser from "../models/user-login";
+import LoginUser from "../../models/user-login";
 import bcrypt from "bcryptjs";
 import jwt, { TokenExpiredError } from "jsonwebtoken";
 

@@ -1,12 +1,11 @@
-import { InputRawIn4 } from "./../models/input-in4";
+import { InputRawIn4 } from "../../models/input-in4";
 import { userStartStrings } from "./user-start-string-controller";
 
 import { Request, Response } from "express";
-import { StartIn4 } from "../models/input-in4";
-import { EndIn4 } from "../models/input-in4";
-import { InputIn4 } from "../models/input-in4";
-import { convertIn4 } from "./test-geocoding-controller";
-import BusStationsByDistrict from "../models/bus-stations-by-district";
+import { StartIn4 } from "../../models/input-in4";
+import { EndIn4 } from "../../models/input-in4";
+import { InputIn4 } from "../../models/input-in4";
+
 import { getLatLong } from "./LocationIQ";
 
 export interface UserString {

@@ -2,7 +2,7 @@ import { BusStationsDatabase } from "./databases/bus-stations-database";
 import express, { Application, NextFunction, Request, Response } from "express";
 
 import { BusesDatabase } from "./databases/buses-database";
-import { getAllBuses } from "./controller/bus-controller";
+import { getAllBuses } from "./controller/customer's-controller/bus-controller";
 import router from "./router/bus-router";
 import authRouter from "./router/auth-router";
 import { LoginDbs } from "./databases/user-login";

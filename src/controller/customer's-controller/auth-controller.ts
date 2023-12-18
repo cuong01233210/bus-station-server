@@ -1,8 +1,8 @@
 import { Request, Response } from "express";
 import { Result, ValidationError, validationResult } from "express-validator";
-import User from "../models/user-in4";
-import { LoginDbs } from "../databases/user-login";
-import LoginUser from "../models/user-login";
+import User from "../../models/user-in4";
+import { LoginDbs } from "../../databases/user-login";
+import LoginUser from "../../models/user-login";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
