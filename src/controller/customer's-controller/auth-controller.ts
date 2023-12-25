@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { Result, ValidationError, validationResult } from "express-validator";
-import User from "../../models/user-in4";
+import UserIn4 from "../../models/user-in4";
 import { LoginDbs } from "../../databases/user-login";
 import LoginUser from "../../models/user-login";
 import bcrypt from "bcryptjs";
@@ -29,6 +29,17 @@ export const signupController = async (req: Request, res: Response) => {
   const userId = await newLoginUser.createUser();
 
   const token = jwt.sign({ email: email, userId: userId }, "mySecretKey");
+
+  // create new account in db
+  //const userId = res.locals.userId;
+  try {
+    const newUser = new UserIn4(userId, name, "", "", "", email);
+    const newUsers = await newUser.createAccount(userId);
+    console.log(newUsers);
+  } catch (error) {
+    console.log(error);
+  }
+
   res.status(200).json({ token: token, userId: userId });
 };
 

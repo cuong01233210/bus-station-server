@@ -17,6 +17,7 @@ import * as TodoController from "../controller/customer's-controller/test-todo-c
 import changePasswordController from "../controller/customer's-controller/change-password";
 
 import { testLocationIQ } from "../controller/customer's-controller/LocationIQ";
+import { getUserInfor } from "../controller/customer's-controller/user-infor-controller";
 const router = Router();
 
 router.get("/buses-data", busController.getAllBuses);
@@ -88,4 +89,6 @@ router.patch(
 );
 
 router.get("/test-location-iq", testLocationIQ);
+
+router.get("/getInfor",authValidator, getUserInfor);
 export default router;

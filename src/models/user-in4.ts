@@ -1,6 +1,6 @@
 import { ObjectId, Db, Double } from "mongodb";
 import { UsersDatabase } from "../databases/users-database";
-class User {
+class UserIn4 {
   userId: string;
   name: string;
   sex: string;
@@ -24,19 +24,21 @@ class User {
     this.email = email;
   }
 
-  static async createAccount(userId: string) {
+  async createAccount(userId: string) {
     const db: Db = UsersDatabase.getDb();
-    await db.collection("users").insertOne({ ...this });
-    const users = await User.getUserIn4(userId);
+    await db.collection("informations").insertOne({ ...this });
+    const users = await UserIn4.getUserIn4(userId);
     return users;
   }
-  static empty = new User("", "", "", "", "", "");
+  static empty = new UserIn4("", "", "", "", "", "");
 
   static async getUserIn4(userId: string) {
     const db: Db = UsersDatabase.getDb();
-    const document = await db.collection("users").findOne({ userId: userId });
+    const document = await db
+      .collection("informations")
+      .findOne({ userId: userId });
     if (document != null) {
-      return new User(
+      return new UserIn4(
         document.userId,
         document.name,
         document.sex,
@@ -44,12 +46,12 @@ class User {
         document.phoneNumber,
         document.email
       );
-    } else return User.empty;
+    } else return UserIn4.empty;
   }
 
   async updateUserIn4(userId: string) {
     const db: Db = UsersDatabase.getDb();
-    await db.collection("users").updateOne(
+    await db.collection("informations").updateOne(
       { userId: new ObjectId(this.userId) },
       {
         $set: {
@@ -62,8 +64,8 @@ class User {
         },
       }
     );
-    const users = await User.getUserIn4(userId);
+    const users = await UserIn4.getUserIn4(userId);
     return users;
   }
 }
-export default User;
+export default UserIn4;
