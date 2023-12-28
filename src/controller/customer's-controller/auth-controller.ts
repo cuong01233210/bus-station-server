@@ -33,13 +33,20 @@ export const signupController = async (req: Request, res: Response) => {
   // create new account in db
   //const userId = res.locals.userId;
   try {
-    const newUser = new UserIn4(userId, name, "", "", "", email);
+    const newUser = new UserIn4(
+      userId,
+      name,
+      "Chưa có",
+      "Chưa có",
+      "Chưa có",
+      email
+    );
     const newUsers = await newUser.createAccount(userId);
     console.log(newUsers);
   } catch (error) {
     console.log(error);
   }
-
+  //res.locals.email = email;
   res.status(200).json({ token: token, userId: userId });
 };
 
@@ -78,6 +85,6 @@ export const loginController = async (req: Request, res: Response) => {
     "mySecretKey"
     //{ expiresIn: "1h" }
   );
-
+  // res.locals.email = email;
   res.status(200).json({ token: token, userId: loginUser.id });
 };

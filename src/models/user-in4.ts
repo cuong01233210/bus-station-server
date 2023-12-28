@@ -49,23 +49,46 @@ class UserIn4 {
     } else return UserIn4.empty;
   }
 
+  // async updateUserIn4(userId: string) {
+  //   const db: Db = UsersDatabase.getDb();
+  //   await db.collection("informations").updateOne(
+  //     { userId: new ObjectId(this.userId) },
+  //     {
+  //       $set: {
+  //         userId: this.userId,
+  //         name: this.name,
+  //         sex: this.sex,
+  //         dateOfBirth: this.dateOfBirth,
+  //         phoneNumber: this.phoneNumber,
+  //         email: this.email,
+  //       },
+  //     }
+  //   );
+  //   const user = await UserIn4.getUserIn4(userId);
+  //   return user;
+  // }
+
   async updateUserIn4(userId: string) {
     const db: Db = UsersDatabase.getDb();
-    await db.collection("informations").updateOne(
-      { userId: new ObjectId(this.userId) },
+    console.log(this.userId);
+    console.log(this.name);
+    console.log(this.dateOfBirth);
+    await db.collection("informations").findOneAndUpdate(
+      { userId: userId }, // Sử dụng userId truyền vào thay vì this.userId
       {
         $set: {
-          userId: this.userId,
+          userId: userId,
           name: this.name,
           sex: this.sex,
           dateOfBirth: this.dateOfBirth,
           phoneNumber: this.phoneNumber,
           email: this.email,
         },
-      }
+      },
+      { returnDocument: "after" } // Ensure to get the updated document after the update
     );
-    const users = await UserIn4.getUserIn4(userId);
-    return users;
+    const user = await UserIn4.getUserIn4(userId);
+    return user;
   }
 }
 export default UserIn4;
