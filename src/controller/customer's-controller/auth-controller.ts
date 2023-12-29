@@ -17,6 +17,7 @@ export const signupController = async (req: Request, res: Response) => {
   }
 
   const { name, email, password } = req.body;
+  const role = "0"; // chỉ cho người dùng đăng ký tài khoản cấp thường
   const loginUser = await LoginUser.getUser(email);
 
   if (loginUser !== LoginUser.empty) {
@@ -25,7 +26,7 @@ export const signupController = async (req: Request, res: Response) => {
   }
 
   const hashedPassword = await bcrypt.hash(password, 12);
-  const newLoginUser = new LoginUser(name, email, hashedPassword);
+  const newLoginUser = new LoginUser(email, hashedPassword, role);
   const userId = await newLoginUser.createUser();
 
   const token = jwt.sign({ email: email, userId: userId }, "mySecretKey");
@@ -47,7 +48,7 @@ export const signupController = async (req: Request, res: Response) => {
     console.log(error);
   }
   //res.locals.email = email;
-  res.status(200).json({ token: token, userId: userId });
+  res.status(200).json({ token: token, userId: userId, role: role });
 };
 
 export const loginController = async (req: Request, res: Response) => {
@@ -76,7 +77,7 @@ export const loginController = async (req: Request, res: Response) => {
   } else {
     console.log("correct password");
   }
-
+  const role = loginUser.role;
   const token = jwt.sign(
     {
       email: email,
@@ -86,5 +87,5 @@ export const loginController = async (req: Request, res: Response) => {
     //{ expiresIn: "1h" }
   );
   // res.locals.email = email;
-  res.status(200).json({ token: token, userId: loginUser.id });
+  res.status(200).json({ token: token, userId: loginUser.id, role: role });
 };
