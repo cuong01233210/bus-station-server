@@ -21,6 +21,7 @@ import {
   getUserInfor,
   updateUserInfor,
 } from "../controller/customer's-controller/user-infor-controller";
+import { readComments } from "../controller/staff's-controller/check-comment";
 const router = Router();
 
 router.get("/buses-data", busController.getAllBuses);
@@ -95,4 +96,6 @@ router.get("/test-location-iq", testLocationIQ);
 
 router.get("/getInfor", authValidator, getUserInfor);
 router.patch("/update-user-infor", authValidator, updateUserInfor);
+
+router.get("/get-all-comments", readComments);
 export default router;
