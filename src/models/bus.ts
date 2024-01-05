@@ -18,6 +18,7 @@ class Bus {
     lat: number;
     long: number;
   }[];
+  static empty: any;
 
   constructor(
     bus: string,
@@ -61,6 +62,21 @@ class Bus {
         )
     );
     return buses;
+  }
+
+  static async getOnlyOneBus(bus: string) {
+    const db: Db = BusesDatabase.getDb();
+    const document = await db.collection("routes").findOne({ bus: bus });
+    if (document != null) {
+      return new Bus(
+        document.bus,
+        document.price,
+        document.activityTime,
+        document.gianCachChayXe,
+        document.chieuDi,
+        document.chieuVe
+      );
+    } else return Bus.empty;
   }
 }
 

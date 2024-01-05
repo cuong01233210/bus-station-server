@@ -38,6 +38,15 @@ class Comment {
     return userComments;
   }
 
+  static async getAllComments() {
+    const usersDb: Db = UsersDatabase.getDb();
+    const documents = await usersDb.collection("comments").find().toArray();
+
+    const userComments: Comment[] = documents.map(
+      (doc) => new Comment(doc.userId, doc.suggestion, doc.date, doc.rating)
+    );
+    return userComments;
+  }
   static async getComments(userId: string) {
     const usersDb: Db = UsersDatabase.getDb();
     const documents = await usersDb
