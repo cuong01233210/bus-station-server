@@ -1,9 +1,18 @@
 import { Request, Response } from "express";
 import UserBusPreference from "../../models/user-buses-preference";
-export function getAllBusPreference(req: Request, res: Response) {
+export async function getAllBusPreference(req: Request, res: Response) {
   const userId = res.locals.userId;
-  const userBusesPreference = UserBusPreference.getUserBusesPreference(userId);
-  res.status(200).json({ userBusesPreference: userBusesPreference });
+  try {
+    const userBusesPreference = await UserBusPreference.getUserBusesPreference(
+      userId
+    );
+    // console.log(userBusesPreference.map((pref) => pref.bus));
+    res.status(200).json({
+      buses: userBusesPreference.map((pref) => pref.bus),
+    });
+  } catch (error) {
+    res.status(400).json({ message: "fail" });
+  }
 }
 
 export function addBusPrefer(req: Request, res: Response) {
