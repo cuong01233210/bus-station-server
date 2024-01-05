@@ -108,4 +108,9 @@ router.get(
   authValidator,
   preferController.getAllBusPreference
 );
+//router lấy trạm xe buýt thích dựa vào xâu truyền vào là mảng tên trạm thích đã tìm được ở trên
+router.post(
+  "/get-bus-prefer-by-array",
+  busController.getAllBusesByBusNameArray
+);
 export default router;

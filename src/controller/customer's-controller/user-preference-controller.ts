@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import UserBusPreference from "../../models/user-buses-preference";
+
 export async function getAllBusPreference(req: Request, res: Response) {
   const userId = res.locals.userId;
   try {
