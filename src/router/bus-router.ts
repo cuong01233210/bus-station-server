@@ -27,12 +27,6 @@ const router = Router();
 router.get("/buses-data", busController.getAllBuses);
 router.get("/bus-stations-data", busStationController.getAllBusStations);
 
-// router.patch(
-//   "/user-coordinate/:userCoordinateId",
-//   todoValidator,
-//   userCoordinateController.updateUserCoordinate
-// );
-// router.post("/user-coordinate", todoValidator);
 router.get("/user-coordinate", userCoordinateController.getUserCoordinate);
 router.patch(
   "/user-coordinate/:user-coorID",
@@ -98,4 +92,6 @@ router.get("/getInfor", authValidator, getUserInfor);
 router.patch("/update-user-infor", authValidator, updateUserInfor);
 
 router.get("/get-all-comments", readComments);
+router.get("/get-all-bus-in4", busController.getAllBusNames);
+router.get("/get-one-bus-data/:bus", busController.getOneBusRoute);
 export default router;

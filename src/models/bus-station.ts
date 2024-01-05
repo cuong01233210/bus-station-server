@@ -41,7 +41,7 @@ class BusStation {
           doc._id.toString()
         )
     );
-    //console.log(buses);
+    //console.log(busStations);
     return busStations;
   }
 }
