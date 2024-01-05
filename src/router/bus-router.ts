@@ -22,6 +22,7 @@ import {
   updateUserInfor,
 } from "../controller/customer's-controller/user-infor-controller";
 import { readComments } from "../controller/staff's-controller/check-comment";
+import * as preferController from "../controller/customer's-controller/user-preference-controller";
 const router = Router();
 
 router.get("/buses-data", busController.getAllBuses);
@@ -94,4 +95,22 @@ router.patch("/update-user-infor", authValidator, updateUserInfor);
 router.get("/get-all-comments", readComments);
 router.get("/get-all-bus-in4", busController.getAllBusNames);
 router.get("/get-one-bus-data/:bus", busController.getOneBusRoute);
+
+// router thích các trạm xe bus
+router.post("/add-bus-prefer", authValidator, preferController.addBusPrefer);
+router.delete(
+  "/delete-bus-prefer",
+  authValidator,
+  preferController.deleteBusPreference
+);
+router.get(
+  "/get-all-bus-prefer",
+  authValidator,
+  preferController.getAllBusPreference
+);
+//router lấy trạm xe buýt thích dựa vào xâu truyền vào là mảng tên trạm thích đã tìm được ở trên
+router.post(
+  "/get-bus-prefer-by-array",
+  busController.getAllBusesByBusNameArray
+);
 export default router;

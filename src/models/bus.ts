@@ -78,6 +78,28 @@ class Bus {
       );
     } else return Bus.empty;
   }
+
+  static async getUserBusesPreferenceByBuses(sbuses: string[]) {
+    const db = BusesDatabase.getDb();
+    const documents = await db
+      .collection("routes")
+      .find({ bus: { $in: sbuses } })
+      .toArray();
+
+    const buses: Bus[] = documents.map(
+      (doc) =>
+        new Bus(
+          doc.bus,
+          doc.price,
+          doc.activityTime,
+          doc.gianCachChayXe,
+          doc.chieuDi,
+          doc.chieuVe
+        )
+    );
+
+    return buses;
+  }
 }
 
 export default Bus;

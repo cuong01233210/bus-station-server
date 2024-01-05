@@ -36,6 +36,29 @@ export const getAllBuses = async (req: Request, res: Response) => {
   }
 };
 
+export const getAllBusesByBusNameArray = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const sbuses = req.body.buses;
+    console.log(sbuses);
+    const buses = await Bus.getUserBusesPreferenceByBuses(sbuses);
+    res.status(200).json({
+      buses: buses.map((bus) => ({
+        bus: bus.bus,
+        price: bus.price,
+        activityTime: bus.activityTime,
+        gianCachChayXe: bus.gianCachChayXe,
+        //   chieuDi: bus.chieuDi.map((di) => di.name),
+        //  chieuVe: bus.chieuVe.map((ve) => ve.name),
+      })),
+    });
+    // res.status(200).json({ buses: buses });
+  } catch (error) {
+    res.status(400).json({ message: "failed to load" });
+  }
+};
 export const getAllBusNames = async (req: Request, res: Response) => {
   try {
     const buses = await Bus.getBusIn4();
@@ -55,7 +78,7 @@ export const getAllBusNames = async (req: Request, res: Response) => {
 };
 
 export const getOneBusRoute = async (req: Request, res: Response) => {
-  console.log(req.params.bus);
+  //console.log(req.params.bus);
   try {
     const bus = await Bus.getOnlyOneBus(req.params.bus);
     res.status(200).json({
