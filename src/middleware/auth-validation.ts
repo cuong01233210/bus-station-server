@@ -15,6 +15,7 @@ const authValidator = (req: Request, res: Response, next: NextFunction) => {
   }
 
   const token = authHeader.split(" ")[1];
+  // console.log("token: ", token);
   try {
     const decodedToken = jwt.verify(token, "mySecretKey") as TokenPayLoad;
     if (decodedToken === null) {

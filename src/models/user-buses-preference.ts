@@ -46,3 +46,5 @@ class UserBusPreference {
     return result.deletedCount; // returns the number of deleted documents
   }
 }
+
+export default UserBusPreference;
