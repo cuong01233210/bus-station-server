@@ -113,4 +113,10 @@ router.post(
   "/get-bus-prefer-by-array",
   busController.getAllBusesByBusNameArray
 );
+
+// router để crud các trạm xe buýt theo db không chơi nhóm quận
+router.get(
+  "/get-all-bus-stations",
+  busStationController.getAllBusStationsNoDistrict
+);
 export default router;
