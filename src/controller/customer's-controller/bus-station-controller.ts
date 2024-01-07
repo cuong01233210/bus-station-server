@@ -27,3 +27,66 @@ export const getAllBusStationsNoDistrict = async (
     res.status(400).json({ message: error });
   }
 };
+
+export const addBusStationNoDistrict = async (req: Request, res: Response) => {
+  try {
+    const busStation = new BusStation(
+      req.body.name,
+      req.body.bus,
+      req.body.lat,
+      req.body.long,
+      req.body.district,
+      req.body.id
+    );
+    await busStation.createBusStation();
+    res.status(200).json({
+      message: "add bus station successfully",
+    });
+  } catch (error) {
+    res.status(400).json({ message: "error" });
+  }
+};
+
+export const updateBusStationNoDistrict = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const busStation = new BusStation(
+      req.body.name,
+      req.body.bus,
+      req.body.lat,
+      req.body.long,
+      req.body.district,
+      req.body.id
+    );
+    await busStation.updateBusStation(req.body.id);
+    res.status(200).json({
+      message: "update bus station successfully",
+    });
+  } catch (error) {
+    res.status(400).json({ message: "error" });
+  }
+};
+
+export const deleteBusStationNoDistrict = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const busStation = new BusStation(
+      req.body.name,
+      req.body.bus,
+      req.body.lat,
+      req.body.long,
+      req.body.district,
+      req.body.id
+    );
+    await busStation.deleteBusStation(req.body.id);
+    res.status(200).json({
+      message: "delete bus station successfully",
+    });
+  } catch (error) {
+    res.status(400).json({ message: "error" });
+  }
+};

@@ -119,4 +119,14 @@ router.get(
   "/get-all-bus-stations",
   busStationController.getAllBusStationsNoDistrict
 );
+
+router.post("/add-bus-station", busStationController.addBusStationNoDistrict);
+router.patch(
+  "/update-bus-station",
+  busStationController.updateBusStationNoDistrict
+);
+router.delete(
+  "/delete-bus-station",
+  busStationController.deleteBusStationNoDistrict
+);
 export default router;

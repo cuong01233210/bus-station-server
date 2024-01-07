@@ -1,7 +1,7 @@
 import { ObjectId, Db, Double } from "mongodb";
 import { BusStationsDatabase } from "../databases/bus-stations-database";
 class BusStation {
-  id: string;
+  id?: string;
   name: string;
   bus: Array<string>;
   lat: Double;
@@ -14,7 +14,7 @@ class BusStation {
     lat: Double,
     long: Double,
     district: string,
-    id: string
+    id?: string
   ) {
     this.name = name;
     this.bus = bus;
@@ -43,6 +43,39 @@ class BusStation {
     );
     //console.log(busStations);
     return busStations;
+  }
+
+  async createBusStation() {
+    const db: Db = BusStationsDatabase.getDb();
+    delete this.id;
+    const result = await db.collection("busStations").insertOne(this);
+    console.log(result);
+  }
+
+  async updateBusStation(id: string) {
+    const db: Db = BusStationsDatabase.getDb();
+    delete this.id;
+    const result = await db.collection("busStations").updateOne(
+      { _id: new ObjectId(id) },
+      {
+        $set: {
+          name: this.name,
+          bus: this.bus,
+          lat: this.lat,
+          long: this.long,
+          district: this.district,
+        },
+      }
+    );
+    console.log(result);
+  }
+
+  async deleteBusStation(id: string) {
+    const db: Db = BusStationsDatabase.getDb();
+    const result = await db
+      .collection("busStations")
+      .deleteOne({ _id: new ObjectId(id) });
+    console.log(result);
   }
 }
 export default BusStation;
