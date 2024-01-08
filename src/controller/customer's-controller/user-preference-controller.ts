@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import UserBusPreference from "../../models/user-buses-preference";
-
+import UserStationPreference from "../../models/user-station-preference";
 export async function getAllBusPreference(req: Request, res: Response) {
   const userId = res.locals.userId;
   try {
@@ -35,6 +35,43 @@ export function deleteBusPreference(req: Request, res: Response) {
   const bus = req.body.bus;
   try {
     UserBusPreference.deleteUserBusPreference(userId, bus);
+    res.status(200).json({ message: "success" });
+  } catch (error) {
+    res.status(400).json({ message: "fail" });
+  }
+}
+
+export async function getAllStationsPreference(req: Request, res: Response) {
+  const userId = res.locals.userId;
+  //console.log(userId);
+  try {
+    const userStationsPreference =
+      await UserStationPreference.getUserStationPreference(userId);
+    // console.log(userStationsPreference.map((pref) => pref.stationId));
+    res.status(200).json({
+      stationIds: userStationsPreference.map((pref) => pref.stationId),
+    });
+  } catch (error) {
+    res.status(400).json({ message: "fail" });
+  }
+}
+
+export function addStationPrefer(req: Request, res: Response) {
+  const userId = res.locals.userId;
+  const stationId = req.body.stationId;
+  try {
+    const userStationPreference = new UserStationPreference(userId, stationId);
+    userStationPreference.createUserStationPreference(userId);
+    res.status(200).json({ message: "success" });
+  } catch (error) {
+    res.status(400).json({ message: "fail" });
+  }
+}
+export function deleteStationPreference(req: Request, res: Response) {
+  const userId = res.locals.userId;
+  const stationId = req.body.stationId;
+  try {
+    UserStationPreference.deleteUserStationPreference(userId, stationId);
     res.status(200).json({ message: "success" });
   } catch (error) {
     res.status(400).json({ message: "fail" });
