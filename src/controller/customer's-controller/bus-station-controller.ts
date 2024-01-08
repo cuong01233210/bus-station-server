@@ -28,6 +28,7 @@ export const getAllBusStationsNoDistrict = async (
   }
 };
 
+// 3 hàm add, update, delete là của staff
 export const addBusStationNoDistrict = async (req: Request, res: Response) => {
   try {
     const busStation = new BusStation(

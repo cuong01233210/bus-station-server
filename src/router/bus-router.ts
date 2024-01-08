@@ -129,4 +129,23 @@ router.delete(
   "/delete-bus-station",
   busStationController.deleteBusStationNoDistrict
 );
+
+// router để làm tính năng người dùng yêu thích trạm
+
+router.get(
+  "/get-all-stations-prefer",
+  authValidator,
+  preferController.getAllStationsPreference
+);
+router.post(
+  "/add-station-prefer",
+  authValidator,
+  preferController.addStationPrefer
+);
+
+router.delete(
+  "/delete-station-prefer",
+  authValidator,
+  preferController.deleteStationPreference
+);
 export default router;
