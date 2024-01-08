@@ -77,5 +77,27 @@ class BusStation {
       .deleteOne({ _id: new ObjectId(id) });
     console.log(result);
   }
+
+  // lấy các trạm xe buýt theo mảng id truyền vào
+  static async getStationsByIds(busStationIds: string[]) {
+    const db: Db = BusStationsDatabase.getDb();
+    const documents = await db
+      .collection("busStations")
+      .find({ _id: { $in: busStationIds.map((id) => new ObjectId(id)) } })
+      .toArray();
+
+    const busStations: BusStation[] = documents.map(
+      (doc) =>
+        new BusStation(
+          doc.name,
+          doc.bus,
+          doc.lat,
+          doc.long,
+          doc.district,
+          doc._id.toString()
+        )
+    );
+    return busStations;
+  }
 }
 export default BusStation;

@@ -91,3 +91,17 @@ export const deleteBusStationNoDistrict = async (
     res.status(400).json({ message: "error" });
   }
 };
+
+export const getStationsByIds = async (req: Request, res: Response) => {
+  try {
+    const stationIds = req.body.stationIds;
+    // console.log(stationIds);
+    const busStations = await BusStation.getStationsByIds(stationIds);
+    //console.log(busStations);
+    res.status(200).json({
+      busStations: busStations,
+    });
+  } catch (error) {
+    res.status(400).json({ message: error });
+  }
+};

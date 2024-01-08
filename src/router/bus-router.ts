@@ -120,6 +120,7 @@ router.get(
   busStationController.getAllBusStationsNoDistrict
 );
 
+router.post("/get-stations-by-ids", busStationController.getStationsByIds);
 router.post("/add-bus-station", busStationController.addBusStationNoDistrict);
 router.patch(
   "/update-bus-station",
