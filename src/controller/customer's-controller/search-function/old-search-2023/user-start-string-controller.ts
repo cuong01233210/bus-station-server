@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
-import UserStartString from "../../models/user-start-string";
-import { convertIn4 } from "./test-geocoding-controller";
+import UserStartString from "../../../../models/user-start-string";
+import { convertIn4 } from "../new-search-2024/test-geocoding-controller";
 
 // use array for future has many user, one user has one id and one thread to solve the problem
 export let userStartStrings: UserStartString[] = [

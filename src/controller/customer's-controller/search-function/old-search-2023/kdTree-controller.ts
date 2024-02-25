@@ -1,18 +1,18 @@
-import KDTree from "../../models/kdTree";
-import MyNode from "../../models/my-node";
-import MyPoint from "../../models/my-point";
-import BestPair from "../../models/best-pair";
+import KDTree from "../../../../models/kdTree";
+import MyNode from "../../../../models/my-node";
+import MyPoint from "../../../../models/my-point";
+import BestPair from "../../../../models/best-pair";
 import { Request, Response } from "express";
 
-import { InputIn4 } from "../../models/input-in4";
+import { InputIn4 } from "../../../../models/input-in4";
 import { updateUserString2 } from "./user-input-string.controller";
-import BusStationsByDistrict from "../../models/bus-stations-by-district";
+import BusStationsByDistrict from "../../../../models/bus-stations-by-district";
 import {
   convertIn4,
   getDirectionsAndDistance,
   haversineDistance,
-} from "./test-geocoding-controller";
-import Bus from "../../models/bus";
+} from "../new-search-2024/test-geocoding-controller";
+import Bus from "../../../../models/bus";
 export function testKDtree(req: Request, res: Response) {
   const points: MyPoint[] = [
     new MyPoint(2, 3),
