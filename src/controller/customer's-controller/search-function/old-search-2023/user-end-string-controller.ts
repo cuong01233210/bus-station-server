@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import UserEndString from "../../models/user-end-string";
+import UserEndString from "../../../../models/user-end-string";
 
 // use array for future has many user, one user has one id and one thread to solve the problem
 export let userEndStrings: UserEndString[] = [

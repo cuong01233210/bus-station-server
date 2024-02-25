@@ -8,7 +8,7 @@ import authRouter from "./router/auth-router";
 import { LoginDbs } from "./databases/user-login";
 import { TodoDatabase } from "./databases/todo-database";
 import { UsersDatabase } from "./databases/users-database";
-
+import { AppInfoDatabase } from "./databases/app-info-database";
 const app: Application = express();
 
 app.use(express.json());
@@ -31,6 +31,7 @@ async function databaseInit() {
   await LoginDbs.initialize();
   await UsersDatabase.initialize();
   await TodoDatabase.initialize();
+  await AppInfoDatabase.initialize();
   app.listen(8000);
 }
 // passDB: flqOFCtNjd7A6lDH

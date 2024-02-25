@@ -1,6 +1,6 @@
 import NodeGeocoder, { Options } from "node-geocoder";
 import { Request, Response } from "express";
-import LatLong from "../../models/lat-long";
+import LatLong from "../../../../models/lat-long";
 const options: Options = {
   provider: "locationiq",
   apiKey: "pk.f9d511f00dc9fe72f59065eb39ef79e5",

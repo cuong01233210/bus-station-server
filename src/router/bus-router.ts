@@ -1,14 +1,14 @@
-import { updateUserCoordinate } from "../controller/customer's-controller/user-coordinate-controller";
+import { updateUserCoordinate } from "../controller/customer's-controller/search-function/old-search-2023/user-coordinate-controller";
 import { Double } from "mongodb";
 import { Router } from "express";
 import * as busController from "../controller/customer's-controller/bus-controller";
 import * as busStationController from "../controller/customer's-controller/bus-station-controller";
 import { body } from "express-validator";
 import UserCoordinate from "../models/user-coordinate";
-import * as userCoordinateController from "../controller/customer's-controller/user-coordinate-controller";
-import * as kdTreeController from "../controller/customer's-controller/kdTree-controller";
-import * as userStartStringController from "../controller/customer's-controller/user-start-string-controller";
-import * as userEndStringController from "../controller/customer's-controller/user-end-string-controller";
+import * as userCoordinateController from "../controller/customer's-controller/search-function/old-search-2023/user-coordinate-controller";
+import * as kdTreeController from "../controller/customer's-controller/search-function/old-search-2023/kdTree-controller";
+import * as userStartStringController from "../controller/customer's-controller/search-function/old-search-2023/user-start-string-controller";
+import * as userEndStringController from "../controller/customer's-controller/search-function/old-search-2023/user-end-string-controller";
 
 import * as commentController from "../controller/customer's-controller/comment-controller";
 import authValidator from "../middleware/auth-validation";
@@ -16,13 +16,16 @@ import authValidator from "../middleware/auth-validation";
 import * as TodoController from "../controller/customer's-controller/test-todo-controller";
 import changePasswordController from "../controller/customer's-controller/change-password";
 
-import { testLocationIQ } from "../controller/customer's-controller/LocationIQ";
+import { testLocationIQ } from "../controller/customer's-controller/search-function/new-search-2024/LocationIQ";
 import {
   getUserInfor,
   updateUserInfor,
 } from "../controller/customer's-controller/user-infor-controller";
 import { readComments } from "../controller/staff's-controller/check-comment";
 import * as preferController from "../controller/customer's-controller/user-preference-controller";
+import * as appInfoController from "../controller/staff's-controller/app-info-controller";
+
+import * as SearchRouteController from "../controller/customer's-controller/search-function/new-search-2024/search-route";
 const router = Router();
 
 router.get("/buses-data", busController.getAllBuses);
@@ -149,4 +152,17 @@ router.delete(
   authValidator,
   preferController.deleteStationPreference
 );
+
+// router để xử lý crud các tuyến xe buýt
+router.post("/add-bus", busController.createBus);
+router.patch("/update-bus", busController.updateBus);
+router.delete("/delete-bus", busController.deleteBus);
+
+// router để cru thông tin về app
+router.get("/get-app-info", appInfoController.readAppInfo);
+router.post("/add-app-info", appInfoController.createAppInfo);
+router.patch("/update-app-info", appInfoController.updateAppInfo);
+
+//router để tìm kiếm tuyến đường trường hợp đi liền không nhảy tuyến 2024
+router.post("/search-seamless-route", SearchRouteController.findSeamlessRoute);
 export default router;
