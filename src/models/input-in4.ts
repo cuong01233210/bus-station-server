@@ -15,15 +15,9 @@ export interface EndIn4 {
 export interface InputIn4 {
   startIn4: StartIn4;
   endIn4: EndIn4;
-  userKm: number;
 }
 
 export interface InputRawIn4 {
   startString: string;
   endString: string;
-}
-
-export interface InputInfo {
-  startIn4: StartIn4;
-  endIn4: EndIn4;
 }

@@ -1,11 +1,11 @@
-import { updateUserCoordinate } from "../controller/customer's-controller/search-function/old-search-2023/user-coordinate-controller";
+// import { updateUserCoordinate } from "../controller/customer's-controller/search-function/old-search-2023/user-coordinate-controller";
 import { Double } from "mongodb";
 import { Router } from "express";
 import * as busController from "../controller/customer's-controller/bus-controller";
 import * as busStationController from "../controller/customer's-controller/bus-station-controller";
 import { body } from "express-validator";
 import UserCoordinate from "../models/user-coordinate";
-import * as userCoordinateController from "../controller/customer's-controller/search-function/old-search-2023/user-coordinate-controller";
+// import * as userCoordinateController from "../controller/customer's-controller/search-function/old-search-2023/user-coordinate-controller";
 import * as kdTreeController from "../controller/customer's-controller/search-function/old-search-2023/kdTree-controller";
 import * as userStartStringController from "../controller/customer's-controller/search-function/old-search-2023/user-start-string-controller";
 import * as userEndStringController from "../controller/customer's-controller/search-function/old-search-2023/user-end-string-controller";
@@ -31,13 +31,13 @@ const router = Router();
 router.get("/buses-data", busController.getAllBuses);
 router.get("/bus-stations-data", busStationController.getAllBusStations);
 
-router.get("/user-coordinate", userCoordinateController.getUserCoordinate);
-router.patch(
-  "/user-coordinate/:user-coorID",
-  userCoordinateController.updateUserCoordinate
-);
+// router.get("/user-coordinate", userCoordinateController.getUserCoordinate);
+// router.patch(
+//   "/user-coordinate/:user-coorID",
+//   userCoordinateController.updateUserCoordinate
+// );
 
-router.get("/testKDTree", kdTreeController.testKDtree);
+// router.get("/testKDTree", kdTreeController.testKDtree);
 
 router.get("/user-start-string", userStartStringController.getUserStartString);
 router.patch(
@@ -60,10 +60,6 @@ router.get("/user-end-string", userEndStringController.getUserEndString);
 //router.patch("/user-input-string", userInputStringController.updateUserString);
 
 //router.get("/test-geocoding", testGeocodingController.callGetUsersRoute);
-router.patch("/user-input-string", kdTreeController.findRouteAndStation);
-router.patch("/user-input-string2", kdTreeController.findByChangeRoute);
-
-router.patch("/find-bus-station-v1", kdTreeController.findBusStationsV1);
 
 router.post("/add-comment", authValidator, commentController.addComment);
 //router.patch("/");
@@ -164,5 +160,5 @@ router.post("/add-app-info", appInfoController.createAppInfo);
 router.patch("/update-app-info", appInfoController.updateAppInfo);
 
 //router để tìm kiếm tuyến đường trường hợp đi liền không nhảy tuyến 2024
-router.post("/search-seamless-route", SearchRouteController.findSeamlessRoute);
+router.post("/search-route", SearchRouteController.findRoute);
 export default router;

@@ -23,11 +23,9 @@ export let userStrings: UserString[] = [
   },
 ];
 
-export async function updateUserString2(
-  userId: string,
+export async function convertInputData(
   startString: string,
-  endString: string,
-  userKm: number
+  endString: string
 ): Promise<InputIn4> {
   // console.log(userId);
   // Find the user data in the array based on the provided userId
@@ -51,7 +49,6 @@ export async function updateUserString2(
   let inputIn4: InputIn4 = {
     startIn4: startIn4,
     endIn4: endIn4,
-    userKm: 0,
   };
   startString = startString.concat(" Hà Nội, Việt Nam");
   endString = endString.concat(" Hà Nội, Việt Nam");

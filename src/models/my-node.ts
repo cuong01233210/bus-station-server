@@ -1,5 +1,6 @@
 import MyPoint from "./my-point";
-class MyNode {
+import { StationPoint } from "./my-point";
+export class MyNode {
   point: MyPoint;
   left: MyNode | null;
   right: MyNode | null;
@@ -17,4 +18,22 @@ class MyNode {
     this.depth = depth;
   }
 }
-export default MyNode;
+
+export class MyNode2 {
+  point: StationPoint;
+  left: MyNode2 | null;
+  right: MyNode2 | null;
+  depth: number;
+
+  constructor(
+    point: StationPoint,
+    left: MyNode2 | null = null,
+    right: MyNode2 | null = null,
+    depth: number
+  ) {
+    this.point = point;
+    this.left = left;
+    this.right = right;
+    this.depth = depth;
+  }
+}
