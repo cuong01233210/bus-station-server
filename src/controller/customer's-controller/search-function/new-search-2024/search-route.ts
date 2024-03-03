@@ -1,6 +1,7 @@
+import { StationPoint } from "./../../../../models/my-point";
 import { Request, Response } from "express";
-import { InputIn4, InputInfo } from "../../../../models/input-in4";
-import { updateUserString2 } from "../old-search-2023/user-input-string.controller";
+import { InputIn4 } from "../../../../models/input-in4";
+import { convertInputData } from "../old-search-2023/user-input-string.controller";
 import MyPoint from "../../../../models/my-point";
 import BusStationsByDistrict from "../../../../models/bus-stations-by-district";
 import KDTree from "../../../../models/kdTree";
@@ -18,21 +19,55 @@ interface BusIn4Struct {
   lat: number;
   long: number;
 }
-// tìm tuyến liền mạch mạch, đi 1 lèo tới đích luôn không cần nhảy tuyến
-export async function findSeamlessRoute(req: Request, res: Response) {
+
+export async function findRoute(req: Request, res: Response) {
   //không cần dùng userId để phân biệt các tài khoản do cơ chế tự làm đc rồi
   const startString = req.body.startString;
   const endString = req.body.endString;
 
-  // sử dụng hàm getLocationIn4 để tìm toàn bộ thông tin gồm lat, long, district của điểm xuất phát và đích
-  let inputInfo: InputInfo = await getLocationIn4(startString, endString);
-  //console.log(inputInfo);
+  // sử dụng hàm convertInputData để lấy lat long của trạm xp và trạm đích
+  let inputIn4: InputIn4 = await convertInputData(startString, endString);
 
+  // sử dụng kd tree để tìm 2 trạm xuất phát ứng cử viên và 2 trạm đích ứng cử viên
+  const busStationsByDistrict =
+    await BusStationsByDistrict.getBusStationsByDistrictIn4();
+  //console.log("inputIn4: ", inputIn4);
+  let stationPoints: StationPoint[] = [];
+  let busStationsByDistrictLeng = busStationsByDistrict.length;
+  for (let i = 0; i < busStationsByDistrictLeng; i++) {
+    let busStationsIn4Leng = busStationsByDistrict[i].busStationIn4.length;
+    for (let j = 0; j < busStationsIn4Leng; j++) {
+      const point = {
+        name: busStationsByDistrict[i].busStationIn4[j].name,
+        district: busStationsByDistrict[i].district,
+        lat: busStationsByDistrict[i].busStationIn4[j].lat,
+        long: busStationsByDistrict[i].busStationIn4[j].long,
+      };
+      stationPoints.push(point);
+    }
+  }
+  // dựng cây kd tree với tất cả các trạm xe buýt
+  const tree = new KDTree(null, stationPoints);
+  tree.build();
+  // Tìm 2 trạm gần nhất với điểm xuất phát
+  const nearestStartNodes = tree.nearestNodes(inputIn4.startIn4, 2);
+  // In ra các điểm gần nhất
+  console.log("Các điểm gần nhất với trạm xuất phát:");
+  for (let index = 0; index < nearestStartNodes.length; index++) {
+    console.log(`Trạm ${index + 1}: ${nearestStartNodes[index].point?.name}`);
+  }
+  // Tìm 2 trạm gần nhất với điểm đích
+  const nearestEndNodes = tree.nearestNodes(inputIn4.endIn4, 2);
+  console.log("Các điểm gần nhất với trạm xuất đích:");
+  for (let index = 0; index < nearestEndNodes.length; index++) {
+    console.log(`Trạm ${index + 1}: ${nearestEndNodes[index].point?.name}`);
+  }
   const buses = await Bus.getBusIn4();
-  console.log(buses[0].chieuDi);
+  // từ những tuyến xe buýt build đồ thị có hướng
   const graph = new DirectedGraph();
   graph.createGraph(buses);
 
+  // sử dụng dijstra trên đồ thị có hướng để tìm đường
   let dijkstra = new Dijkstra(); // khởi tạo đối tượng Dijstra để tìm kiếm đường
   // đẩy thông tin đồ thị có hướng giữa các trạm vừa vẽ được vào dijstra
   graph.adjacencyList.forEach((edges, vertex) => {
@@ -42,8 +77,8 @@ export async function findSeamlessRoute(req: Request, res: Response) {
     //console.log("Đỉnh:", vertex);
     edges.forEach((edge) => {
       // console.log("  Vertex:", edge.vertex);
-      //console.log("  Weight:", edge.weight);
-      //  console.log("  Buses:", edge.buses);
+      // console.log("  Weight:", edge.weight);
+      // console.log("  Buses:", edge.buses);
 
       // Duyệt qua mỗi phần tử trong edge.buses và thêm vào Set
       edge.buses.forEach((bus) => {
@@ -56,184 +91,40 @@ export async function findSeamlessRoute(req: Request, res: Response) {
     busVertexts = [...uniqueBuses];
     dijkstra.addVertex(new Vertex(vertex, nodeVertexts, 0, busVertexts));
   });
-  console.log(
-    dijkstra.findShortestWay("Bến Xe Yên Nghĩa", "283 Tôn Đức Thắng")
-  );
+  // dijkstra.printVertices();
+  console.log("Một vài tuyến đường gợi ý là: ");
+  for (
+    let startIndex = 0;
+    startIndex < nearestStartNodes.length;
+    startIndex++
+  ) {
+    for (let endIndex = 0; endIndex < nearestEndNodes.length; endIndex++) {
+      let startStation = nearestStartNodes[startIndex].point;
+      let endStation = nearestEndNodes[endIndex].point;
+      if (startStation != null && endStation != null) {
+        console.log(startStation);
+        console.log(endStation);
+        console.log(
+          dijkstra.findShortestWay(startStation.name, endStation.name)
+        );
+      }
+    }
+  }
+  // console.log(
+  //   dijkstra.findShortestWay(
+  //     "Đối Diện 447 Ngọc Lâm - Vườn Hoa Gia Lâm",
+  //     "Đài Tưởng Niệm Khâm Thiên - 45 Khâm Thiên"
+  //   )
+  // );
   res.status(200).json("success");
 }
-export async function findBusStationsV1(req: Request, res: Response) {
-  const userId = req.body.id;
-  const startString = req.body.startString;
-  const endString = req.body.endString;
-  const userKm = req.body.userKm;
-  //const userString = userStrings.find((user) => user.id === userId);
-
-  let inputIn4: InputIn4 = await updateUserString2(
-    userId,
-    startString,
-    endString,
-    userKm
+// tóm lại là ổn rồi, sau 1 ngày check thì thuật toán ko sai mà do test case đen vào đúng TH ko có kq
+// do đó cần phải làm thêm trường hợp ko ra kq này là xong
+/*
+console.log(
+    dijkstra.findShortestWay(
+      "Đối Diện 447 Ngọc Lâm - Vườn Hoa Gia Lâm",
+      "Đài Tưởng Niệm Khâm Thiên - 45 Khâm Thiên"
+    )
   );
-
-  const startQueryPoint = new MyPoint(
-    inputIn4.startIn4.lat,
-    inputIn4.startIn4.long
-  );
-
-  const busStationsByDistrict =
-    await BusStationsByDistrict.getBusStationsByDistrictIn4();
-  //console.log("inputIn4: ", inputIn4);
-  let busStationsPoints: MyPoint[] = [];
-  let busStationsByDistrictLeng = busStationsByDistrict.length;
-  for (let i = 0; i < busStationsByDistrictLeng; i++) {
-    let busStationsIn4Leng = busStationsByDistrict[i].busStationIn4.length;
-    for (let j = 0; j < busStationsIn4Leng; j++) {
-      const point = {
-        x: busStationsByDistrict[i].busStationIn4[j].lat,
-        y: busStationsByDistrict[i].busStationIn4[j].long,
-      };
-      busStationsPoints.push(point);
-    }
-  }
-  // dựng cây kd tree với tất cả các trạm xe buýt
-  const startTree = new KDTree(null, busStationsPoints);
-  startTree.build();
-  // tìm trạm xuất phát gần nhất có thể
-  const startLocation = startTree.nearestDis(startQueryPoint);
-
-  // tìm thông tin chi tiết của trạm xuất phát
-  let startLocationIn4: BusIn4Struct = {
-    name: "",
-    bus: [],
-    lat: 0,
-    long: 0,
-  };
-  for (let i = 0; i < busStationsByDistrictLeng; i++) {
-    let busStationsIn4Leng = busStationsByDistrict[i].busStationIn4.length;
-    for (let j = 0; j < busStationsIn4Leng; j++) {
-      const point = {
-        x: busStationsByDistrict[i].busStationIn4[j].lat,
-        y: busStationsByDistrict[i].busStationIn4[j].long,
-      };
-      if (
-        startLocation.point?.x == point.x &&
-        startLocation.point?.y == point.y
-      ) {
-        startLocationIn4 = busStationsByDistrict[i].busStationIn4[j];
-      }
-    }
-  }
-  // tìm khoảng cách trạm xe buýt gần nhất với vị trí xuất phát
-  const startDistance = haversineDistance(
-    startLocationIn4.lat,
-    startLocationIn4.long,
-    inputIn4.startIn4.lat,
-    inputIn4.endIn4.long
-  );
-  //console.log(startLocationIn4);
-  // đi tìm in4 của các tuyến bus từ db
-  const buses = await Bus.getBusIn4();
-  //console.log(buses);
-
-  // lấy đầy đủ in4 các tuyến của trạm xuất phát
-  const routesIn4: Bus[] = [];
-  const startLocationIn4BusesLeng = startLocationIn4.bus.length;
-  const busesLeng = buses.length;
-  for (let i = 0; i < startLocationIn4BusesLeng; i++) {
-    for (let j = 0; j < busesLeng; j++) {
-      if (startLocationIn4.bus[i] == buses[j].bus) {
-        routesIn4.push(buses[j]);
-        j = busesLeng;
-      }
-    }
-  }
-
-  // mảng lưu các trạm gần nhất so với đích trên mỗi tuyến của trạm xuất phát và các khoảng cách so với đích của chúng
-  const minDistances = []; // mảng lưu khoảng cách oke nhất của trạm đích và đích đến theo các tuyến
-  const minDistancesStations = []; // mảng lưu các đích tương ứng mà oke nhất trên tuyến
-  const minRoutes = []; // mảng lưu tuyến xe buýt để đến trạm tương ứng
-
-  // vòng for các route của trạm xuất phát
-  const routesIn4Leng = routesIn4.length;
-
-  for (let i = 0; i < routesIn4Leng; i++) {
-    let minDis = Infinity;
-    let minDisStation = "";
-    const chieuDiLeng = routesIn4[i].chieuDi.length;
-    const chieuVeLeng = routesIn4[i].chieuVe.length;
-
-    // xét chiều đi của route đó
-    let j = 0;
-    for (; j < chieuDiLeng; j++) {
-      if (routesIn4[i].chieuDi[j].name == startLocationIn4.name) {
-        console.log(
-          "common name: ",
-          startLocationIn4.name,
-          routesIn4[i].chieuDi[j].name
-        );
-        break;
-      }
-    }
-    for (; j < chieuDiLeng; j++) {
-      const tempDis = haversineDistance(
-        inputIn4.endIn4.lat,
-        inputIn4.endIn4.long,
-        routesIn4[i].chieuDi[j].lat,
-        routesIn4[i].chieuDi[j].long
-      );
-      if (tempDis < minDis) {
-        minDis = tempDis;
-        minDisStation = routesIn4[i].chieuDi[j].name;
-      }
-    }
-    if (minDisStation != "") {
-      minDistances.push(minDis);
-      minDistancesStations.push(minDisStation);
-      minRoutes.push(routesIn4[i].bus);
-    }
-
-    minDis = Infinity;
-    minDisStation = "";
-    j = 0;
-    // xét chiều về của route đó
-    for (; j < chieuVeLeng; j++) {
-      if (routesIn4[i].chieuVe[j].name == startLocationIn4.name) {
-        console.log(
-          "common name: ",
-          startLocationIn4.name,
-          routesIn4[i].chieuVe[j].name
-        );
-        break;
-      }
-    }
-    for (; j < chieuVeLeng; j++) {
-      const tempDis = haversineDistance(
-        inputIn4.endIn4.lat,
-        inputIn4.endIn4.long,
-        routesIn4[i].chieuVe[j].lat,
-        routesIn4[i].chieuVe[j].long
-      );
-      if (tempDis < minDis) {
-        minDis = tempDis;
-        minDisStation = routesIn4[i].chieuVe[j].name;
-      }
-    }
-    if (minDisStation != "") {
-      minDistances.push(minDis);
-      minDistancesStations.push(minDisStation);
-      minRoutes.push(routesIn4[i].bus);
-    }
-  }
-  res.status(200).json({
-    startLocation: startLocationIn4.name,
-    startLocationLat: startLocationIn4.lat,
-    startLocationLong: startLocationIn4.long,
-    minDistances: minDistances,
-    minDistancesStations: minDistancesStations,
-    minRoutes: minRoutes,
-    startDistance: startDistance,
-    startStationLat: inputIn4.startIn4.lat,
-    startStationLong: inputIn4.startIn4.long,
-  });
-  //res.status(200).json({ busStationsByDistrict: busStationsByDistrict });
-}
+  */

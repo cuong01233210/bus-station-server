@@ -93,12 +93,12 @@ export class Dijkstra {
         buses: this.vertices[nextVertex].buses,
       };
       returnVextexts.unshift(returnVertex);
-      // console.log(
-      //   "Trạm: ",
-      //   nextVertex,
-      //   " Tuyến ",
-      //   this.vertices[nextVertex].buses
-      // );
+      console.log(
+        "Trạm: ",
+        nextVertex,
+        " Tuyến ",
+        this.vertices[nextVertex].buses
+      );
       nextVertex = this.vertices[nextVertex].frontNode;
     }
     //arrayWithVertex.unshift(nextVertex);

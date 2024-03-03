@@ -9,3 +9,10 @@ class MyPoint {
 }
 
 export default MyPoint;
+
+export interface StationPoint {
+  name: string;
+  district: string;
+  lat: number;
+  long: number;
+}
