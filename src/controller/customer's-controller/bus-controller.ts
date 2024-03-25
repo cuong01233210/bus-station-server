@@ -97,7 +97,6 @@ export const createBus = async (req: Request, res: Response) => {
       req.body.price,
       req.body.activityTime,
       req.body.gianCachChayXe,
-      req.body.gianCachTrungBinh,
       req.body.chieuDi,
       req.body.chieuVe
     );
@@ -115,7 +114,6 @@ export const updateBus = async (req: Request, res: Response) => {
       req.body.price,
       req.body.activityTime,
       req.body.gianCachChayXe,
-      req.body.gianCachTrungBinh,
       req.body.chieuDi,
       req.body.chieuVe
     );
