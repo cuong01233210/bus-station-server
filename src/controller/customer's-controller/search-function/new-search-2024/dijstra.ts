@@ -12,6 +12,11 @@ export interface ReturnRoute {
   destination: string;
   buses: string[];
 }
+
+export interface ResultRoute {
+  returnVertices: ReturnVertex[]; //
+  returnRoutes: ReturnRoute[]; //
+}
 // ý tưởng: ban đầu mình chập lại các tuyến đi được từ A -> B
 // A->B là 2 đỉnh của 1 cạnh có đường đi trực tiếp từ A -> B
 // ví dụ có các tuyến 01, 02, 89 đi từ Bến Xe Yên Nghĩa -> 807 Quang Trung - Hà Đông
@@ -85,29 +90,34 @@ export class Dijkstra {
   ): ReturnVertex[] {
     let nextVertex: string = finish;
     let arrayWithVertex: string[] = [];
-    let returnVextexts: ReturnVertex[] = [];
+    let returnVextices: ReturnVertex[] = [];
     while (nextVertex != start) {
-      //arrayWithVertex.unshift(nextVertex);
-      let returnVertex: ReturnVertex = {
-        name: nextVertex,
-        buses: this.vertices[nextVertex].buses,
-      };
-      returnVextexts.unshift(returnVertex);
-      console.log(
-        "Trạm: ",
-        nextVertex,
-        " Tuyến ",
-        this.vertices[nextVertex].buses
-      );
-      nextVertex = this.vertices[nextVertex].frontNode;
+      if (this.vertices[nextVertex] && this.vertices[nextVertex].buses) {
+        //arrayWithVertex.unshift(nextVertex);
+        let returnVertex: ReturnVertex = {
+          name: nextVertex,
+          buses: this.vertices[nextVertex].buses,
+        };
+        returnVextices.unshift(returnVertex);
+        // console.log(
+        //   "Trạm: ",
+        //   nextVertex,
+        //   " Tuyến ",
+        //   this.vertices[nextVertex].buses
+        // );
+        nextVertex = this.vertices[nextVertex].frontNode;
+      } else {
+        // console.log("Không tìm thấy tuyến đường/ trạm xe buýt phù hơp");
+        return [];
+      }
     }
     //arrayWithVertex.unshift(nextVertex);
     let returnVertex: ReturnVertex = {
       name: nextVertex,
       buses: this.vertices[nextVertex].buses,
     };
-    returnVextexts.unshift(returnVertex);
-    return returnVextexts;
+    returnVextices.unshift(returnVertex);
+    return returnVextices;
   }
   // thuật toán : xét 2 tập xe buýt c1Buses là tập xe buýt có thể đi được từ trạm j -> j + 1
   // và tập c2Buses là tập xe buýt có thể đi được từ trạm i -> j
@@ -145,7 +155,7 @@ export class Dijkstra {
   // và cuối cùng ta có kết quả để đi được tới đích cần 2 giai đoạn
   // A -> C với xe 02
   // C -> D với xe 100
-  filterBusesEachRoute(returnVertexs: ReturnVertex[]): ReturnRoute[] {
+  filterBusesEachRoute(returnVertices: ReturnVertex[]): ReturnRoute[] {
     let i = 0; // trạm khởi đầu combo
     let j = 0; // trạm kết thúc combo
     let saveI: number[] = []; // lưu các i
@@ -159,23 +169,23 @@ export class Dijkstra {
 
     let c3Buses: string[] = []; // bằng c1Buses giao c2Buses
 
-    c2Buses = returnVertexs[0].buses; // khởi tạo gồm dữ liệu trạm xuất phát
+    c2Buses = returnVertices[0].buses; // khởi tạo gồm dữ liệu trạm xuất phát
 
     let saveC: ReturnRoute[] = [];
 
-    if (returnVertexs.length == 1) {
+    if (returnVertices.length == 1) {
       console.log("Trạm xuất phát trùng trạm đích");
       saveC.push({
-        source: returnVertexs[0].name,
-        destination: returnVertexs[0].name,
-        buses: returnVertexs[0].buses,
+        source: returnVertices[0].name,
+        destination: returnVertices[0].name,
+        buses: returnVertices[0].buses,
       });
       return saveC;
     }
     // saveCBus lưu các route + trạm xuất phát và trạm đích của 1 lộ trình có thể đi được bằng tối thiểu 1 tuyến
-    for (let index = 0; index < returnVertexs.length - 1; index++) {
-      c1Buses = returnVertexs[index].buses.filter((item) =>
-        returnVertexs[index + 1].buses.includes(item)
+    for (let index = 0; index < returnVertices.length - 1; index++) {
+      c1Buses = returnVertices[index].buses.filter((item) =>
+        returnVertices[index + 1].buses.includes(item)
       );
       //console.log("c1Buses: ", c1Buses);
       if (c1Buses.length > 0) {
@@ -187,13 +197,13 @@ export class Dijkstra {
           // lưu lộ trình này lại
           //console.log("c2Buses save: ", c2Buses);
           saveC.push({
-            source: returnVertexs[i].name,
-            destination: returnVertexs[j].name,
+            source: returnVertices[i].name,
+            destination: returnVertices[j].name,
             buses: c2Buses,
           });
           // cập nhật i, j, c2Buses để tìm lộ trình tiếp theo
           i = j;
-          c2Buses = returnVertexs[i].buses;
+          c2Buses = returnVertices[i].buses;
           // tiếp tục xét tiếp đoạn lúc nãy đang giang dở
           c3Buses = c2Buses.filter((item) => c1Buses.includes(item)); // lần này 100% c3Buses khác null
           c2Buses = c3Buses;
@@ -211,14 +221,14 @@ export class Dijkstra {
     }
     // khi đến đích thì thêm nốt lộ trình còn lại vào saveC
     saveC.push({
-      source: returnVertexs[i].name,
-      destination: returnVertexs[j].name,
+      source: returnVertices[i].name,
+      destination: returnVertices[j].name,
       buses: c2Buses,
     });
 
     return saveC;
   }
-  findShortestWay(start: string, finish: string): ReturnRoute[] {
+  findShortestWay(start: string, finish: string): ResultRoute {
     let nodes: any = {};
     let visitedVertex: string[] = [];
 
@@ -256,18 +266,18 @@ export class Dijkstra {
     //     this.vertices[i].weight
     //   );
     // }
-    let arrayWithVertex: string[] = [];
-    let returnVertexs: ReturnVertex[] = this.findPointsOfShortestWay(
+
+    let returnVertices: ReturnVertex[] = this.findPointsOfShortestWay(
       start,
       finish,
       finishWeight
     );
-    for (let i = 0; i < returnVertexs.length; i++) {
-      console.log(returnVertexs[i].name, " ", returnVertexs[i].buses);
-    }
+    // for (let i = 0; i < returnVertices.length; i++) {
+    //   console.log(returnVertices[i].name, " ", returnVertices[i].buses);
+    // }
     let returnRoutes: ReturnRoute[] = [];
-    if (returnVertexs.length > 0) {
-      returnRoutes = this.filterBusesEachRoute(returnVertexs);
+    if (returnVertices.length > 0) {
+      returnRoutes = this.filterBusesEachRoute(returnVertices);
       // console.log("\n Lộ trình tìm được là");
       // for (let index = 0; index < returnRoutes.length; index++) {
       //   console.log("source: ", returnRoutes[index].source);
@@ -275,8 +285,11 @@ export class Dijkstra {
       //   console.log("buses: ", returnRoutes[index].buses);
       // }
     }
+    let resultRoute: ResultRoute = {
+      returnRoutes: returnRoutes,
+      returnVertices: returnVertices,
+    };
 
-    // arrayWithVertex.push(finishWeight.toString());
-    return returnRoutes;
+    return resultRoute;
   }
 }

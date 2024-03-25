@@ -9,7 +9,7 @@ import { haversineDistance } from "./test-geocoding-controller";
 import Bus from "../../../../models/bus";
 import { InputRawIn4 } from "../../../../models/input-in4";
 import { getLocationIn4 } from "./location-preprocessing";
-import { Dijkstra } from "./dijstra";
+import { Dijkstra, ResultRoute } from "./dijstra";
 import { Vertex } from "./dijstra";
 import { NodeVertex } from "./dijstra";
 import { DirectedGraph } from "./create-directed-graph";
@@ -91,8 +91,8 @@ export async function findRoute(req: Request, res: Response) {
     busVertexts = [...uniqueBuses];
     dijkstra.addVertex(new Vertex(vertex, nodeVertexts, 0, busVertexts));
   });
-  // dijkstra.printVertices();
   console.log("Một vài tuyến đường gợi ý là: ");
+  let resultRoutes: ResultRoute[] = [];
   for (
     let startIndex = 0;
     startIndex < nearestStartNodes.length;
@@ -102,11 +102,22 @@ export async function findRoute(req: Request, res: Response) {
       let startStation = nearestStartNodes[startIndex].point;
       let endStation = nearestEndNodes[endIndex].point;
       if (startStation != null && endStation != null) {
-        console.log(startStation);
-        console.log(endStation);
-        console.log(
-          dijkstra.findShortestWay(startStation.name, endStation.name)
+        console.log("trạm xuất phát", startStation);
+        console.log("trạm đích là", endStation);
+        let result = dijkstra.findShortestWay(
+          startStation.name,
+          endStation.name
         );
+        if (result.returnRoutes.length > 0) {
+          console.log(result.returnRoutes);
+          resultRoutes.push(result);
+        } else {
+          console.log("không tìm được tuyến đường phù hợp");
+        }
+
+        // console.log(
+        //   dijkstra.findShortestWay(startStation.name, endStation.name)
+        // );
       }
     }
   }
@@ -116,7 +127,7 @@ export async function findRoute(req: Request, res: Response) {
   //     "Đài Tưởng Niệm Khâm Thiên - 45 Khâm Thiên"
   //   )
   // );
-  res.status(200).json("success");
+  res.status(200).json({ resultRoutes: resultRoutes });
 }
 // tóm lại là ổn rồi, sau 1 ngày check thì thuật toán ko sai mà do test case đen vào đúng TH ko có kq
 // do đó cần phải làm thêm trường hợp ko ra kq này là xong

@@ -1,4 +1,4 @@
-import { InputInfo } from "./../../../../models/input-in4";
+import { InputIn4 } from "./../../../../models/input-in4";
 import { getLatLong } from "./LocationIQ";
 import { StartIn4 } from "../../../../models/input-in4";
 import { EndIn4 } from "../../../../models/input-in4";
@@ -6,7 +6,7 @@ import { EndIn4 } from "../../../../models/input-in4";
 export async function getLocationIn4(
   startString: string,
   endString: string
-): Promise<InputInfo> {
+): Promise<InputIn4> {
   let startIn4: StartIn4 = {
     name: startString,
     district: "",
@@ -33,7 +33,7 @@ export async function getLocationIn4(
   endIn4.lat = getGeo2.lat;
   endIn4.long = getGeo2.long;
 
-  const inputInfo: InputInfo = {
+  const inputInfo: InputIn4 = {
     startIn4: startIn4,
     endIn4: endIn4,
   };

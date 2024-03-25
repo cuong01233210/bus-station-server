@@ -1,3 +1,4 @@
+import { BusAppearanceDatabase } from "./databases/bus-appearance-time-database";
 import { BusStationsDatabase } from "./databases/bus-stations-database";
 import express, { Application, NextFunction, Request, Response } from "express";
 
@@ -32,6 +33,7 @@ async function databaseInit() {
   await UsersDatabase.initialize();
   await TodoDatabase.initialize();
   await AppInfoDatabase.initialize();
+  await BusAppearanceDatabase.initialize();
   app.listen(8000);
 }
 // passDB: flqOFCtNjd7A6lDH

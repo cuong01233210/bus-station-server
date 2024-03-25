@@ -6,7 +6,6 @@ class Bus {
   price: number;
   activityTime: string;
   gianCachChayXe: string;
-  gianCachTrungBinh: number;
   chieuDi: {
     name: string;
     bus: string[];
@@ -26,7 +25,6 @@ class Bus {
     price: number,
     activityTime: string,
     gianCachChayXe: string,
-    gianCachTrungBinh: number,
     chieuDi: {
       name: string;
       bus: string[];
@@ -44,7 +42,6 @@ class Bus {
     this.price = price;
     this.activityTime = activityTime;
     this.gianCachChayXe = gianCachChayXe;
-    this.gianCachTrungBinh = gianCachTrungBinh;
     this.chieuDi = chieuDi;
     this.chieuVe = chieuVe;
   }
@@ -60,7 +57,6 @@ class Bus {
           doc.price,
           doc.activityTime,
           doc.gianCachChayXe,
-          doc.gianCachTrungBinh,
           doc.chieuDi,
           doc.chieuVe
         )
@@ -77,7 +73,6 @@ class Bus {
         document.price,
         document.activityTime,
         document.gianCachChayXe,
-        document.gianCachTrungBinh,
         document.chieuDi,
         document.chieuVe
       );
@@ -98,7 +93,6 @@ class Bus {
           doc.price,
           doc.activityTime,
           doc.gianCachChayXe,
-          doc.gianCachTrungBinh,
           doc.chieuDi,
           doc.chieuVe
         )

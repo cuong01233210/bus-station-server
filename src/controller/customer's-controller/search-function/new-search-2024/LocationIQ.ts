@@ -1,12 +1,13 @@
 import NodeGeocoder, { Options } from "node-geocoder";
 import { Request, Response } from "express";
 import LatLong from "../../../../models/lat-long";
+import axios from "axios";
 const options: Options = {
   provider: "locationiq",
   apiKey: "pk.f9d511f00dc9fe72f59065eb39ef79e5",
   formatter: null,
 };
-
+const APIKEY = "pk.f9d511f00dc9fe72f59065eb39ef79e5";
 export function testLocationIQ(req: Request, res: Response) {
   const geocoder = NodeGeocoder(options);
 
@@ -70,5 +71,29 @@ export async function getLatLong(location: string): Promise<LatLong> {
     };
 
     return latLong;
+  }
+}
+
+export async function getDistance(
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number
+): Promise<number> {
+  try {
+    const url = `https://us1.locationiq.com/v1/directions/driving/${lon1},${lat1};${lon2},${lat2}?key=${APIKEY}&steps=true&alternatives=true&geometries=polyline&overview=full&`;
+    const response = await axios.get(url);
+    const data = response.data;
+
+    if (data.error) {
+      console.error("Error:", data.error);
+      return 0;
+    } else {
+      const distance = data.routes[0].distance;
+      return distance;
+    }
+  } catch (error) {
+    console.log("Error:");
+    return 0;
   }
 }

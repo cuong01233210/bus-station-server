@@ -26,6 +26,7 @@ import * as preferController from "../controller/customer's-controller/user-pref
 import * as appInfoController from "../controller/staff's-controller/app-info-controller";
 
 import * as SearchRouteController from "../controller/customer's-controller/search-function/new-search-2024/search-route";
+import * as calculateEstimateTime from "../controller/customer's-controller/search-function/new-search-2024/calculate-estimate-time";
 const router = Router();
 
 router.get("/buses-data", busController.getAllBuses);
@@ -161,4 +162,7 @@ router.patch("/update-app-info", appInfoController.updateAppInfo);
 
 //router để tìm kiếm tuyến đường trường hợp đi liền không nhảy tuyến 2024
 router.post("/search-route", SearchRouteController.findRoute);
+
+// router để tìm kiếm thời gian xuất hiện tuyến xe buýt tại trạm
+router.post("/find-bus-appearance-time", calculateEstimateTime.calculateTime);
 export default router;
