@@ -13,6 +13,7 @@ import { Dijkstra, ResultRoute } from "./dijstra";
 import { Vertex } from "./dijstra";
 import { NodeVertex } from "./dijstra";
 import { DirectedGraph } from "./create-directed-graph";
+import { searchStationRouteTime } from "./calculate-estimate-time";
 interface BusIn4Struct {
   name: string;
   bus: Array<string>;
@@ -110,7 +111,12 @@ export async function findRoute(req: Request, res: Response) {
         );
         if (result.returnRoutes.length > 0) {
           console.log(result.returnRoutes);
-          resultRoutes.push(result);
+          resultRoutes.push(result); // lưu trữ lại lộ trình tìm được
+          // tìm thời gian xuất hiện tuyến xe buýt đi được tương ứng
+          await searchStationRouteTime(
+            startStation.name,
+            result.returnRoutes[0].buses
+          );
         } else {
           console.log("không tìm được tuyến đường phù hợp");
         }
