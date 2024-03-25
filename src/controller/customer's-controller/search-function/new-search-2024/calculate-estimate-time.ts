@@ -266,11 +266,7 @@ export async function searchStationRouteTime(
                 minRouteTime.route = routes[j];
               }
             }
-            // appearTime.push({
-            //   route: routes[j],
-            //   hour: tArray[k].hour,
-            //   minute: tArray[k].minute,
-            // });
+
             responseLimit = responseLimit + 1;
             break;
           }
@@ -278,6 +274,36 @@ export async function searchStationRouteTime(
       }
     }
   }
-  console.log(minRouteTime);
+  const bus = await Bus.getOnlyOneBus(minRouteTime.route);
+  //console.log("gian cach trung binh: ", bus.gianCachTrungBinh);
+  appearTime.push({
+    route: minRouteTime.route,
+    hour: minRouteTime.hour,
+    minute: minRouteTime.minute,
+  });
+
+  minRouteTime.minute = minRouteTime.minute + bus.gianCachTrungBinh;
+
+  if (minRouteTime.minute >= 60) {
+    minRouteTime.minute -= 60;
+    minRouteTime.hour += 1;
+  }
+  appearTime.push({
+    route: minRouteTime.route,
+    hour: minRouteTime.hour,
+    minute: minRouteTime.minute,
+  });
+
+  minRouteTime.minute = minRouteTime.minute + bus.gianCachTrungBinh;
+  if (minRouteTime.minute >= 60) {
+    minRouteTime.minute -= 60;
+    minRouteTime.hour += 1;
+  }
+  appearTime.push({
+    route: minRouteTime.route,
+    hour: minRouteTime.hour,
+    minute: minRouteTime.minute,
+  });
+
   return appearTime;
 }

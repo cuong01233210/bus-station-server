@@ -113,10 +113,11 @@ export async function findRoute(req: Request, res: Response) {
           console.log(result.returnRoutes);
           resultRoutes.push(result); // lưu trữ lại lộ trình tìm được
           // tìm thời gian xuất hiện tuyến xe buýt đi được tương ứng
-          await searchStationRouteTime(
+          const appearTime = await searchStationRouteTime(
             startStation.name,
             result.returnRoutes[0].buses
           );
+          // console.log(appearTime);
         } else {
           console.log("không tìm được tuyến đường phù hợp");
         }
