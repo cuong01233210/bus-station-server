@@ -229,7 +229,7 @@ export async function searchStationRouteTime(
 ): Promise<{ route: string; hour: number; minute: number }[]> {
   const stationTime = await BusAppearance.getStationTime(stationName);
   const { hour, minute } = getCurrentHourAndMinuteInVietnam();
-  //console.log("Giờ và phút hiện tại ở Việt Nam:", hour, "giờ", minute, "phút");
+  // console.log("Giờ và phút hiện tại ở Việt Nam:", hour, "giờ", minute, "phút");
   let responseLimit = 0; // nếu responseLimit == 3 thì dừng tìm tiếp, mình chỉ tìm tối đa 3 tuyến sắp có xe thôi cho đỡ cực
   const appearTime: { route: string; hour: number; minute: number }[] = [];
   const minRouteTime: { route: string; hour: number; minute: number } = {
@@ -237,6 +237,7 @@ export async function searchStationRouteTime(
     hour: 100,
     minute: 100,
   };
+  const route = "";
   //console.log(stationTime);
   const appearances = stationTime.appearances;
   for (let i = 0; i < appearances.length; i++) {
@@ -274,20 +275,23 @@ export async function searchStationRouteTime(
       }
     }
   }
+  console.log("route: ", minRouteTime.route);
   const bus = await Bus.getOnlyOneBus(minRouteTime.route);
+  // console.log(bus);
   //console.log("gian cach trung binh: ", bus.gianCachTrungBinh);
   appearTime.push({
     route: minRouteTime.route,
     hour: minRouteTime.hour,
     minute: minRouteTime.minute,
   });
-
+  //return appearTime;
   minRouteTime.minute = minRouteTime.minute + bus.gianCachTrungBinh;
-
+  //console.log("minRouteTime trc update: ", minRouteTime);
   if (minRouteTime.minute >= 60) {
     minRouteTime.minute -= 60;
     minRouteTime.hour += 1;
   }
+  //console.log("minRouteTime sau update: ", minRouteTime);
   appearTime.push({
     route: minRouteTime.route,
     hour: minRouteTime.hour,
@@ -299,6 +303,7 @@ export async function searchStationRouteTime(
     minRouteTime.minute -= 60;
     minRouteTime.hour += 1;
   }
+
   appearTime.push({
     route: minRouteTime.route,
     hour: minRouteTime.hour,

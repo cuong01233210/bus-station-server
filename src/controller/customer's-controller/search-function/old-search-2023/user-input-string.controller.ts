@@ -1,3 +1,4 @@
+import { updateBus } from "./../../bus-controller";
 import { InputRawIn4 } from "../../../../models/input-in4";
 import { userStartStrings } from "./user-start-string-controller";
 
@@ -25,7 +26,9 @@ export let userStrings: UserString[] = [
 
 export async function convertInputData(
   startString: string,
-  endString: string
+  endString: string,
+  userInputLat: number,
+  userInputLong: number
 ): Promise<InputIn4> {
   // console.log(userId);
   // Find the user data in the array based on the provided userId
@@ -50,15 +53,20 @@ export async function convertInputData(
     startIn4: startIn4,
     endIn4: endIn4,
   };
-  startString = startString.concat(" Hà Nội, Việt Nam");
+  if (userInputLat !== 0 && userInputLong !== 0) {
+    startIn4.lat = userInputLat;
+    startIn4.long = userInputLong;
+    startIn4.name = "Vị trí hiện tại";
+  } else {
+    startString = startString.concat(" Hà Nội, Việt Nam");
+    const getGeo1 = await getLatLong(startString);
+    startIn4.name = startString;
+    startIn4.lat = getGeo1.lat;
+    startIn4.long = getGeo1.long;
+  }
+
   endString = endString.concat(" Hà Nội, Việt Nam");
-
-  const getGeo1 = await getLatLong(startString);
   const getGeo2 = await getLatLong(endString);
-  startIn4.name = startString;
-  startIn4.lat = getGeo1.lat;
-  startIn4.long = getGeo1.long;
-
   endIn4.name = endString;
   endIn4.lat = getGeo2.lat;
   endIn4.long = getGeo2.long;

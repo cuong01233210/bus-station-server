@@ -14,6 +14,15 @@ export const getAllBusStations = async (req: Request, res: Response) => {
   }
 };
 
+export const getStationNames = async (req: Request, res: Response) => {
+  try {
+    const busStationOnlyNames =
+      await BusStationsByDistrict.getBusStationOnlyNames();
+    res.status(200).json({ busStationNames: busStationOnlyNames });
+  } catch (error) {
+    res.status(400).json({ message: error });
+  }
+};
 export const getAllBusStationsNoDistrict = async (
   req: Request,
   res: Response

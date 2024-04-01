@@ -15,6 +15,19 @@ class BusStationsByDistrict {
     this.busStationIn4 = busStationIn4;
     this.id = id;
   }
+  static async getBusStationOnlyNames(): Promise<string[]> {
+    const busStationsByDistrict = await this.getBusStationsByDistrictIn4();
+
+    const busStationNames: string[] = [];
+
+    busStationsByDistrict.forEach((district) => {
+      district.busStationIn4.forEach((busStation) => {
+        busStationNames.push(busStation.name);
+      });
+    });
+
+    return busStationNames;
+  }
 
   static async getBusStationsByDistrictIn4(): Promise<BusStationsByDistrict[]> {
     const db: Db = BusStationsDatabase.getDb();

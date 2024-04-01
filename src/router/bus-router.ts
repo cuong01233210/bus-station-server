@@ -165,4 +165,7 @@ router.post("/search-route", SearchRouteController.findRoute);
 
 // router để tìm kiếm thời gian xuất hiện tuyến xe buýt tại trạm
 router.post("/find-bus-appearance-time", calculateEstimateTime.calculateTime);
+
+// router để lấy được chỉ là tên của các trạm xe buýt
+router.get("/get-stations-only-names", busStationController.getStationNames);
 export default router;

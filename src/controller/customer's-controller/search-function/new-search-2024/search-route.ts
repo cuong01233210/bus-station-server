@@ -25,9 +25,17 @@ export async function findRoute(req: Request, res: Response) {
   //không cần dùng userId để phân biệt các tài khoản do cơ chế tự làm đc rồi
   const startString = req.body.startString;
   const endString = req.body.endString;
+  const userInputLat = req.body.lat;
+  const userInputLong = req.body.long;
 
   // sử dụng hàm convertInputData để lấy lat long của trạm xp và trạm đích
-  let inputIn4: InputIn4 = await convertInputData(startString, endString);
+  let inputIn4: InputIn4 = await convertInputData(
+    startString,
+    endString,
+    userInputLat,
+    userInputLong
+  );
+  console.log(inputIn4);
 
   // sử dụng kd tree để tìm 2 trạm xuất phát ứng cử viên và 2 trạm đích ứng cử viên
   const busStationsByDistrict =
@@ -117,7 +125,7 @@ export async function findRoute(req: Request, res: Response) {
             startStation.name,
             result.returnRoutes[0].buses
           );
-          // console.log(appearTime);
+          console.log(appearTime);
         } else {
           console.log("không tìm được tuyến đường phù hợp");
         }
