@@ -4,7 +4,7 @@ import Bus from "../../../../models/bus";
 import { getDistance } from "./LocationIQ";
 import { haversineDistance } from "./test-geocoding-controller";
 import BusAppearance from "../../../../models/bus-appearance-time";
-import moment from "moment-timezone";
+import moment, { min } from "moment-timezone";
 function convertStringTime(timeString: string): {
   hour: number;
   minute: number;
@@ -226,11 +226,28 @@ export function getCurrentHourAndMinuteInVietnam(): {
 
 export async function searchStationRouteTimeMode1(
   stationName: string,
-  routes: string[]
+  routes: string[],
+  userLat: number,
+  userLong: number,
+  stationLat: number,
+  stationLong: number
 ): Promise<{ [key: string]: { hour: number; minute: number }[] }> {
   const stationTime = await BusAppearance.getStationTime(stationName);
-  const { hour, minute } = getCurrentHourAndMinuteInVietnam();
+  let { hour, minute } = getCurrentHourAndMinuteInVietnam();
 
+  // xác định thời gian người dùng di chuyển được từ vị trí người dùng ra trạm
+  const dis = haversineDistance(userLat, userLong, stationLat, stationLong);
+  const walkingTime = dis / 5;
+  const roundedWalkingTime = Math.ceil(walkingTime);
+  //console.log("roundedWalkingTime: ", roundedWalkingTime);
+  minute = minute + roundedWalkingTime;
+  if (minute > 60) {
+    minute = minute - 60;
+    hour = hour + 1;
+    if (hour == 24) hour = 0;
+  }
+
+  // từ đó thời gian gợi ý xe tối thiểu là thời gian hiện tại + thời gian ng dùng ra trạm
   const routeTime: { [route: string]: { hour: number; minute: number }[] } = {};
 
   const appearances = stationTime.appearances;

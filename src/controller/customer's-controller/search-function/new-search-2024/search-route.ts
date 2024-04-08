@@ -29,7 +29,7 @@ export async function findRoute(req: Request, res: Response) {
   const userInputLong = req.body.long;
   const timeFilterMode = req.body.timeFilterMode; // biến xác định chế độ lọc thời gian xe buýt đến trạm
 
-  // sử dụng hàm convertInputData để lấy lat long của trạm xp và trạm đích
+  // sử dụng hàm convertInputData để lấy lat long của điểm xp và điểm đích
   let inputIn4: InputIn4 = await convertInputData(
     startString,
     endString,
@@ -125,7 +125,11 @@ export async function findRoute(req: Request, res: Response) {
           // tìm thời gian xuất hiện tuyến xe buýt đi được tương ứng
           const appearTime = await searchStationRouteTimeMode1(
             startStation.name,
-            result.returnRoutes[0].buses
+            result.returnRoutes[0].buses,
+            inputIn4.startIn4.lat,
+            inputIn4.startIn4.long,
+            startStation.lat,
+            startStation.long
           );
           appearTimes.push(appearTime);
           console.log(appearTime);
