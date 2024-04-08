@@ -14,7 +14,7 @@ export interface ReturnRoute {
 }
 
 export interface ResultRoute {
-  returnVertices: ReturnVertex[]; //
+  vertices: string[]; //
   returnRoutes: ReturnRoute[]; //
 }
 // ý tưởng: ban đầu mình chập lại các tuyến đi được từ A -> B
@@ -272,9 +272,11 @@ export class Dijkstra {
       finish,
       finishWeight
     );
-    // for (let i = 0; i < returnVertices.length; i++) {
-    //   console.log(returnVertices[i].name, " ", returnVertices[i].buses);
-    // }
+    let vertices: string[] = []
+    for (let i = 0; i < returnVertices.length; i++) {
+      vertices.push(returnVertices[i].name)
+      //console.log(returnVertices[i].name, " ", returnVertices[i].buses);
+    }
     let returnRoutes: ReturnRoute[] = [];
     if (returnVertices.length > 0) {
       returnRoutes = this.filterBusesEachRoute(returnVertices);
@@ -287,7 +289,7 @@ export class Dijkstra {
     }
     let resultRoute: ResultRoute = {
       returnRoutes: returnRoutes,
-      returnVertices: returnVertices,
+      vertices: vertices,
     };
 
     return resultRoute;
