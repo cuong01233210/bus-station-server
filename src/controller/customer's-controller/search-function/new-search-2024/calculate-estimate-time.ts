@@ -223,92 +223,45 @@ export function getCurrentHourAndMinuteInVietnam(): {
 // sau đó so sánh với thời gian thực, nếu nó gần nhất với thời gian thực trong tlai thì chọn thôi
 // bước 4: lúc trả về thì so sánh 3 phần tử thời gian đó, cái nào nhỏ nhất thì lấy và báo cho người dùng
 // bước 5: có thể lấy thời gian tìm được ở bước 4 + giãn cách trung bình của tuyến đó để báo cho người dùng (thế là phải rebuild db ngại thật @@)
-export async function searchStationRouteTime(
+
+export async function searchStationRouteTimeMode1(
   stationName: string,
   routes: string[]
-): Promise<{ route: string; hour: number; minute: number }[]> {
+): Promise<{ [key: string]: { hour: number; minute: number }[] }> {
   const stationTime = await BusAppearance.getStationTime(stationName);
   const { hour, minute } = getCurrentHourAndMinuteInVietnam();
-  // console.log("Giờ và phút hiện tại ở Việt Nam:", hour, "giờ", minute, "phút");
-  let responseLimit = 0; // nếu responseLimit == 3 thì dừng tìm tiếp, mình chỉ tìm tối đa 3 tuyến sắp có xe thôi cho đỡ cực
-  const appearTime: { route: string; hour: number; minute: number }[] = [];
-  const minRouteTime: { route: string; hour: number; minute: number } = {
-    route: "",
-    hour: 100,
-    minute: 100,
-  };
-  const route = "";
-  //console.log(stationTime);
+
+  const routeTime: { [route: string]: { hour: number; minute: number }[] } = {};
+
   const appearances = stationTime.appearances;
   for (let i = 0; i < appearances.length; i++) {
-    if (responseLimit == 3) break;
     for (let j = 0; j < routes.length; j++) {
-      if (responseLimit == 3) break;
       if (appearances[i].route == routes[j]) {
-        // console.log(routes[j]);
-        // tìm thời điểm gần nhất với hiện tại
         const tArray = appearances[i].tArray;
+        const route = routes[j];
         for (let k = 0; k < tArray.length; k++) {
           const timeDiff =
             (tArray[k].hour - hour) * 60 + (tArray[k].minute - minute);
           if (timeDiff > 0) {
-            //console.log("thời điểm cần tìm là: ", tArray[k]);
-            if (tArray[k].hour < minRouteTime.hour) {
-              minRouteTime.hour = tArray[k].hour;
-              minRouteTime.minute = tArray[k].minute;
-              minRouteTime.route = routes[j];
-            } else {
-              if (
-                tArray[k].minute < minRouteTime.minute &&
-                tArray[k].hour == minRouteTime.hour
-              ) {
-                minRouteTime.hour = tArray[k].hour;
-                minRouteTime.minute = tArray[k].minute;
-                minRouteTime.route = routes[j];
-              }
-            }
-
-            responseLimit = responseLimit + 1;
+            const times = [];
+            times.push({ hour: tArray[k].hour, minute: tArray[k].minute });
+            if (k + 1 < tArray.length)
+              times.push({
+                hour: tArray[k + 1].hour,
+                minute: tArray[k + 1].minute,
+              });
+            if (k + 2 < tArray.length)
+              times.push({
+                hour: tArray[k + 2].hour,
+                minute: tArray[k + 2].minute,
+              });
+            routeTime[route] = times;
             break;
           }
         }
       }
     }
   }
-  console.log("route: ", minRouteTime.route);
-  const bus = await Bus.getOnlyOneBus(minRouteTime.route);
-  // console.log(bus);
-  //console.log("gian cach trung binh: ", bus.gianCachTrungBinh);
-  appearTime.push({
-    route: minRouteTime.route,
-    hour: minRouteTime.hour,
-    minute: minRouteTime.minute,
-  });
-  //return appearTime;
-  minRouteTime.minute = minRouteTime.minute + bus.gianCachTrungBinh;
-  //console.log("minRouteTime trc update: ", minRouteTime);
-  if (minRouteTime.minute >= 60) {
-    minRouteTime.minute -= 60;
-    minRouteTime.hour += 1;
-  }
-  //console.log("minRouteTime sau update: ", minRouteTime);
-  appearTime.push({
-    route: minRouteTime.route,
-    hour: minRouteTime.hour,
-    minute: minRouteTime.minute,
-  });
 
-  minRouteTime.minute = minRouteTime.minute + bus.gianCachTrungBinh;
-  if (minRouteTime.minute >= 60) {
-    minRouteTime.minute -= 60;
-    minRouteTime.hour += 1;
-  }
-
-  appearTime.push({
-    route: minRouteTime.route,
-    hour: minRouteTime.hour,
-    minute: minRouteTime.minute,
-  });
-
-  return appearTime;
+  return routeTime;
 }
