@@ -13,7 +13,7 @@ import { Dijkstra, ResultRoute } from "./dijstra";
 import { Vertex } from "./dijstra";
 import { NodeVertex } from "./dijstra";
 import { DirectedGraph } from "./create-directed-graph";
-import { searchStationRouteTime } from "./calculate-estimate-time";
+import { searchStationRouteTimeMode1 } from "./calculate-estimate-time";
 interface BusIn4Struct {
   name: string;
   bus: Array<string>;
@@ -27,6 +27,7 @@ export async function findRoute(req: Request, res: Response) {
   const endString = req.body.endString;
   const userInputLat = req.body.lat;
   const userInputLong = req.body.long;
+  const timeFilterMode = req.body.timeFilterMode; // biến xác định chế độ lọc thời gian xe buýt đến trạm
 
   // sử dụng hàm convertInputData để lấy lat long của trạm xp và trạm đích
   let inputIn4: InputIn4 = await convertInputData(
@@ -102,6 +103,7 @@ export async function findRoute(req: Request, res: Response) {
   });
   console.log("Một vài tuyến đường gợi ý là: ");
   let resultRoutes: ResultRoute[] = [];
+  let appearTimes = [];
   for (
     let startIndex = 0;
     startIndex < nearestStartNodes.length;
@@ -121,10 +123,11 @@ export async function findRoute(req: Request, res: Response) {
           console.log(result.returnRoutes);
           resultRoutes.push(result); // lưu trữ lại lộ trình tìm được
           // tìm thời gian xuất hiện tuyến xe buýt đi được tương ứng
-          const appearTime = await searchStationRouteTime(
+          const appearTime = await searchStationRouteTimeMode1(
             startStation.name,
             result.returnRoutes[0].buses
           );
+          appearTimes.push(appearTime);
           console.log(appearTime);
         } else {
           console.log("không tìm được tuyến đường phù hợp");
@@ -142,7 +145,10 @@ export async function findRoute(req: Request, res: Response) {
   //     "Đài Tưởng Niệm Khâm Thiên - 45 Khâm Thiên"
   //   )
   // );
-  res.status(200).json({ resultRoutes: resultRoutes });
+  //console.log("appearTimes: ", appearTimes);
+  res
+    .status(200)
+    .json({ resultRoutes: resultRoutes, appearTimes: appearTimes });
 }
 // tóm lại là ổn rồi, sau 1 ngày check thì thuật toán ko sai mà do test case đen vào đúng TH ko có kq
 // do đó cần phải làm thêm trường hợp ko ra kq này là xong

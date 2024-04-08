@@ -53,7 +53,12 @@ export async function convertInputData(
     startIn4: startIn4,
     endIn4: endIn4,
   };
-  if (userInputLat !== 0 && userInputLong !== 0) {
+  if (
+    userInputLat !== 0 &&
+    userInputLong !== 0 &&
+    userInputLat != undefined &&
+    userInputLong != undefined
+  ) {
     startIn4.lat = userInputLat;
     startIn4.long = userInputLong;
     startIn4.name = "Vị trí hiện tại";
