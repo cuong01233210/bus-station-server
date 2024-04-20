@@ -95,7 +95,10 @@ export async function findRoute(req: Request, res: Response) {
         uniqueBuses.add(bus);
       });
 
-      nodeVertexts.push({ nameOfVertex: edge.vertex, weight: edge.weight });
+      nodeVertexts.push({
+        nameOfVertex: edge.vertex,
+        weight: edge.weight,
+      });
     });
     // Chuyển đổi Set thành mảng bằng spread operator
     busVertexts = [...uniqueBuses];

@@ -63,16 +63,20 @@ export async function convertInputData(
     startIn4.long = userInputLong;
     startIn4.name = "Vị trí hiện tại";
   } else {
-    startString = startString.concat(" Hà Nội, Việt Nam");
-    const getGeo1 = await getLatLong(startString);
+    //startString = startString.concat(" ,Hà Nội, Việt Nam");
+    let getGeo1 = await getLatLong(startString.concat(" ,Hà Nội, Việt Nam"));
+    if (getGeo1.lat == 0) getGeo1 = await getLatLong(startString);
     startIn4.name = startString;
     startIn4.lat = getGeo1.lat;
     startIn4.long = getGeo1.long;
   }
 
-  endString = endString.concat(" Hà Nội, Việt Nam");
-  const getGeo2 = await getLatLong(endString);
+  //endString = endString.concat(" ,Hà Nội, Việt Nam");
+  let getGeo2 = await getLatLong(endString.concat(" ,Hà Nội, Việt Nam"));
   endIn4.name = endString;
+  if (getGeo2.lat == 0) {
+    getGeo2 = await getLatLong(endString);
+  }
   endIn4.lat = getGeo2.lat;
   endIn4.long = getGeo2.long;
 

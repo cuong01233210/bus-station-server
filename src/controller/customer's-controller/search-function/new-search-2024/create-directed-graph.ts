@@ -33,7 +33,13 @@ export class DirectedGraph {
   // value có kiểu là 1 mảng chứa các phần tử có dạng { vertex: string; weight: number }
   adjacencyList: Map<
     string,
-    { vertex: string; weight: number; buses: string[] }[]
+    {
+      vertex: string;
+      weight: number;
+      buses: string[];
+      lat: number;
+      long: number;
+    }[]
   > = new Map();
 
   addVertex(vertex: string) {
@@ -63,7 +69,13 @@ export class DirectedGraph {
         haversineDistance(sourceLat, sourceLong, desLat, desLong) * 1000;
       this.adjacencyList
         .get(source)
-        ?.push({ vertex: destination, weight: weigh, buses: [bus] });
+        ?.push({
+          vertex: destination,
+          weight: weigh,
+          buses: [bus],
+          lat: desLat,
+          long: desLong,
+        });
     } else {
       // Nếu đã tồn tại đường đi từ source đến destination
       // Thêm bus vào mảng buses tương ứng
