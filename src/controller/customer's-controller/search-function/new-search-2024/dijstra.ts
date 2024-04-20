@@ -34,25 +34,7 @@ export interface ResultRoute {
 // tóm lại là cứ dùng dijstra như cũ để tìm route theo quãng đường khoảng cách như làm A, B, C còn lại thì fix
 
 // phiên bản real đầu tiên với các trạm xe buýt
-export interface NodeVertex2 {
-  name: string; // tên trạm ứng cử cho việc đến tiếp theo
-  weight: number; // trọng số theo khoảng cách
-  buses: string[]; // là cái mảng lưu các tuyến xe buýt đi qua được (t0102,...) thay bằng mảng đã phải tách xâu
-}
 
-export class Vertext2 {
-  name: string; // tên trạm bus hiện bắt đầu xuất phát
-  nodes: NodeVertex2[]; // mảng chứa vector các đường đi có thể từ điểm A hiện tại (các ứng cử viên cho B)
-  weight: number; // lưu trữ khoảng cách từ điểm bắt đầu tới điểm đích tìm được
-  frontNode: string; // lưu trữ node kề phía trước sau khi duyệt dijstra
-
-  constructor(theName: string, theNodes: NodeVertex2[], theWeight: number) {
-    this.name = theName;
-    this.nodes = theNodes;
-    this.weight = theWeight;
-    this.frontNode = "";
-  }
-}
 export class Vertex {
   name: string; // tên node
   nodes: NodeVertex[]; // mảng chứa vector giữa 2 node hiện tại và node có thể liền kề
@@ -86,7 +68,7 @@ export class Dijkstra {
   findPointsOfShortestWay(
     start: string,
     finish: string,
-    weight: number
+    finishWeight: number
   ): ReturnVertex[] {
     let nextVertex: string = finish;
     let arrayWithVertex: string[] = [];
@@ -99,12 +81,14 @@ export class Dijkstra {
           buses: this.vertices[nextVertex].buses,
         };
         returnVextices.unshift(returnVertex);
-        // console.log(
-        //   "Trạm: ",
-        //   nextVertex,
-        //   " Tuyến ",
-        //   this.vertices[nextVertex].buses
-        // );
+        console.log(
+          "Trạm: ",
+          nextVertex,
+          " Tuyến ",
+          this.vertices[nextVertex].buses,
+          "Khoảng cách từ trạm xp tới trạm đang xét: ",
+          this.vertices[nextVertex].weight
+        );
         nextVertex = this.vertices[nextVertex].frontNode;
       } else {
         // console.log("Không tìm thấy tuyến đường/ trạm xe buýt phù hơp");
@@ -201,6 +185,15 @@ export class Dijkstra {
             destination: returnVertices[j].name,
             buses: c2Buses,
           });
+          console.log(
+            "khoảng cách giữa ",
+            returnVertices[i].name,
+            " ",
+            returnVertices[j].name,
+            " là: ",
+            this.vertices[returnVertices[j].name].weight -
+              this.vertices[returnVertices[i].name].weight
+          );
           // cập nhật i, j, c2Buses để tìm lộ trình tiếp theo
           i = j;
           c2Buses = returnVertices[i].buses;
@@ -220,6 +213,15 @@ export class Dijkstra {
       }
     }
     // khi đến đích thì thêm nốt lộ trình còn lại vào saveC
+    console.log(
+      "khoảng cách giữa ",
+      returnVertices[i].name,
+      " ",
+      returnVertices[j].name,
+      " là: ",
+      this.vertices[returnVertices[j].name].weight -
+        this.vertices[returnVertices[i].name].weight
+    );
     saveC.push({
       source: returnVertices[i].name,
       destination: returnVertices[j].name,
@@ -244,18 +246,24 @@ export class Dijkstra {
     while (Object.keys(nodes).length !== 0) {
       let sortedVisitedByWeight: string[] = Object.keys(nodes).sort(
         (a, b) => this.vertices[a].weight - this.vertices[b].weight
-      );
-      let currentVertex: Vertex = this.vertices[sortedVisitedByWeight[0]];
+      ); // dòng này để sắp xếp lại đỉnh theo trọgn số từ nhỏ -> lớn
+      let currentVertex: Vertex = this.vertices[sortedVisitedByWeight[0]]; // chọn ra đỉnh có trọng số min a
+
+      // xét các đỉnh kề b của đỉnh a
       for (let j of currentVertex.nodes) {
         const calculateWeight: number = currentVertex.weight + j.weight;
+        // nếu khoảng cách từ đỉnh gốc tới đỉnh b nhỏ hơn khoảng cách hiện tại được ghi nhận
+        // thì cập nhật giá trị và cập nhật đỉnh kể a vào khoảng cách hiện tại của b
         if (calculateWeight < this.vertices[j.nameOfVertex].weight) {
           this.vertices[j.nameOfVertex].weight = calculateWeight;
           this.vertices[j.nameOfVertex].frontNode = currentVertex.name;
         }
       }
+      // loại bỏ đỉnh a khỏi ds xét
       delete nodes[sortedVisitedByWeight[0]];
     }
     const finishWeight: number = this.vertices[finish].weight;
+    console.log("finishWeight: ", finishWeight);
     // console.log(
     //   "danh sách các node và node phía trước tương ứng và khoảng cách từ điểm đó tới điểm xuất phát là"
     // );
@@ -263,7 +271,7 @@ export class Dijkstra {
     //   console.log(
     //     this.vertices[i].name,
     //     this.vertices[i].frontNode,
-    //     this.vertices[i].weight
+    //     this.vertices[i].weight,
     //   );
     // }
 
@@ -272,9 +280,9 @@ export class Dijkstra {
       finish,
       finishWeight
     );
-    let vertices: string[] = []
+    let vertices: string[] = [];
     for (let i = 0; i < returnVertices.length; i++) {
-      vertices.push(returnVertices[i].name)
+      vertices.push(returnVertices[i].name);
       //console.log(returnVertices[i].name, " ", returnVertices[i].buses);
     }
     let returnRoutes: ReturnRoute[] = [];
