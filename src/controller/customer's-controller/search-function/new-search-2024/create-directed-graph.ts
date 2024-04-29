@@ -1,5 +1,7 @@
 import Bus from "../../../../models/bus";
 import { haversineDistance } from "./test-geocoding-controller";
+import fs from "fs";
+import { Request, Response } from "express";
 // ý tưởng
 // dùng list liền kề (adjacencyList) + map để lưu trữ dữ liệu theo các cạnh
 // nói chung dùng list để tiện cho việc từ 1 key (điểm xuất phát) dễ dàng nhìn thấy được luôn các đích (des) có thể tới
@@ -67,15 +69,13 @@ export class DirectedGraph {
     if (!edgeExists) {
       const weigh =
         haversineDistance(sourceLat, sourceLong, desLat, desLong) * 1000;
-      this.adjacencyList
-        .get(source)
-        ?.push({
-          vertex: destination,
-          weight: weigh,
-          buses: [bus],
-          lat: desLat,
-          long: desLong,
-        });
+      this.adjacencyList.get(source)?.push({
+        vertex: destination,
+        weight: weigh,
+        buses: [bus],
+        lat: desLat,
+        long: desLong,
+      });
     } else {
       // Nếu đã tồn tại đường đi từ source đến destination
       // Thêm bus vào mảng buses tương ứng
@@ -122,4 +122,79 @@ export class DirectedGraph {
       });
     });
   }
+}
+
+// Define a type for the objects that are stored in the arrays of the adjacency list
+type Edge = {
+  vertex: string;
+  weight: number;
+  buses: string[];
+  lat: number;
+  long: number;
+};
+
+// Define a type for the serializable list which will have string keys
+// and values that are arrays of Edge
+type SerializableList = {
+  [key: string]: Edge[];
+};
+
+// Define the type for the adjacency list which is a map where each string key is mapped to an array of Edge
+type AdjacencyList = Map<string, Edge[]>;
+
+// Serialization function
+function serializeGraph(adjacencyList: AdjacencyList): string {
+  let serializableList: SerializableList = {};
+  adjacencyList.forEach((edges, vertex) => {
+    serializableList[vertex] = edges.map((edge) => ({
+      vertex: edge.vertex,
+      weight: edge.weight,
+      buses: edge.buses,
+      lat: edge.lat,
+      long: edge.long,
+    }));
+  });
+  return JSON.stringify(serializableList);
+}
+
+// This function now accepts req and res parameters
+export async function writeGraphToFile(req: Request, res: Response) {
+  try {
+    const buses = await Bus.getBusIn4();
+    const graph = new DirectedGraph();
+    graph.createGraph(buses);
+    const adjacencyListString = serializeGraph(graph.adjacencyList);
+    const filename = "graph.json"; // The filename is now a string literal
+    fs.writeFileSync(filename, adjacencyListString, "utf8");
+    res.status(200).send("Graph data saved successfully.");
+  } catch (error) {
+    // Handle the error appropriately
+    res.status(500).send("Error saving graph data: ");
+  }
+}
+
+function deserializeGraph(serializedData: SerializableList) {
+  let adjacencyList = new Map();
+  Object.entries(serializedData).forEach(([vertex, edges]) => {
+    adjacencyList.set(
+      vertex,
+      edges.map((edge) => ({
+        vertex: edge.vertex,
+        weight: edge.weight,
+        buses: edge.buses,
+        lat: edge.lat,
+        long: edge.long,
+      }))
+    );
+  });
+  return adjacencyList;
+}
+
+export function readGraphFromFile() {
+  const fileContent = fs.readFileSync("graph.json", "utf8");
+  const serializedData = JSON.parse(fileContent);
+  const adjacencyList = deserializeGraph(serializedData);
+  const graph = new DirectedGraph();
+  graph.adjacencyList = adjacencyList;
+  return graph;
 }

@@ -12,7 +12,7 @@ import { getLocationIn4 } from "./location-preprocessing";
 import { Dijkstra, ResultRoute } from "./dijstra";
 import { Vertex } from "./dijstra";
 import { NodeVertex } from "./dijstra";
-import { DirectedGraph } from "./create-directed-graph";
+import { DirectedGraph, readGraphFromFile } from "./create-directed-graph";
 import { searchStationRouteTimeMode1 } from "./calculate-estimate-time";
 interface BusIn4Struct {
   name: string;
@@ -39,6 +39,7 @@ export async function findRoute(req: Request, res: Response) {
   console.log(inputIn4);
 
   // sử dụng kd tree để tìm 2 trạm xuất phát ứng cử viên và 2 trạm đích ứng cử viên
+  console.log("cac tram nhet vao kd tree");
   const busStationsByDistrict =
     await BusStationsByDistrict.getBusStationsByDistrictIn4();
   //console.log("inputIn4: ", inputIn4);
@@ -53,9 +54,11 @@ export async function findRoute(req: Request, res: Response) {
         lat: busStationsByDistrict[i].busStationIn4[j].lat,
         long: busStationsByDistrict[i].busStationIn4[j].long,
       };
+      console.log(point);
       stationPoints.push(point);
     }
   }
+
   // dựng cây kd tree với tất cả các trạm xe buýt
   const tree = new KDTree(null, stationPoints);
   tree.build();
@@ -72,11 +75,11 @@ export async function findRoute(req: Request, res: Response) {
   for (let index = 0; index < nearestEndNodes.length; index++) {
     console.log(`Trạm ${index + 1}: ${nearestEndNodes[index].point?.name}`);
   }
-  const buses = await Bus.getBusIn4();
+  //const buses = await Bus.getBusIn4();
   // từ những tuyến xe buýt build đồ thị có hướng
-  const graph = new DirectedGraph();
-  graph.createGraph(buses);
-
+  //const graph = new DirectedGraph();
+  //graph.createGraph(buses);
+  const graph = readGraphFromFile();
   // sử dụng dijstra trên đồ thị có hướng để tìm đường
   let dijkstra = new Dijkstra(); // khởi tạo đối tượng Dijstra để tìm kiếm đường
   // đẩy thông tin đồ thị có hướng giữa các trạm vừa vẽ được vào dijstra

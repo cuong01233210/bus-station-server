@@ -27,6 +27,7 @@ import * as appInfoController from "../controller/staff's-controller/app-info-co
 
 import * as SearchRouteController from "../controller/customer's-controller/search-function/new-search-2024/search-route";
 import * as calculateEstimateTime from "../controller/customer's-controller/search-function/new-search-2024/calculate-estimate-time";
+import * as CreateGraph from "../controller/customer's-controller/search-function/new-search-2024/create-directed-graph";
 const router = Router();
 
 router.get("/buses-data", busController.getAllBuses);
@@ -168,4 +169,7 @@ router.post("/find-bus-appearance-time", calculateEstimateTime.calculateTime);
 
 // router để lấy được chỉ là tên của các trạm xe buýt
 router.get("/get-stations-only-names", busStationController.getStationNames);
+
+// router để lấy chạy sao lưu đồ thị đường đi
+router.get("/save-graph-into-file", CreateGraph.writeGraphToFile);
 export default router;
