@@ -1,6 +1,5 @@
-import { LoginDbs } from "../databases/user-login";
 import { Db } from "mongodb";
-
+import { AppDatabase } from "../databases/app-database";
 class LoginUser {
   id?: string;
   //name: string;
@@ -17,7 +16,7 @@ class LoginUser {
   }
 
   async createUser() {
-    const db: Db = LoginDbs.getDb();
+    const db: Db = AppDatabase.getDb();
     delete this.id;
     const insertOneResult = await db.collection("users").insertOne({ ...this });
     return insertOneResult.insertedId.toString();
@@ -25,7 +24,7 @@ class LoginUser {
   static empty = new LoginUser("", "", "", "");
 
   static async getUser(email: string) {
-    const db: Db = LoginDbs.getDb();
+    const db: Db = AppDatabase.getDb();
     const document = await db.collection("users").findOne({ email: email });
     console.log("user dang login", document);
     if (document != null) {
@@ -39,8 +38,8 @@ class LoginUser {
   }
 
   async updatePassword(email: string, newPassword: string) {
-    const db: Db = LoginDbs.getDb();
-
+    // const db: Db = LoginDbs.getDb();
+    const db: Db = AppDatabase.getDb();
     // Kiểm tra xem người dùng có tồn tại dựa trên email
     const user = await db.collection("users").findOne({ email: email });
 

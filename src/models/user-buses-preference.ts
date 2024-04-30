@@ -1,7 +1,6 @@
 // class to connect to the userBusesPreference collection in the database
 
-import { UsersDatabase } from "../databases/users-database";
-
+import { AppDatabase } from "../databases/app-database";
 class UserBusPreference {
   id?: string;
   userId: string;
@@ -13,7 +12,7 @@ class UserBusPreference {
   }
 
   async createUserBusPreference(userId: string) {
-    const db = UsersDatabase.getDb();
+    const db = AppDatabase.getDb();
     await db.collection("userBusesPreference").insertOne({ ...this });
     const userBusesPreference = await UserBusPreference.getUserBusesPreference(
       userId
@@ -24,7 +23,7 @@ class UserBusPreference {
   static empty = new UserBusPreference("", "");
 
   static async getUserBusesPreference(userId: string) {
-    const db = UsersDatabase.getDb();
+    const db = AppDatabase.getDb();
     const documents = await db
       .collection("userBusesPreference")
       .find({ userId: userId })
@@ -38,7 +37,7 @@ class UserBusPreference {
   }
 
   static async deleteUserBusPreference(userId: string, bus: string) {
-    const db = UsersDatabase.getDb();
+    const db = AppDatabase.getDb();
     const result = await db
       .collection("userBusesPreference")
       .deleteMany({ userId: userId, bus: bus });

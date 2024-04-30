@@ -13,7 +13,6 @@ import * as userEndStringController from "../controller/customer's-controller/se
 import * as commentController from "../controller/customer's-controller/comment-controller";
 import authValidator from "../middleware/auth-validation";
 
-import * as TodoController from "../controller/customer's-controller/test-todo-controller";
 import changePasswordController from "../controller/customer's-controller/change-password";
 
 import { testLocationIQ } from "../controller/customer's-controller/search-function/new-search-2024/LocationIQ";
@@ -67,10 +66,6 @@ router.post("/add-comment", authValidator, commentController.addComment);
 //router.patch("/");
 
 const todoValidator = body("task").trim().notEmpty();
-router.get("/todo", TodoController.getAllTodos);
-router.post("/todo", todoValidator, TodoController.addTodo);
-router.patch("/todo", todoValidator, TodoController.updateTodo);
-router.delete("/todo", TodoController.deleteTodo);
 
 router.patch(
   "/change-password",
