@@ -1,5 +1,4 @@
-import { UsersDatabase } from "../databases/users-database";
-
+import { AppDatabase } from "../databases/app-database";
 class UserStationPreference {
   id?: string;
   userId: string;
@@ -11,7 +10,7 @@ class UserStationPreference {
   }
 
   async createUserStationPreference(userId: string) {
-    const db = UsersDatabase.getDb();
+    const db = AppDatabase.getDb();
     await db.collection("userStationsPreference").insertOne({ ...this });
     const userStationPreference =
       await UserStationPreference.getUserStationPreference(userId);
@@ -21,7 +20,7 @@ class UserStationPreference {
   static empty = new UserStationPreference("", "");
 
   static async getUserStationPreference(userId: string) {
-    const db = UsersDatabase.getDb();
+    const db = AppDatabase.getDb();
     const documents = await db
       .collection("userStationsPreference")
       .find({ userId: userId })
@@ -35,7 +34,7 @@ class UserStationPreference {
   }
 
   static async deleteUserStationPreference(userId: string, stationId: string) {
-    const db = UsersDatabase.getDb();
+    const db = AppDatabase.getDb();
     const result = await db
       .collection("userStationsPreference")
       .deleteMany({ userId: userId, stationId: stationId });

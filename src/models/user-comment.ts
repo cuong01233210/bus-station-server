@@ -1,7 +1,6 @@
-import { LoginDbs } from "../databases/user-login";
-import { UsersDatabase } from "../databases/users-database";
 import { ObjectId, Db } from "mongodb";
 import { MongoClient } from "mongodb";
+import { AppDatabase } from "../databases/app-database";
 class Comment {
   id?: string;
   userId: string;
@@ -27,7 +26,7 @@ class Comment {
 
   async createComment(userId: string) {
     //const usersDb: Db = UsersDatabase.getDb();
-    const db: Db = LoginDbs.getDb();
+    const db: Db = AppDatabase.getDb();
     delete this.id;
 
     // await usersDb.collection("comments").insertOne({ ...this });
@@ -39,7 +38,7 @@ class Comment {
   }
 
   static async getAllComments() {
-    const usersDb: Db = UsersDatabase.getDb();
+    const usersDb: Db = AppDatabase.getDb();
     const documents = await usersDb.collection("comments").find().toArray();
 
     const userComments: Comment[] = documents.map(
@@ -48,7 +47,7 @@ class Comment {
     return userComments;
   }
   static async getComments(userId: string) {
-    const usersDb: Db = UsersDatabase.getDb();
+    const usersDb: Db = AppDatabase.getDb();
     const documents = await usersDb
       .collection("comments")
       .find({ userId: userId })
@@ -66,7 +65,7 @@ class Comment {
     newDate: string,
     newRating: number
   ) {
-    const usersDb: Db = UsersDatabase.getDb();
+    const usersDb: Db = AppDatabase.getDb();
 
     await usersDb.collection("comments").updateOne(
       { _id: new ObjectId(this.id) },

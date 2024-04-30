@@ -1,5 +1,6 @@
 import { ObjectId, Db, Double } from "mongodb";
-import { UsersDatabase } from "../databases/users-database";
+
+import { AppDatabase } from "../databases/app-database";
 class UserIn4 {
   userId: string;
   name: string;
@@ -25,7 +26,7 @@ class UserIn4 {
   }
 
   async createAccount(userId: string) {
-    const db: Db = UsersDatabase.getDb();
+    const db: Db = AppDatabase.getDb();
     await db.collection("informations").insertOne({ ...this });
     const users = await UserIn4.getUserIn4(userId);
     return users;
@@ -33,7 +34,8 @@ class UserIn4 {
   static empty = new UserIn4("", "", "", "", "", "");
 
   static async getUserIn4(userId: string) {
-    const db: Db = UsersDatabase.getDb();
+    //const db: Db = UsersDatabase.getDb();
+    const db: Db = AppDatabase.getDb();
     const document = await db
       .collection("informations")
       .findOne({ userId: userId });
@@ -69,7 +71,8 @@ class UserIn4 {
   // }
 
   async updateUserIn4(userId: string) {
-    const db: Db = UsersDatabase.getDb();
+    // const db: Db = UsersDatabase.getDb();
+    const db: Db = AppDatabase.getDb();
     console.log(this.userId);
     console.log(this.name);
     console.log(this.dateOfBirth);

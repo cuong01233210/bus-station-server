@@ -1,18 +1,17 @@
 import { MongoClient, Db } from "mongodb";
 
-export class TodoDatabase {
+export class AppDatabase {
   private static mongoClient: MongoClient;
 
   private constructor() {}
 
   static async initialize() {
     this.mongoClient = await MongoClient.connect(
-      "mongodb+srv://cuong16102002:16102002@cluster0.syfnhhe.mongodb.net/todo?retryWrites=true&w=majority"
+      "mongodb+srv://findBusStation2:flqOFCtNjd7A6lDH@cluster0.qoqmjli.mongodb.net/busapp?retryWrites=true&w=majority"
     );
   }
 
   static getDb() {
-    //console.log(this.mongoClient.db());
     return this.mongoClient.db();
   }
 }
