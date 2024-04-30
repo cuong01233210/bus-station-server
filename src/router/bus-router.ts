@@ -27,6 +27,7 @@ import * as appInfoController from "../controller/staff's-controller/app-info-co
 import * as SearchRouteController from "../controller/customer's-controller/search-function/new-search-2024/search-route";
 import * as calculateEstimateTime from "../controller/customer's-controller/search-function/new-search-2024/calculate-estimate-time";
 import * as CreateGraph from "../controller/customer's-controller/search-function/new-search-2024/create-directed-graph";
+import * as PlaceController from "../controller/customer's-controller/place-controller";
 const router = Router();
 
 router.get("/buses-data", busController.getAllBuses);
@@ -167,4 +168,7 @@ router.get("/get-stations-only-names", busStationController.getStationNames);
 
 // router để lấy chạy sao lưu đồ thị đường đi
 router.get("/save-graph-into-file", CreateGraph.writeGraphToFile);
+
+// router để lấy các địa điểm gợi ý
+router.get("/get-places", PlaceController.getPlaces);
 export default router;
