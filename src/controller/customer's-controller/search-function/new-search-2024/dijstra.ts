@@ -2,6 +2,7 @@
 export interface NodeVertex {
   nameOfVertex: string; // tên node
   weight: number; // lưu trữ khoảng cách giữa 2 node liền kề
+  //pathType: "bus" | "walk";
 }
 export interface ReturnVertex {
   name: string;

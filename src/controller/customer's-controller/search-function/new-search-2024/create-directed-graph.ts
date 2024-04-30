@@ -33,16 +33,7 @@ import { Request, Response } from "express";
 export class DirectedGraph {
   // key có kiểu là string
   // value có kiểu là 1 mảng chứa các phần tử có dạng { vertex: string; weight: number }
-  adjacencyList: Map<
-    string,
-    {
-      vertex: string;
-      weight: number;
-      buses: string[];
-      lat: number;
-      long: number;
-    }[]
-  > = new Map();
+  adjacencyList: Map<string, Edge[]> = new Map();
 
   addVertex(vertex: string) {
     if (!this.adjacencyList.has(vertex)) {
@@ -58,6 +49,7 @@ export class DirectedGraph {
     desLat: number,
     desLong: number,
     bus: string
+    // pathType: "bus" | "walk" // Add pathType parameter
   ) {
     // Thêm cả hai đỉnh vào đồ thị nếu chưa tồn tại
     this.addVertex(source);
@@ -66,9 +58,9 @@ export class DirectedGraph {
     const edgeExists = this.adjacencyList
       .get(source)
       ?.some((edge) => edge.vertex === destination);
+    const weigh =
+      haversineDistance(sourceLat, sourceLong, desLat, desLong) * 1000;
     if (!edgeExists) {
-      const weigh =
-        haversineDistance(sourceLat, sourceLong, desLat, desLong) * 1000;
       this.adjacencyList.get(source)?.push({
         vertex: destination,
         weight: weigh,
@@ -81,45 +73,68 @@ export class DirectedGraph {
       // Thêm bus vào mảng buses tương ứng
       const edges = this.adjacencyList.get(source);
       const existingEdge = edges?.find((edge) => edge.vertex === destination);
-      if (existingEdge) {
+      if (existingEdge && existingEdge.buses[0] != "Walk") {
         existingEdge.buses.push(bus);
       }
     }
   }
 
   createGraph(buses: Bus[]) {
-    buses.forEach((element) => {
-      //console.log(element.bus);
-      element.chieuDi.forEach((element1, index) => {
-        this.addVertex(element1.name); // add key
-        if (index < element.chieuDi.length - 1) {
+    buses.forEach((bus) => {
+      // Xử lý tất cả các trạm trên cả tuyến đi và về
+      const allStops = [...bus.chieuDi, ...bus.chieuVe];
+
+      // Thêm các cạnh cho tuyến xe buýt
+      allStops.forEach((stop, index) => {
+        this.addVertex(stop.name); // Thêm đỉnh
+        if (index < allStops.length - 1) {
           this.addEdge(
-            element.chieuDi[index].name,
-            element.chieuDi[index + 1].name,
-            element.chieuDi[index].lat,
-            element.chieuDi[index].long,
-            element.chieuDi[index + 1].lat,
-            element.chieuDi[index + 1].long,
-            element.bus
+            stop.name,
+            allStops[index + 1].name,
+            stop.lat,
+            stop.long,
+            allStops[index + 1].lat,
+            allStops[index + 1].long,
+            bus.bus
           );
         }
-        //console.log(index, element1.name, element1.lat, element1.long);
       });
-      element.chieuVe.forEach((element2, index2) => {
-        this.addVertex(element2.name); // add key
-        if (index2 < element.chieuVe.length - 1) {
-          this.addEdge(
-            element.chieuVe[index2].name,
-            element.chieuVe[index2 + 1].name,
-            element.chieuVe[index2].lat,
-            element.chieuVe[index2].long,
-            element.chieuVe[index2 + 1].lat,
-            element.chieuVe[index2 + 1].long,
-            element.bus
-          );
+
+      // Xử lý đường đi bộ giữa các trạm không liền kề
+      for (let i = 0; i < allStops.length; i++) {
+        for (let j = i + 2; j < allStops.length; j++) {
+          // Bắt đầu từ i + 2 để bỏ qua trạm liền kề
+          const dist =
+            haversineDistance(
+              allStops[i].lat,
+              allStops[i].long,
+              allStops[j].lat,
+              allStops[j].long
+            ) * 1000; // Nhân với 1000 để đổi từ km sang mét
+
+          if (dist < 1000) {
+            // Khoảng cách nhỏ hơn 1km
+            this.addEdge(
+              allStops[i].name,
+              allStops[j].name,
+              allStops[i].lat,
+              allStops[i].long,
+              allStops[j].lat,
+              allStops[j].long,
+              "Walk"
+            );
+            this.addEdge(
+              allStops[j].name,
+              allStops[i].name,
+              allStops[j].lat,
+              allStops[j].long,
+              allStops[i].lat,
+              allStops[i].long,
+              "Walk"
+            );
+          }
         }
-        //console.log(index, element1.name, element1.lat, element1.long);
-      });
+      }
     });
   }
 }
@@ -131,6 +146,7 @@ type Edge = {
   buses: string[];
   lat: number;
   long: number;
+  // pathType: "bus" | "walk"; // Add pathType parameter
 };
 
 // Define a type for the serializable list which will have string keys
@@ -152,6 +168,7 @@ function serializeGraph(adjacencyList: AdjacencyList): string {
       buses: edge.buses,
       lat: edge.lat,
       long: edge.long,
+      //  pathType: edge.pathType,
     }));
   });
   return JSON.stringify(serializableList);
