@@ -10,6 +10,7 @@ function categorizePlaces(places: Place[]) {
   const parks: Place[] = [];
   const pagodas: Place[] = [];
   const museums: Place[] = [];
+  const diffPlaces: Place[] = [];
 
   places.forEach((place) => {
     if (place.category == "Bến xe - Nhà ga") {
@@ -36,6 +37,9 @@ function categorizePlaces(places: Place[]) {
     if (place.category == "Bảo tàng") {
       museums.push(place);
     }
+    if (place.category == "Khác") {
+      diffPlaces.push(place);
+    }
   });
 
   return {
@@ -47,6 +51,7 @@ function categorizePlaces(places: Place[]) {
     parks,
     pagodas,
     museums,
+    diffPlaces,
   };
 }
 export const getPlaces = async (req: Request, res: Response) => {
@@ -61,12 +66,19 @@ export const getPlaces = async (req: Request, res: Response) => {
       parks,
       pagodas,
       museums,
+      diffPlaces,
     } = categorizePlaces(places);
     res.status(200).json({
       places: places,
       stations: stations,
       schools: schools,
       hospitals: hospitals,
+      markets: markets,
+      bookstores: bookstores,
+      parks: parks,
+      pagodas: pagodas,
+      museums: museums,
+      diffPlaces: diffPlaces,
     });
   } catch (error) {
     res.status(400).json({ message: "failed to load" });
