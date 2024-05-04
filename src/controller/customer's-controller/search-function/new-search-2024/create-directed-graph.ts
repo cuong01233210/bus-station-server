@@ -79,62 +79,132 @@ export class DirectedGraph {
     }
   }
 
+  // createGraph(buses: Bus[]) {
+  //   buses.forEach((bus) => {
+  //     // Xử lý tất cả các trạm trên cả tuyến đi và về
+  //     const allStops = [...bus.chieuDi, ...bus.chieuVe];
+
+  //     // Thêm các cạnh cho tuyến xe buýt
+  //     allStops.forEach((stop, index) => {
+  //       this.addVertex(stop.name); // Thêm đỉnh
+  //       if (index < allStops.length - 1) {
+  //         this.addEdge(
+  //           stop.name,
+  //           allStops[index + 1].name,
+  //           stop.lat,
+  //           stop.long,
+  //           allStops[index + 1].lat,
+  //           allStops[index + 1].long,
+  //           bus.bus
+  //         );
+  //       }
+  //     });
+
+  //     // Xử lý đường đi bộ giữa các trạm không liền kề
+  //     for (let i = 0; i < allStops.length; i++) {
+  //       for (let j = i + 2; j < allStops.length; j++) {
+  //         // Bắt đầu từ i + 2 để bỏ qua trạm liền kề
+  //         const dist =
+  //           haversineDistance(
+  //             allStops[i].lat,
+  //             allStops[i].long,
+  //             allStops[j].lat,
+  //             allStops[j].long
+  //           ) * 1000; // Nhân với 1000 để đổi từ km sang mét
+
+  //         if (dist < 1000) {
+  //           // Khoảng cách nhỏ hơn 1km
+  //           this.addEdge(
+  //             allStops[i].name,
+  //             allStops[j].name,
+  //             allStops[i].lat,
+  //             allStops[i].long,
+  //             allStops[j].lat,
+  //             allStops[j].long,
+  //             "Walk"
+  //           );
+  //           this.addEdge(
+  //             allStops[j].name,
+  //             allStops[i].name,
+  //             allStops[j].lat,
+  //             allStops[j].long,
+  //             allStops[i].lat,
+  //             allStops[i].long,
+  //             "Walk"
+  //           );
+  //         }
+  //       }
+  //     }
+  //   });
+  // }
+
   createGraph(buses: Bus[]) {
     buses.forEach((bus) => {
-      // Xử lý tất cả các trạm trên cả tuyến đi và về
-      const allStops = [...bus.chieuDi, ...bus.chieuVe];
-
-      // Thêm các cạnh cho tuyến xe buýt
-      allStops.forEach((stop, index) => {
+      // Xử lý tách biệt cho chiều đi và chiều về
+      bus.chieuDi.forEach((stop, index) => {
         this.addVertex(stop.name); // Thêm đỉnh
-        if (index < allStops.length - 1) {
+        if (index < bus.chieuDi.length - 1) {
           this.addEdge(
             stop.name,
-            allStops[index + 1].name,
+            bus.chieuDi[index + 1].name,
             stop.lat,
             stop.long,
-            allStops[index + 1].lat,
-            allStops[index + 1].long,
+            bus.chieuDi[index + 1].lat,
+            bus.chieuDi[index + 1].long,
             bus.bus
           );
         }
       });
 
-      // Xử lý đường đi bộ giữa các trạm không liền kề
-      for (let i = 0; i < allStops.length; i++) {
-        for (let j = i + 2; j < allStops.length; j++) {
-          // Bắt đầu từ i + 2 để bỏ qua trạm liền kề
+      bus.chieuVe.forEach((stop, index) => {
+        this.addVertex(stop.name); // Thêm đỉnh
+        if (index < bus.chieuVe.length - 1) {
+          this.addEdge(
+            stop.name,
+            bus.chieuVe[index + 1].name,
+            stop.lat,
+            stop.long,
+            bus.chieuVe[index + 1].lat,
+            bus.chieuVe[index + 1].long,
+            bus.bus
+          );
+        }
+      });
+
+      // Xử lý đường đi bộ giữa các trạm không liền kề và khác chiều
+      bus.chieuDi.forEach((stopDi) => {
+        bus.chieuVe.forEach((stopVe) => {
           const dist =
             haversineDistance(
-              allStops[i].lat,
-              allStops[i].long,
-              allStops[j].lat,
-              allStops[j].long
+              stopDi.lat,
+              stopDi.long,
+              stopVe.lat,
+              stopVe.long
             ) * 1000; // Nhân với 1000 để đổi từ km sang mét
 
-          if (dist < 1000) {
-            // Khoảng cách nhỏ hơn 1km
+          if (dist < 500) {
+            // Khoảng cách nhỏ hơn 500m
             this.addEdge(
-              allStops[i].name,
-              allStops[j].name,
-              allStops[i].lat,
-              allStops[i].long,
-              allStops[j].lat,
-              allStops[j].long,
+              stopDi.name,
+              stopVe.name,
+              stopDi.lat,
+              stopDi.long,
+              stopVe.lat,
+              stopVe.long,
               "Walk"
             );
             this.addEdge(
-              allStops[j].name,
-              allStops[i].name,
-              allStops[j].lat,
-              allStops[j].long,
-              allStops[i].lat,
-              allStops[i].long,
+              stopVe.name,
+              stopDi.name,
+              stopVe.lat,
+              stopVe.long,
+              stopDi.lat,
+              stopDi.long,
               "Walk"
             );
           }
-        }
-      }
+        });
+      });
     });
   }
 }

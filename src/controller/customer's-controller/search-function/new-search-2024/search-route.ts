@@ -23,23 +23,41 @@ interface BusIn4Struct {
 
 export async function findRoute(req: Request, res: Response) {
   //không cần dùng userId để phân biệt các tài khoản do cơ chế tự làm đc rồi
-  const startString = req.body.startString;
-  const endString = req.body.endString;
-  const userInputLat = req.body.lat;
-  const userInputLong = req.body.long;
+  //const startString = req.body.startString;
+  //const endString = req.body.endString;
+  //const userInputLat = req.body.lat;
+  //const userInputLong = req.body.long;
+  const startPlace = req.body.startPlace;
+  const endPlace = req.body.endPlace;
   const timeFilterMode = req.body.timeFilterMode; // biến xác định chế độ lọc thời gian xe buýt đến trạm
 
+  let startIn4: StationPoint = {
+    name: startPlace.name,
+    district: "",
+    lat: startPlace.lat,
+    long: startPlace.long,
+  };
+  let endIn4: StationPoint = {
+    name: endPlace.name,
+    district: "",
+    lat: endPlace.lat,
+    long: endPlace.long,
+  };
+  let inputIn4: InputIn4 = {
+    startIn4: startIn4,
+    endIn4: endIn4,
+  };
   // sử dụng hàm convertInputData để lấy lat long của điểm xp và điểm đích
-  let inputIn4: InputIn4 = await convertInputData(
-    startString,
-    endString,
-    userInputLat,
-    userInputLong
-  );
-  console.log(inputIn4);
+  // let inputIn4: InputIn4 = await convertInputData(
+  //   startString,
+  //   endString,
+  //   userInputLat,
+  //   userInputLong
+  // );
+  // console.log(inputIn4);
 
   // sử dụng kd tree để tìm 2 trạm xuất phát ứng cử viên và 2 trạm đích ứng cử viên
-  console.log("cac tram nhet vao kd tree");
+  //console.log("cac tram nhet vao kd tree");
   const busStationsByDistrict =
     await BusStationsByDistrict.getBusStationsByDistrictIn4();
   //console.log("inputIn4: ", inputIn4);
@@ -54,7 +72,7 @@ export async function findRoute(req: Request, res: Response) {
         lat: busStationsByDistrict[i].busStationIn4[j].lat,
         long: busStationsByDistrict[i].busStationIn4[j].long,
       };
-      console.log(point);
+      // console.log(point);
       stationPoints.push(point);
     }
   }
@@ -63,7 +81,8 @@ export async function findRoute(req: Request, res: Response) {
   const tree = new KDTree(null, stationPoints);
   tree.build();
   // Tìm 2 trạm gần nhất với điểm xuất phát
-  const nearestStartNodes = tree.nearestNodes(inputIn4.startIn4, 2);
+   const nearestStartNodes = tree.nearestNodes(inputIn4.startIn4, 2);
+
   // In ra các điểm gần nhất
   console.log("Các điểm gần nhất với trạm xuất phát:");
   for (let index = 0; index < nearestStartNodes.length; index++) {
