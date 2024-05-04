@@ -1,3 +1,5 @@
+import { StationPoint } from "./my-point";
+
 export interface StartIn4 {
   name: string;
   district: string;
@@ -11,10 +13,15 @@ export interface EndIn4 {
   lat: number;
   long: number;
 }
-
+export interface InputPlace {
+  name: string;
+  category: string;
+  lat: number;
+  long: number;
+}
 export interface InputIn4 {
-  startIn4: StartIn4;
-  endIn4: EndIn4;
+  startIn4: StationPoint;
+  endIn4: StationPoint;
 }
 
 export interface InputRawIn4 {

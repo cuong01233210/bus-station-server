@@ -10,6 +10,7 @@ function categorizePlaces(places: Place[]) {
   const parks: Place[] = [];
   const pagodas: Place[] = [];
   const museums: Place[] = [];
+  const busStations: Place[] = [];
   const diffPlaces: Place[] = [];
 
   places.forEach((place) => {
@@ -37,6 +38,9 @@ function categorizePlaces(places: Place[]) {
     if (place.category == "Bảo tàng") {
       museums.push(place);
     }
+    if (place.category == "Trạm xe buýt") {
+      busStations.push(place);
+    }
     if (place.category == "Khác") {
       diffPlaces.push(place);
     }
@@ -51,6 +55,7 @@ function categorizePlaces(places: Place[]) {
     parks,
     pagodas,
     museums,
+    busStations,
     diffPlaces,
   };
 }
@@ -66,6 +71,7 @@ export const getPlaces = async (req: Request, res: Response) => {
       parks,
       pagodas,
       museums,
+      busStations,
       diffPlaces,
     } = categorizePlaces(places);
     res.status(200).json({
@@ -78,6 +84,7 @@ export const getPlaces = async (req: Request, res: Response) => {
       parks: parks,
       pagodas: pagodas,
       museums: museums,
+      busStations: busStations,
       diffPlaces: diffPlaces,
     });
   } catch (error) {
