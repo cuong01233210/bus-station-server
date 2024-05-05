@@ -1,7 +1,7 @@
 import { StationPoint } from "./../../../../models/my-point";
 import { Request, Response } from "express";
 import { InputIn4 } from "../../../../models/input-in4";
-import { convertInputData } from "../old-search-2023/user-input-string.controller";
+
 import MyPoint from "../../../../models/my-point";
 import BusStationsByDistrict from "../../../../models/bus-stations-by-district";
 import KDTree from "../../../../models/kdTree";
@@ -81,7 +81,7 @@ export async function findRoute(req: Request, res: Response) {
   const tree = new KDTree(null, stationPoints);
   tree.build();
   // Tìm 2 trạm gần nhất với điểm xuất phát
-   const nearestStartNodes = tree.nearestNodes(inputIn4.startIn4, 2);
+  const nearestStartNodes = tree.nearestNodes(inputIn4.startIn4, 2);
 
   // In ra các điểm gần nhất
   console.log("Các điểm gần nhất với trạm xuất phát:");
@@ -120,11 +120,12 @@ export async function findRoute(req: Request, res: Response) {
       nodeVertexts.push({
         nameOfVertex: edge.vertex,
         weight: edge.weight,
+        pathType: edge.pathType,
       });
     });
     // Chuyển đổi Set thành mảng bằng spread operator
     busVertexts = [...uniqueBuses];
-    dijkstra.addVertex(new Vertex(vertex, nodeVertexts, 0, busVertexts));
+    dijkstra.addVertex(new Vertex(vertex, nodeVertexts, 0, busVertexts, ""));
   });
   console.log("Một vài tuyến đường gợi ý là: ");
   let resultRoutes: ResultRoute[] = [];

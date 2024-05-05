@@ -2,7 +2,7 @@
 export interface NodeVertex {
   nameOfVertex: string; // tên node
   weight: number; // lưu trữ khoảng cách giữa 2 node liền kề
-  //pathType: "bus" | "walk";
+  pathType: "bus" | "walk"; // cách đi lại giữa 2 node
 }
 export interface ReturnVertex {
   name: string;
@@ -42,17 +42,20 @@ export class Vertex {
   weight: number; // lưu trữ khoảng cách từ điểm bắt đầu tới điểm đích tìm được
   frontNode: string; // lưu trữ node kề phía trước sau khi duyệt dijstra
   buses: string[]; // lưu trữ những xe buýt có thể đi vào đỉnh này
+  pathType: string;
   constructor(
     theName: string,
     theNodes: NodeVertex[],
     theWeight: number,
-    buses: string[]
+    buses: string[],
+    pathType: string
   ) {
     this.name = theName;
     this.nodes = theNodes;
     this.weight = theWeight;
     this.frontNode = "";
     this.buses = buses;
+    this.pathType = pathType;
   }
 }
 
@@ -87,8 +90,8 @@ export class Dijkstra {
           nextVertex,
           " Tuyến ",
           this.vertices[nextVertex].buses,
-          "Khoảng cách từ trạm xp tới trạm đang xét: ",
-          this.vertices[nextVertex].weight
+          " loại hình di chuyển: ",
+          this.vertices[nextVertex].pathType
         );
         nextVertex = this.vertices[nextVertex].frontNode;
       } else {
@@ -169,13 +172,17 @@ export class Dijkstra {
     }
     // saveCBus lưu các route + trạm xuất phát và trạm đích của 1 lộ trình có thể đi được bằng tối thiểu 1 tuyến
     for (let index = 0; index < returnVertices.length - 1; index++) {
-      c1Buses = returnVertices[index].buses.filter((item) =>
-        returnVertices[index + 1].buses.includes(item)
+      c1Buses = returnVertices[index].buses.filter(
+        (item) =>
+          returnVertices[index + 1].buses.includes(item) && item !== "Walk"
       );
       //console.log("c1Buses: ", c1Buses);
       if (c1Buses.length > 0) {
         // có trạm xe buýt chung từ j -> j + 1 -> kiểm tra tiếp xem cần nhảy tuyến ko
-        c3Buses = c2Buses.filter((item) => c1Buses.includes(item));
+        c3Buses = c2Buses.filter(
+          (item) => c1Buses.includes(item) && item !== "Walk"
+        );
+
         //console.log("c3Buses: ", c3Buses);
         if (c3Buses.length == 0) {
           // trường hợp này phải nhảy tuyến
@@ -199,7 +206,9 @@ export class Dijkstra {
           i = j;
           c2Buses = returnVertices[i].buses;
           // tiếp tục xét tiếp đoạn lúc nãy đang giang dở
-          c3Buses = c2Buses.filter((item) => c1Buses.includes(item)); // lần này 100% c3Buses khác null
+          c3Buses = c2Buses.filter(
+            (item) => c1Buses.includes(item) && item !== "Walk"
+          ); // lần này 100% c3Buses khác null
           c2Buses = c3Buses;
           j++;
         } else {
@@ -247,17 +256,19 @@ export class Dijkstra {
     while (Object.keys(nodes).length !== 0) {
       let sortedVisitedByWeight: string[] = Object.keys(nodes).sort(
         (a, b) => this.vertices[a].weight - this.vertices[b].weight
-      ); // dòng này để sắp xếp lại đỉnh theo trọgn số từ nhỏ -> lớn
+      ); // dòng này để sắp xếp lại đỉnh theo trọng số từ nhỏ -> lớn
       let currentVertex: Vertex = this.vertices[sortedVisitedByWeight[0]]; // chọn ra đỉnh có trọng số min a
 
       // xét các đỉnh kề b của đỉnh a
       for (let j of currentVertex.nodes) {
+        // if (j.pathType == "walk") continue; // tạm thời skip việc sử dụng walk
         const calculateWeight: number = currentVertex.weight + j.weight;
         // nếu khoảng cách từ đỉnh gốc tới đỉnh b nhỏ hơn khoảng cách hiện tại được ghi nhận
         // thì cập nhật giá trị và cập nhật đỉnh kể a vào khoảng cách hiện tại của b
         if (calculateWeight < this.vertices[j.nameOfVertex].weight) {
           this.vertices[j.nameOfVertex].weight = calculateWeight;
           this.vertices[j.nameOfVertex].frontNode = currentVertex.name;
+          this.vertices[j.nameOfVertex].pathType = j.pathType; // lưu được cách đi được từ node a -> node b
         }
       }
       // loại bỏ đỉnh a khỏi ds xét

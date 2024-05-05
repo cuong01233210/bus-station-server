@@ -48,8 +48,8 @@ export class DirectedGraph {
     sourceLong: number,
     desLat: number,
     desLong: number,
-    bus: string
-    // pathType: "bus" | "walk" // Add pathType parameter
+    bus: string,
+    pathType: "bus" | "walk" // Add pathType parameter
   ) {
     // Thêm cả hai đỉnh vào đồ thị nếu chưa tồn tại
     this.addVertex(source);
@@ -67,13 +67,14 @@ export class DirectedGraph {
         buses: [bus],
         lat: desLat,
         long: desLong,
+        pathType: pathType,
       });
     } else {
       // Nếu đã tồn tại đường đi từ source đến destination
       // Thêm bus vào mảng buses tương ứng
       const edges = this.adjacencyList.get(source);
       const existingEdge = edges?.find((edge) => edge.vertex === destination);
-      if (existingEdge && existingEdge.buses[0] != "Walk") {
+      if (existingEdge && existingEdge.buses[0] != "Walk" && bus != "Walk") {
         existingEdge.buses.push(bus);
       }
     }
@@ -151,7 +152,8 @@ export class DirectedGraph {
             stop.long,
             bus.chieuDi[index + 1].lat,
             bus.chieuDi[index + 1].long,
-            bus.bus
+            bus.bus,
+            "bus"
           );
         }
       });
@@ -166,7 +168,8 @@ export class DirectedGraph {
             stop.long,
             bus.chieuVe[index + 1].lat,
             bus.chieuVe[index + 1].long,
-            bus.bus
+            bus.bus,
+            "bus"
           );
         }
       });
@@ -182,8 +185,8 @@ export class DirectedGraph {
               stopVe.long
             ) * 1000; // Nhân với 1000 để đổi từ km sang mét
 
-          if (dist < 500) {
-            // Khoảng cách nhỏ hơn 500m
+          if (dist < 200) {
+            // Khoảng cách nhỏ hơn 300m
             this.addEdge(
               stopDi.name,
               stopVe.name,
@@ -191,7 +194,8 @@ export class DirectedGraph {
               stopDi.long,
               stopVe.lat,
               stopVe.long,
-              "Walk"
+              "Walk",
+              "walk"
             );
             this.addEdge(
               stopVe.name,
@@ -200,7 +204,8 @@ export class DirectedGraph {
               stopVe.long,
               stopDi.lat,
               stopDi.long,
-              "Walk"
+              "Walk",
+              "walk"
             );
           }
         });
@@ -216,7 +221,7 @@ type Edge = {
   buses: string[];
   lat: number;
   long: number;
-  // pathType: "bus" | "walk"; // Add pathType parameter
+  pathType: "bus" | "walk"; // Add pathType parameter
 };
 
 // Define a type for the serializable list which will have string keys
@@ -238,7 +243,7 @@ function serializeGraph(adjacencyList: AdjacencyList): string {
       buses: edge.buses,
       lat: edge.lat,
       long: edge.long,
-      //  pathType: edge.pathType,
+      pathType: edge.pathType,
     }));
   });
   return JSON.stringify(serializableList);
@@ -271,6 +276,7 @@ function deserializeGraph(serializedData: SerializableList) {
         buses: edge.buses,
         lat: edge.lat,
         long: edge.long,
+        pathType: edge.pathType,
       }))
     );
   });
