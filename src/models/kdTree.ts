@@ -161,6 +161,42 @@ class KDTree {
     );
     return bestPair;
   }
+
+  private findNodesInRadius(
+    queryPoint: StationPoint,
+    radius: number,
+    node: MyNode2 | null,
+    foundPoints: BestPair[]
+  ): void {
+    if (!node) return;
+
+    let dist: number = this.euclideanDistance(node.point, queryPoint);
+    if (dist <= radius * 1000) {
+      // Chuyển km sang mét
+      foundPoints.push({ point: node.point, dist });
+    }
+
+    const axis: number = node.depth % 2;
+    let nodeTemp: number = axis === 0 ? node.point.lat : node.point.long;
+    let queryTemp: number = axis === 0 ? queryPoint.lat : queryPoint.long;
+
+    let primarySide = queryTemp < nodeTemp ? node.left : node.right;
+    let secondarySide = queryTemp < nodeTemp ? node.right : node.left;
+
+    this.findNodesInRadius(queryPoint, radius, primarySide, foundPoints);
+    if (Math.abs(nodeTemp - queryTemp) <= radius * 1000) {
+      this.findNodesInRadius(queryPoint, radius, secondarySide, foundPoints);
+    }
+  }
+
+  public findNodesWithinRadius(
+    queryPoint: StationPoint,
+    radius: number
+  ): BestPair[] {
+    const foundPoints: BestPair[] = [];
+    this.findNodesInRadius(queryPoint, radius, this.root, foundPoints);
+    return foundPoints.sort((a, b) => a.dist - b.dist);
+  }
 }
 
 export default KDTree;

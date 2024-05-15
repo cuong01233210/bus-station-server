@@ -29,6 +29,7 @@ export async function findRoute(req: Request, res: Response) {
   //const userInputLong = req.body.long;
   const startPlace = req.body.startPlace;
   const endPlace = req.body.endPlace;
+  const searchMode = req.body.searchMode;
   const timeFilterMode = req.body.timeFilterMode; // biến xác định chế độ lọc thời gian xe buýt đến trạm
 
   let startIn4: StationPoint = {
@@ -88,6 +89,7 @@ export async function findRoute(req: Request, res: Response) {
   for (let index = 0; index < nearestStartNodes.length; index++) {
     console.log(`Trạm ${index + 1}: ${nearestStartNodes[index].point?.name}`);
   }
+
   // Tìm 2 trạm gần nhất với điểm đích
   const nearestEndNodes = tree.nearestNodes(inputIn4.endIn4, 2);
   console.log("Các điểm gần nhất với trạm xuất đích:");
@@ -98,7 +100,11 @@ export async function findRoute(req: Request, res: Response) {
   // từ những tuyến xe buýt build đồ thị có hướng
   //const graph = new DirectedGraph();
   //graph.createGraph(buses);
-  const graph = readGraphFromFile();
+  let filename = "";
+  if (searchMode == 1) {
+    filename = "basicgraph.json";
+  } else filename = "canwalkgraph.json";
+  const graph = readGraphFromFile(filename);
   // sử dụng dijstra trên đồ thị có hướng để tìm đường
   let dijkstra = new Dijkstra(); // khởi tạo đối tượng Dijstra để tìm kiếm đường
   // đẩy thông tin đồ thị có hướng giữa các trạm vừa vẽ được vào dijstra
