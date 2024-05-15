@@ -167,7 +167,7 @@ router.post("/find-bus-appearance-time", calculateEstimateTime.calculateTime);
 router.get("/get-stations-only-names", busStationController.getStationNames);
 
 // router để lấy chạy sao lưu đồ thị đường đi
-router.get("/save-graph-into-file", CreateGraph.writeGraphToFile);
+router.post("/save-graph-into-file", CreateGraph.writeGraphToFile);
 
 // router để lấy các địa điểm gợi ý
 router.get("/get-places", PlaceController.getPlaces);
