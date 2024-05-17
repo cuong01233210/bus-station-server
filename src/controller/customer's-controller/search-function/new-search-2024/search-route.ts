@@ -131,7 +131,7 @@ export async function findRoute(req: Request, res: Response) {
     });
     // Chuyển đổi Set thành mảng bằng spread operator
     busVertexts = [...uniqueBuses];
-    dijkstra.addVertex(new Vertex(vertex, nodeVertexts, 0, busVertexts, ""));
+    dijkstra.addVertex(new Vertex(vertex, nodeVertexts, 0, busVertexts, "bus"));
   });
   console.log("Một vài tuyến đường gợi ý là: ");
   let resultRoutes: ResultRoute[] = [];
