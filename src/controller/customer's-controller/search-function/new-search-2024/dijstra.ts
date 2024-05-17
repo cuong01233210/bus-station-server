@@ -18,7 +18,7 @@ export interface ReturnRoute {
 }
 
 export interface ResultRoute {
-  vertices: string[]; //
+  stations: string[]; //
   returnRoutes: ReturnRoute[]; //
 }
 // ý tưởng: ban đầu mình chập lại các tuyến đi được từ A -> B
@@ -81,6 +81,8 @@ export class Dijkstra {
     let saveBuses: string[] = [];
     const returnRoutes: ReturnRoute[] = [];
     let destination = ""; // trạm đích của 1 hành trình
+    let stations = []; // mảng chứa đầy đủ tên các trạm đi qua
+    let ceilS = 0; //tổng quãng đường khi được làm tròn
 
     while (currentVertex != start) {
       if (this.vertices[currentVertex] && this.vertices[currentVertex].buses) {
@@ -110,15 +112,17 @@ export class Dijkstra {
               if (tempBuses.length == 0) {
                 // nếu không còn xe trùng nhau thì phải nhảy tuyến
                 // tức là tạo ra thêm 1 hành trình khác
-                deltaS =
+                deltaS = Math.round(
                   this.vertices[destination].weight -
-                  this.vertices[currentVertex].weight;
+                    this.vertices[currentVertex].weight
+                );
+                ceilS += deltaS;
                 let returnRoute: ReturnRoute = {
                   source: currentVertex,
                   destination: destination,
                   buses: saveBuses,
                   transportTime: Math.ceil((deltaS * 60) / 22.5 / 1000),
-                  transportS: Math.round(deltaS),
+                  transportS: deltaS,
                   pathType: tempVehical,
                 };
                 returnRoutes.unshift(returnRoute);
@@ -130,9 +134,11 @@ export class Dijkstra {
               }
             }
           } else {
-            deltaS =
+            deltaS = Math.round(
               this.vertices[destination].weight -
-              this.vertices[currentVertex].weight;
+                this.vertices[currentVertex].weight
+            );
+            ceilS += deltaS;
             // nếu khác nhau pathType
             if (tempVehical == "bus") {
               saveBuses = this.vertices[currentVertex].buses.filter(
@@ -143,7 +149,7 @@ export class Dijkstra {
                 destination: destination,
                 buses: saveBuses,
                 transportTime: Math.ceil((deltaS * 60) / 22.5 / 1000),
-                transportS: Math.round(deltaS),
+                transportS: deltaS,
                 pathType: tempVehical,
               };
               returnRoutes.unshift(returnRoute);
@@ -158,7 +164,7 @@ export class Dijkstra {
                 destination: destination,
                 buses: saveBuses,
                 transportTime: Math.ceil((deltaS * 60) / 5 / 1000),
-                transportS: Math.round(deltaS),
+                transportS: deltaS,
                 pathType: tempVehical,
               };
               returnRoutes.unshift(returnRoute);
@@ -171,6 +177,7 @@ export class Dijkstra {
           }
         }
         returnVextices.unshift(returnVertex);
+        stations.unshift(currentVertex);
         console.log(
           "Trạm: ",
           currentVertex,
@@ -191,13 +198,15 @@ export class Dijkstra {
       buses: this.vertices[currentVertex].buses,
     };
     returnVextices.unshift(returnVertex);
-
+    stations.unshift(currentVertex);
     if (tempVehical == "bus" || tempVehical == "walk") {
-      deltaS =
-        this.vertices[destination].weight - this.vertices[currentVertex].weight;
+      deltaS = Math.round(
+        this.vertices[destination].weight - this.vertices[currentVertex].weight
+      );
       saveBuses = this.vertices[currentVertex].buses.filter(
         (item: string) => saveBuses.includes(item) && item !== "Walk"
       );
+      ceilS += deltaS;
       let deltaT = 0;
       if (tempVehical == "bus") deltaT = Math.ceil((deltaS * 60) / 22.5 / 1000);
       else deltaT = Math.ceil((deltaS * 60) / 5 / 1000);
@@ -206,7 +215,7 @@ export class Dijkstra {
         destination: destination,
         buses: saveBuses,
         transportTime: deltaT,
-        transportS: Math.round(deltaS),
+        transportS: deltaS,
         pathType: tempVehical,
       };
       returnRoutes.unshift(returnRoute);
@@ -215,6 +224,8 @@ export class Dijkstra {
     console.log();
     console.log("returnRoutes moi");
     console.log(returnRoutes);
+    console.log("tong lam tron: ", ceilS);
+    // console.log("cacs tram di qua: ", stations);
     return returnVextices;
   }
   // thuật toán : xét 2 tập xe buýt c1Buses là tập xe buýt có thể đi được từ trạm j -> j + 1
@@ -428,7 +439,7 @@ export class Dijkstra {
     }
     let resultRoute: ResultRoute = {
       returnRoutes: returnRoutes,
-      vertices: vertices,
+      stations: vertices,
     };
 
     return resultRoute;
