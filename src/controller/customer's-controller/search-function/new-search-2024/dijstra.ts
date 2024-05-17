@@ -94,9 +94,6 @@ export class Dijkstra {
           // khởi tạo
           tempVehical = this.vertices[currentVertex].pathType;
           destination = currentVertex;
-          deltaS =
-            this.vertices[currentVertex].weight -
-            this.vertices[frontNode].weight;
           if (this.vertices[currentVertex].pathType == "bus") {
             saveBuses.push(...this.vertices[currentVertex].buses);
           } else {
@@ -104,9 +101,6 @@ export class Dijkstra {
         } else {
           // nếu trùng nhau pathType
           if (tempVehical == this.vertices[currentVertex].pathType) {
-            deltaS +=
-              this.vertices[currentVertex].weight -
-              this.vertices[frontNode].weight;
             if (tempVehical == "bus") {
               let tempBuses: string[] = this.vertices[
                 currentVertex
@@ -116,24 +110,29 @@ export class Dijkstra {
               if (tempBuses.length == 0) {
                 // nếu không còn xe trùng nhau thì phải nhảy tuyến
                 // tức là tạo ra thêm 1 hành trình khác
+                deltaS =
+                  this.vertices[destination].weight -
+                  this.vertices[currentVertex].weight;
                 let returnRoute: ReturnRoute = {
                   source: currentVertex,
                   destination: destination,
                   buses: saveBuses,
-                  transportTime: (deltaS * 60) / 22.5,
-                  transportS: deltaS,
+                  transportTime: Math.ceil((deltaS * 60) / 22.5 / 1000),
+                  transportS: Math.round(deltaS),
                   pathType: tempVehical,
                 };
                 returnRoutes.unshift(returnRoute);
 
                 saveBuses = this.vertices[frontNode].buses;
                 destination = currentVertex;
-                deltaS = 0;
               } else {
                 saveBuses = tempBuses; // cập nhật lại những xe buýt trùng nhau
               }
             }
           } else {
+            deltaS =
+              this.vertices[destination].weight -
+              this.vertices[currentVertex].weight;
             // nếu khác nhau pathType
             if (tempVehical == "bus") {
               saveBuses = this.vertices[currentVertex].buses.filter(
@@ -143,30 +142,30 @@ export class Dijkstra {
                 source: currentVertex,
                 destination: destination,
                 buses: saveBuses,
-                transportTime: (deltaS * 60) / 22.5 / 1000,
-                transportS: deltaS,
+                transportTime: Math.ceil((deltaS * 60) / 22.5 / 1000),
+                transportS: Math.round(deltaS),
                 pathType: tempVehical,
               };
               returnRoutes.unshift(returnRoute);
 
               saveBuses = this.vertices[frontNode].buses;
               destination = currentVertex;
-              deltaS = 0;
+
               tempVehical = "walk";
             } else if (tempVehical == "walk") {
               let returnRoute: ReturnRoute = {
                 source: currentVertex,
                 destination: destination,
                 buses: saveBuses,
-                transportTime: (deltaS * 60) / 5 / 1000,
-                transportS: deltaS,
+                transportTime: Math.ceil((deltaS * 60) / 5 / 1000),
+                transportS: Math.round(deltaS),
                 pathType: tempVehical,
               };
               returnRoutes.unshift(returnRoute);
 
               saveBuses = this.vertices[frontNode].buses;
               destination = currentVertex;
-              deltaS = 0;
+
               tempVehical = "bus";
             }
           }
@@ -194,17 +193,20 @@ export class Dijkstra {
     returnVextices.unshift(returnVertex);
 
     if (tempVehical == "bus" || tempVehical == "walk") {
-      deltaS +=
+      deltaS =
         this.vertices[destination].weight - this.vertices[currentVertex].weight;
       saveBuses = this.vertices[currentVertex].buses.filter(
         (item: string) => saveBuses.includes(item) && item !== "Walk"
       );
+      let deltaT = 0;
+      if (tempVehical == "bus") deltaT = Math.ceil((deltaS * 60) / 22.5 / 1000);
+      else deltaT = Math.ceil((deltaS * 60) / 5 / 1000);
       let returnRoute: ReturnRoute = {
         source: currentVertex,
         destination: destination,
         buses: saveBuses,
-        transportTime: (deltaS * 60) / 22.5,
-        transportS: deltaS,
+        transportTime: deltaT,
+        transportS: Math.round(deltaS),
         pathType: tempVehical,
       };
       returnRoutes.unshift(returnRoute);
