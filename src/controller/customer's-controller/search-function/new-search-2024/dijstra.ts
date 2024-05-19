@@ -72,7 +72,7 @@ export class Dijkstra {
     this.vertices[vertex.name] = vertex;
   }
 
-  findPointsOfShortestWay(start: string, finish: string): ReturnVertex[] {
+  findPointsOfShortestWay(start: string, finish: string): ResultRoute {
     let currentVertex: string = finish;
     let returnVextices: ReturnVertex[] = [];
     let deltaS = 0; // biến lưu tổng quãng đường di chuyển trên cùng 1 loại phương thức liên tục
@@ -189,7 +189,10 @@ export class Dijkstra {
         currentVertex = frontNode;
       } else {
         // console.log("Không tìm thấy tuyến đường/ trạm xe buýt phù hơp");
-        return [];
+        return {
+          stations: stations,
+          returnRoutes: returnRoutes,
+        };
       }
     }
     //arrayWithVertex.unshift(nextVertex);
@@ -221,155 +224,18 @@ export class Dijkstra {
       returnRoutes.unshift(returnRoute);
     }
 
+    let resultRoute: ResultRoute = {
+      stations: stations,
+      returnRoutes: returnRoutes,
+    };
     console.log();
     console.log("returnRoutes moi");
     console.log(returnRoutes);
     console.log("tong lam tron: ", ceilS);
     // console.log("cacs tram di qua: ", stations);
-    return returnVextices;
+    return resultRoute;
   }
-  // thuật toán : xét 2 tập xe buýt c1Buses là tập xe buýt có thể đi được từ trạm j -> j + 1
-  // và tập c2Buses là tập xe buýt có thể đi được từ trạm i -> j
-  // -> tập xe buýt để đi từ i -> i + 1 sẽ là c1Buses giao c2Buses
-  // nếu tập này = null -> phải nhảy tuyến ở trạm j (đổi xe buýt)
 
-  // ví dụ
-  // trạm A có xe 02, 89 đi qua và hướng tới trạm B (phần tử 0 trong mảng returnVertexs)
-  // trạm B có xe 02 đi qua và hướng tới trạm C
-  // trạm C có xe 02, 100 đi qua và hướng tới trạm D
-  // trạm D là đích và có xe 100 đi qua
-
-  // theo thuật toán
-  // khởi tạo c2Buses = returnVertexs[0].buses = [02, 89], i = 0, j = 0 (i == j)
-  // A -> B: c1Buses = (returnVertexs[0].buses giao returnVertexs[1].buses) = [02] (xét tuyến đi được từ j = 0 -> j + 1 = 1)
-  // -> để đi được từ trạm i -> j + 1 sẽ cần (giao của c2Buses (i -> j) và c1Buses (j -> j + 1)) là c3Buses = [02] khác null
-  // -> gán c2Buses = c3Buses = [02], j = 1 và xét tiếp từ B -> C
-
-  // B -> C: c1Buses = (returnVertexs[1].buses giao returnVertexs[2].buses) = [02] (xét tuyến đi được từ j = 1 -> j + 1 = 2)
-  // -> để đi được từ trạm i -> j + 1 sẽ cần (giao của c2Buses (i -> j) và c1Buses (j -> j + 1)) là c3Buses = [02] khác null
-  // gán c2Buses = c3Buses = [02], j = 2 và xét tiếp từ C -> D
-
-  // C -> D: c1Buses = [02, 100] giao [100] = [100]
-  // c2Buses = [02]
-  // c3Buses = c2Buses giao c1Buses = [02] giao [100] = null
-  // -> ở trạm C phải nhảy tuyến
-  // -> saveC sẽ lưu vào 1 đối tượng gồm {trạm đầu: returnVertexs[i].name, trạm đích: returnVertexs[j].name, buses: c2Buses}
-  // saveC[0] = {returnVertexs[0].name, returnVertexs[2].name, c2Buses} = {A, C, [02]}
-  // sau đó cần cập nhật dữ liệu i = j = 2, c2Buses = returnVertexs[i].buses = [02, 100] và xét tiếp
-  // lúc này c3Buses = [100] -> cập nhật j = 3, c2Buses [100]
-
-  // D: đã ở đích -> lưu nốt đoạn đường còn lại vào saveC
-  // saveC.push({returnVertexs[2].name, returnVertexs[3].name, c2Buses})
-  // saveC.push(C, D, [100])
-  // và cuối cùng ta có kết quả để đi được tới đích cần 2 giai đoạn
-  // A -> C với xe 02
-  // C -> D với xe 100
-  filterBusesEachRoute(returnVertices: ReturnVertex[]): ReturnRoute[] {
-    let i = 0; // trạm khởi đầu combo
-    let j = 0; // trạm kết thúc combo
-    let saveI: number[] = []; // lưu các i
-    let saveJ: number[] = []; // lưu các j
-
-    let c1Buses: string[] = []; // dùng để kiểm tra xem j -> j + 1 được không
-    // khi build đồ thị có hướng cho các trạm xe buýt và dùng thuật toán dijstra nên 100% c1Bus khác null
-    // tuy nhiên cứ check cho chắc
-    // trong trường hợp c1Bus == null thì phải báo người dùng đi bộ sang trạm j -> j + 1 rồi làm tiếp
-    let c2Buses: string[] = []; // là tập xe buýt có thể dùng để đi từ i -> j
-
-    let c3Buses: string[] = []; // bằng c1Buses giao c2Buses
-
-    c2Buses = returnVertices[0].buses; // khởi tạo gồm dữ liệu trạm xuất phát
-
-    let saveC: ReturnRoute[] = [];
-
-    if (returnVertices.length == 1) {
-      console.log("Trạm xuất phát trùng trạm đích");
-      saveC.push({
-        source: returnVertices[0].name,
-        destination: returnVertices[0].name,
-        buses: returnVertices[0].buses,
-        transportTime: 0,
-        transportS: 0,
-        pathType: "bus",
-      });
-      return saveC;
-    }
-    // saveCBus lưu các route + trạm xuất phát và trạm đích của 1 lộ trình có thể đi được bằng tối thiểu 1 tuyến
-    for (let index = 0; index < returnVertices.length - 1; index++) {
-      c1Buses = returnVertices[index].buses.filter(
-        (item) =>
-          returnVertices[index + 1].buses.includes(item) && item !== "Walk"
-      );
-      //console.log("c1Buses: ", c1Buses);
-      if (c1Buses.length > 0) {
-        // có trạm xe buýt chung từ j -> j + 1 -> kiểm tra tiếp xem cần nhảy tuyến ko
-        c3Buses = c2Buses.filter(
-          (item) => c1Buses.includes(item) && item !== "Walk"
-        );
-
-        //console.log("c3Buses: ", c3Buses);
-        if (c3Buses.length == 0) {
-          // trường hợp này phải nhảy tuyến
-          // lưu lộ trình này lại
-          //console.log("c2Buses save: ", c2Buses);
-          saveC.push({
-            source: returnVertices[i].name,
-            destination: returnVertices[j].name,
-            buses: c2Buses,
-            transportTime: 0,
-            transportS: 0,
-            pathType: "bus",
-          });
-          console.log(
-            "khoảng cách giữa ",
-            returnVertices[i].name,
-            " ",
-            returnVertices[j].name,
-            " là: ",
-            this.vertices[returnVertices[j].name].weight -
-              this.vertices[returnVertices[i].name].weight
-          );
-          // cập nhật i, j, c2Buses để tìm lộ trình tiếp theo
-          i = j;
-          c2Buses = returnVertices[i].buses;
-          // tiếp tục xét tiếp đoạn lúc nãy đang giang dở
-          c3Buses = c2Buses.filter(
-            (item) => c1Buses.includes(item) && item !== "Walk"
-          ); // lần này 100% c3Buses khác null
-          c2Buses = c3Buses;
-          j++;
-        } else {
-          // trường hợp không cần nhảy tuyến thì đi tiếp đến trạm tiếp theo
-          j++;
-          //console.log("c3Buses trc update: ", c3Buses);
-          c2Buses = c3Buses;
-          //console.log("c2Buses sau update: ", c2Buses);
-        }
-      } else {
-        // trong trường hợp c1Buses null cần người dùng đi bộ đến trạm j + 1 tính sau
-      }
-    }
-    // khi đến đích thì thêm nốt lộ trình còn lại vào saveC
-    console.log(
-      "khoảng cách giữa ",
-      returnVertices[i].name,
-      " ",
-      returnVertices[j].name,
-      " là: ",
-      this.vertices[returnVertices[j].name].weight -
-        this.vertices[returnVertices[i].name].weight
-    );
-    saveC.push({
-      source: returnVertices[i].name,
-      destination: returnVertices[j].name,
-      buses: c2Buses,
-      transportTime: 0,
-      transportS: 0,
-      pathType: "bus",
-    });
-
-    return saveC;
-  }
   findShortestWay(start: string, finish: string): ResultRoute {
     let nodes: any = {};
     let visitedVertex: string[] = [];
@@ -404,43 +270,8 @@ export class Dijkstra {
       // loại bỏ đỉnh a khỏi ds xét
       delete nodes[sortedVisitedByWeight[0]];
     }
-    const finishWeight: number = this.vertices[finish].weight;
-    console.log("finishWeight: ", finishWeight);
-    // console.log(
-    //   "danh sách các node và node phía trước tương ứng và khoảng cách từ điểm đó tới điểm xuất phát là"
-    // );
-    // for (let i in this.vertices) {
-    //   console.log(
-    //     this.vertices[i].name,
-    //     this.vertices[i].frontNode,
-    //     this.vertices[i].weight,
-    //   );
-    // }
 
-    let returnVertices: ReturnVertex[] = this.findPointsOfShortestWay(
-      start,
-      finish
-    );
-    let vertices: string[] = [];
-    for (let i = 0; i < returnVertices.length; i++) {
-      vertices.push(returnVertices[i].name);
-      //console.log(returnVertices[i].name, " ", returnVertices[i].buses);
-    }
-    let returnRoutes: ReturnRoute[] = [];
-    if (returnVertices.length > 0) {
-      // console.log(returnVertices);
-      returnRoutes = this.filterBusesEachRoute(returnVertices);
-      // console.log("\n Lộ trình tìm được là");
-      // for (let index = 0; index < returnRoutes.length; index++) {
-      //   console.log("source: ", returnRoutes[index].source);
-      //   console.log("destination: ", returnRoutes[index].destination);
-      //   console.log("buses: ", returnRoutes[index].buses);
-      // }
-    }
-    let resultRoute: ResultRoute = {
-      returnRoutes: returnRoutes,
-      stations: vertices,
-    };
+    let resultRoute: ResultRoute = this.findPointsOfShortestWay(start, finish);
 
     return resultRoute;
   }
