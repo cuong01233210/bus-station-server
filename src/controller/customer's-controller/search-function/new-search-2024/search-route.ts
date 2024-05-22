@@ -20,7 +20,7 @@ interface BusIn4Struct {
   lat: number;
   long: number;
 }
-
+export let busInfoMap: { [key: string]: Bus } = {};
 export async function findRoute(req: Request, res: Response) {
   //không cần dùng userId để phân biệt các tài khoản do cơ chế tự làm đc rồi
   //const startString = req.body.startString;
@@ -96,7 +96,7 @@ export async function findRoute(req: Request, res: Response) {
   for (let index = 0; index < nearestEndNodes.length; index++) {
     console.log(`Trạm ${index + 1}: ${nearestEndNodes[index].point?.name}`);
   }
-  //const buses = await Bus.getBusIn4();
+
   // từ những tuyến xe buýt build đồ thị có hướng
   //const graph = new DirectedGraph();
   //graph.createGraph(buses);
@@ -136,6 +136,12 @@ export async function findRoute(req: Request, res: Response) {
   console.log("Một vài tuyến đường gợi ý là: ");
   let resultRoutes: ResultRoute[] = [];
   let appearTimes = [];
+  // chuẩn bị db buses để tiện sp tính tiền xe buýt
+  const buses = await Bus.getBusIn4();
+  busInfoMap = {};
+  buses.forEach((bus) => {
+    busInfoMap[bus.bus] = bus;
+  });
   for (
     let startIndex = 0;
     startIndex < nearestStartNodes.length;
