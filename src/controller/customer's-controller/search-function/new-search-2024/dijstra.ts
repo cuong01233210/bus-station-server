@@ -99,6 +99,7 @@ export class Dijkstra {
           if (this.vertices[currentVertex].pathType == "bus") {
             saveBuses.push(...this.vertices[currentVertex].buses);
           } else {
+            saveBuses = ["Walk"];
           }
         } else {
           // nếu trùng nhau pathType
@@ -162,7 +163,7 @@ export class Dijkstra {
               let returnRoute: ReturnRoute = {
                 source: currentVertex,
                 destination: destination,
-                buses: saveBuses,
+                buses: ["Walk"],
                 transportTime: Math.ceil((deltaS * 60) / 5 / 1000),
                 transportS: deltaS,
                 pathType: tempVehical,
@@ -202,6 +203,12 @@ export class Dijkstra {
     };
     returnVextices.unshift(returnVertex);
     stations.unshift(currentVertex);
+    console.log(
+      "Trạm: ",
+      currentVertex,
+      " Tuyến ",
+      this.vertices[currentVertex].buses
+    );
     if (tempVehical == "bus" || tempVehical == "walk") {
       deltaS = Math.round(
         this.vertices[destination].weight - this.vertices[currentVertex].weight
@@ -212,7 +219,10 @@ export class Dijkstra {
       ceilS += deltaS;
       let deltaT = 0;
       if (tempVehical == "bus") deltaT = Math.ceil((deltaS * 60) / 22.5 / 1000);
-      else deltaT = Math.ceil((deltaS * 60) / 5 / 1000);
+      else {
+        deltaT = Math.ceil((deltaS * 60) / 5 / 1000);
+        saveBuses = ["Walk"];
+      }
       let returnRoute: ReturnRoute = {
         source: currentVertex,
         destination: destination,
@@ -229,8 +239,6 @@ export class Dijkstra {
       returnRoutes: returnRoutes,
     };
     console.log();
-    console.log("returnRoutes moi");
-    console.log(returnRoutes);
     console.log("tong lam tron: ", ceilS);
     // console.log("cacs tram di qua: ", stations);
     return resultRoute;
