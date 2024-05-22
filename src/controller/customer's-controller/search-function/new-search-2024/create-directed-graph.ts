@@ -129,7 +129,7 @@ export class DirectedGraph {
               ) * 1000; // Nhân với 1000 để đổi từ km sang mét
 
             if (dist < 200) {
-              // Khoảng cách nhỏ hơn 300m
+              // Khoảng cách nhỏ hơn 200m
               this.addEdge(
                 stopDi.name,
                 stopVe.name,

@@ -1,3 +1,4 @@
+import { busInfoMap } from "./search-route";
 // phiên bản test với A,B, C
 export interface NodeVertex {
   nameOfVertex: string; // tên node
@@ -39,6 +40,31 @@ export interface ResultRoute {
 
 // phiên bản real đầu tiên với các trạm xe buýt
 
+function getAllRoutes(routes: ReturnRoute[]): string[][] {
+  const paths = routes.map((route) => route.buses);
+  return cartesianProduct(paths);
+}
+
+function cartesianProduct(arrays: string[][]): string[][] {
+  return arrays.reduce<string[][]>(
+    (acc, curr) => {
+      return acc.flatMap((a) => curr.map((c) => [...a, c]));
+    },
+    [[]]
+  );
+}
+
+function calculateRoutePrices(
+  routes: string[][]
+): { route: string[]; price: number }[] {
+  return routes.map((route) => {
+    const price = route.reduce(
+      (total, bus) => (total += busInfoMap[bus]?.price || 0),
+      0
+    );
+    return { route, price };
+  });
+}
 export class Vertex {
   name: string; // tên node
   nodes: NodeVertex[]; // mảng chứa vector giữa 2 node hiện tại và node có thể liền kề
@@ -241,6 +267,15 @@ export class Dijkstra {
     console.log();
     console.log("tong lam tron: ", ceilS);
     // console.log("cacs tram di qua: ", stations);
+    //console.log(busInfoMap["01"].price);
+    //console.log(busInfoMap["89"].price);
+    const allRoutes = getAllRoutes(returnRoutes);
+    console.log(allRoutes);
+    const pricedRoutes = calculateRoutePrices(allRoutes);
+    pricedRoutes.forEach(({ route, price }) => {
+      console.log(`Hành trình: ${route.join(" -> ")}, Giá tiền: ${price} đồng`);
+    });
+
     return resultRoute;
   }
 
