@@ -19,6 +19,8 @@ export interface ReturnRoute {
 }
 
 export interface ResultRoute {
+  startStation: string; // trạm xuất phát và đích
+  endStation: string;
   stations: string[]; //
   returnRoutes: ReturnRoute[]; //
 }
@@ -109,22 +111,29 @@ export class Dijkstra {
     let destination = ""; // trạm đích của 1 hành trình
     let stations = []; // mảng chứa đầy đủ tên các trạm đi qua
     let ceilS = 0; //tổng quãng đường khi được làm tròn
+    let startStation: string = start;
+    let endStation: string = finish;
 
     while (currentVertex != start) {
       if (this.vertices[currentVertex] && this.vertices[currentVertex].buses) {
         //arrayWithVertex.unshift(nextVertex);
         frontNode = this.vertices[currentVertex].frontNode;
+        if (this.vertices[currentVertex].pathType == "bus") {
+          startStation = currentVertex;
+        }
         let returnVertex: ReturnVertex = {
           name: currentVertex,
           buses: this.vertices[currentVertex].buses,
         };
         if (tempVehical == "") {
           // khởi tạo
-          tempVehical = this.vertices[currentVertex].pathType;
-          destination = currentVertex;
           if (this.vertices[currentVertex].pathType == "bus") {
+            tempVehical = this.vertices[currentVertex].pathType;
+            destination = currentVertex;
+            endStation = currentVertex; //cố định được trạm kết thúc
             saveBuses.push(...this.vertices[currentVertex].buses);
           } else {
+            // do mình nếu giữa 2 trạm cuối cùng có thể đi bộ thì mình lấy trạm cuối n -1 thay vì trạm cuối n để báo cho người dùng
             saveBuses = ["Walk"];
           }
         } else {
@@ -217,6 +226,8 @@ export class Dijkstra {
       } else {
         // console.log("Không tìm thấy tuyến đường/ trạm xe buýt phù hơp");
         return {
+          startStation: startStation,
+          endStation: endStation,
           stations: stations,
           returnRoutes: returnRoutes,
         };
@@ -235,7 +246,31 @@ export class Dijkstra {
       " Tuyến ",
       this.vertices[currentVertex].buses
     );
-    if (tempVehical == "bus" || tempVehical == "walk") {
+    // if (tempVehical == "bus" || tempVehical == "walk") {
+    //   deltaS = Math.round(
+    //     this.vertices[destination].weight - this.vertices[currentVertex].weight
+    //   );
+    //   saveBuses = this.vertices[currentVertex].buses.filter(
+    //     (item: string) => saveBuses.includes(item) && item !== "Walk"
+    //   );
+    //   ceilS += deltaS;
+    //   let deltaT = 0;
+    //   if (tempVehical == "bus") deltaT = Math.ceil((deltaS * 60) / 22.5 / 1000);
+    //   else {
+    //     deltaT = Math.ceil((deltaS * 60) / 5 / 1000);
+    //     saveBuses = ["Walk"];
+    //   }
+    //   let returnRoute: ReturnRoute = {
+    //     source: currentVertex,
+    //     destination: destination,
+    //     buses: saveBuses,
+    //     transportTime: deltaT,
+    //     transportS: deltaS,
+    //     pathType: tempVehical,
+    //   };
+    //   returnRoutes.unshift(returnRoute);
+    // }
+    if (tempVehical == "bus") {
       deltaS = Math.round(
         this.vertices[destination].weight - this.vertices[currentVertex].weight
       );
@@ -243,12 +278,7 @@ export class Dijkstra {
         (item: string) => saveBuses.includes(item) && item !== "Walk"
       );
       ceilS += deltaS;
-      let deltaT = 0;
-      if (tempVehical == "bus") deltaT = Math.ceil((deltaS * 60) / 22.5 / 1000);
-      else {
-        deltaT = Math.ceil((deltaS * 60) / 5 / 1000);
-        saveBuses = ["Walk"];
-      }
+      let deltaT = Math.ceil((deltaS * 60) / 22.5 / 1000);
       let returnRoute: ReturnRoute = {
         source: currentVertex,
         destination: destination,
@@ -258,9 +288,12 @@ export class Dijkstra {
         pathType: tempVehical,
       };
       returnRoutes.unshift(returnRoute);
+      startStation = currentVertex;
     }
 
     let resultRoute: ResultRoute = {
+      startStation: startStation,
+      endStation: endStation,
       stations: stations,
       returnRoutes: returnRoutes,
     };
@@ -275,7 +308,7 @@ export class Dijkstra {
     pricedRoutes.forEach(({ route, price }) => {
       console.log(`Hành trình: ${route.join(" -> ")}, Giá tiền: ${price} đồng`);
     });
-
+    console.log(startStation);
     return resultRoute;
   }
 
