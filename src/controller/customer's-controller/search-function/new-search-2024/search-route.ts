@@ -153,31 +153,23 @@ export async function findRoute(req: Request, res: Response) {
       if (startStation != null && endStation != null) {
         console.log("trạm xuất phát", startStation);
         console.log("trạm đích là", endStation);
-        let result = dijkstra.findShortestWay(
+        let results = dijkstra.findShortestWay(
           startStation.name,
           endStation.name
         );
-        if (result.returnRoutes.length > 0) {
-          console.log(result.returnRoutes);
-          resultRoutes.push(result); // lưu trữ lại lộ trình tìm được
-          // tìm thời gian xuất hiện tuyến xe buýt đi được tương ứng
-          const appearTime = await searchStationRouteTimeMode1(
-            startStation.name,
-            result.returnRoutes[0].buses,
-            inputIn4.startIn4.lat,
-            inputIn4.startIn4.long,
-            startStation.lat,
-            startStation.long
+        //thêm các phần tử của results vào resultRoutes
+        if (results.length > 0) {
+          let result1 = results[0];
+          let exists = resultRoutes.some(
+            (existingRoute) =>
+              existingRoute.startStation === result1.startStation &&
+              existingRoute.endStation === result1.endStation
           );
-          appearTimes.push(appearTime);
-          console.log(appearTime);
-        } else {
-          console.log("không tìm được tuyến đường phù hợp");
-        }
 
-        // console.log(
-        //   dijkstra.findShortestWay(startStation.name, endStation.name)
-        // );
+          if (!exists) {
+            resultRoutes.push(...results); // Thêm toàn bộ `results` vào `resultRoutes`
+          }
+        }
       }
     }
   }
@@ -188,9 +180,7 @@ export async function findRoute(req: Request, res: Response) {
   //   )
   // );
   //console.log("appearTimes: ", appearTimes);
-  res
-    .status(200)
-    .json({ resultRoutes: resultRoutes, appearTimes: appearTimes });
+  res.status(200).json({ resultRoutes: resultRoutes });
 }
 // tóm lại là ổn rồi, sau 1 ngày check thì thuật toán ko sai mà do test case đen vào đúng TH ko có kq
 // do đó cần phải làm thêm trường hợp ko ra kq này là xong
