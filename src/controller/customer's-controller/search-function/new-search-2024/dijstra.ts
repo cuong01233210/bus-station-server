@@ -21,6 +21,8 @@ export interface ReturnRoute {
 export interface ResultRoute {
   startStation: string; // trạm xuất phát và đích
   endStation: string;
+  buses: string[]; // các xe buýt cần dùng ;
+  cost: number; // giá tiền
   stations: string[]; //
   returnRoutes: ReturnRoute[]; //
 }
@@ -100,7 +102,7 @@ export class Dijkstra {
     this.vertices[vertex.name] = vertex;
   }
 
-  findPointsOfShortestWay(start: string, finish: string): ResultRoute {
+  findPointsOfShortestWay(start: string, finish: string): ResultRoute[] {
     let currentVertex: string = finish;
     let returnVextices: ReturnVertex[] = [];
     let deltaS = 0; // biến lưu tổng quãng đường di chuyển trên cùng 1 loại phương thức liên tục
@@ -119,7 +121,7 @@ export class Dijkstra {
         //arrayWithVertex.unshift(nextVertex);
         frontNode = this.vertices[currentVertex].frontNode;
         if (this.vertices[currentVertex].pathType == "bus") {
-          startStation = currentVertex;
+          startStation = frontNode;
         }
         let returnVertex: ReturnVertex = {
           name: currentVertex,
@@ -225,12 +227,7 @@ export class Dijkstra {
         currentVertex = frontNode;
       } else {
         // console.log("Không tìm thấy tuyến đường/ trạm xe buýt phù hơp");
-        return {
-          startStation: startStation,
-          endStation: endStation,
-          stations: stations,
-          returnRoutes: returnRoutes,
-        };
+        return [];
       }
     }
     //arrayWithVertex.unshift(nextVertex);
@@ -239,37 +236,14 @@ export class Dijkstra {
       buses: this.vertices[currentVertex].buses,
     };
     returnVextices.unshift(returnVertex);
-    stations.unshift(currentVertex);
+
     console.log(
       "Trạm: ",
       currentVertex,
       " Tuyến ",
       this.vertices[currentVertex].buses
     );
-    // if (tempVehical == "bus" || tempVehical == "walk") {
-    //   deltaS = Math.round(
-    //     this.vertices[destination].weight - this.vertices[currentVertex].weight
-    //   );
-    //   saveBuses = this.vertices[currentVertex].buses.filter(
-    //     (item: string) => saveBuses.includes(item) && item !== "Walk"
-    //   );
-    //   ceilS += deltaS;
-    //   let deltaT = 0;
-    //   if (tempVehical == "bus") deltaT = Math.ceil((deltaS * 60) / 22.5 / 1000);
-    //   else {
-    //     deltaT = Math.ceil((deltaS * 60) / 5 / 1000);
-    //     saveBuses = ["Walk"];
-    //   }
-    //   let returnRoute: ReturnRoute = {
-    //     source: currentVertex,
-    //     destination: destination,
-    //     buses: saveBuses,
-    //     transportTime: deltaT,
-    //     transportS: deltaS,
-    //     pathType: tempVehical,
-    //   };
-    //   returnRoutes.unshift(returnRoute);
-    // }
+
     if (tempVehical == "bus") {
       deltaS = Math.round(
         this.vertices[destination].weight - this.vertices[currentVertex].weight
@@ -289,30 +263,36 @@ export class Dijkstra {
       };
       returnRoutes.unshift(returnRoute);
       startStation = currentVertex;
+      stations.unshift(currentVertex);
     }
 
-    let resultRoute: ResultRoute = {
-      startStation: startStation,
-      endStation: endStation,
-      stations: stations,
-      returnRoutes: returnRoutes,
-    };
     console.log();
-    console.log("tong lam tron: ", ceilS);
-    // console.log("cacs tram di qua: ", stations);
-    //console.log(busInfoMap["01"].price);
-    //console.log(busInfoMap["89"].price);
-    const allRoutes = getAllRoutes(returnRoutes);
+
+    let allRoutes = getAllRoutes(returnRoutes);
+
     console.log(allRoutes);
     const pricedRoutes = calculateRoutePrices(allRoutes);
     pricedRoutes.forEach(({ route, price }) => {
       console.log(`Hành trình: ${route.join(" -> ")}, Giá tiền: ${price} đồng`);
     });
-    console.log(startStation);
-    return resultRoute;
+
+    // bắt đầu tổng hợp các cách đi
+    let resultRoutes: ResultRoute[] = [];
+    for (let i = 0; i < allRoutes.length; i++) {
+      let resultRoute: ResultRoute = {
+        startStation: startStation,
+        endStation: endStation,
+        buses: allRoutes[i],
+        cost: pricedRoutes[i].price,
+        stations: stations,
+        returnRoutes: returnRoutes,
+      };
+      resultRoutes.push(resultRoute);
+    }
+    return resultRoutes;
   }
 
-  findShortestWay(start: string, finish: string): ResultRoute {
+  findShortestWay(start: string, finish: string): ResultRoute[] {
     let nodes: any = {};
     let visitedVertex: string[] = [];
 
@@ -347,8 +327,11 @@ export class Dijkstra {
       delete nodes[sortedVisitedByWeight[0]];
     }
 
-    let resultRoute: ResultRoute = this.findPointsOfShortestWay(start, finish);
+    let resultRoutes: ResultRoute[] = this.findPointsOfShortestWay(
+      start,
+      finish
+    );
 
-    return resultRoute;
+    return resultRoutes;
   }
 }
