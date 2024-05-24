@@ -23,6 +23,12 @@ export interface ResultRoute {
   endStation: string;
   buses: string[]; // các xe buýt cần dùng ;
   cost: number; // giá tiền
+  transportHour: number; // thời gian cần để di chuyển
+  transportMinute: number;
+  startHour: number;
+  startMinute: number;
+  endHour: number;
+  endMinute: number;
   stations: string[]; //
   returnRoutes: ReturnRoute[]; //
 }
@@ -104,7 +110,7 @@ export class Dijkstra {
 
   findPointsOfShortestWay(start: string, finish: string): ResultRoute[] {
     let currentVertex: string = finish;
-    let returnVextices: ReturnVertex[] = [];
+
     let deltaS = 0; // biến lưu tổng quãng đường di chuyển trên cùng 1 loại phương thức liên tục
     let tempVehical = ""; // lưu phương thức di chuyển trạm n - 1 -> n
     let frontNode = "";
@@ -115,6 +121,8 @@ export class Dijkstra {
     let ceilS = 0; //tổng quãng đường khi được làm tròn
     let startStation: string = start;
     let endStation: string = finish;
+    let transportHour: number = 0;
+    let TransferTime;
 
     while (currentVertex != start) {
       if (this.vertices[currentVertex] && this.vertices[currentVertex].buses) {
@@ -123,10 +131,7 @@ export class Dijkstra {
         if (this.vertices[currentVertex].pathType == "bus") {
           startStation = frontNode;
         }
-        let returnVertex: ReturnVertex = {
-          name: currentVertex,
-          buses: this.vertices[currentVertex].buses,
-        };
+
         if (tempVehical == "") {
           // khởi tạo
           if (this.vertices[currentVertex].pathType == "bus") {
@@ -214,7 +219,7 @@ export class Dijkstra {
             }
           }
         }
-        returnVextices.unshift(returnVertex);
+
         stations.unshift(currentVertex);
         console.log(
           "Trạm: ",
@@ -230,12 +235,6 @@ export class Dijkstra {
         return [];
       }
     }
-    //arrayWithVertex.unshift(nextVertex);
-    let returnVertex: ReturnVertex = {
-      name: currentVertex,
-      buses: this.vertices[currentVertex].buses,
-    };
-    returnVextices.unshift(returnVertex);
 
     console.log(
       "Trạm: ",
@@ -284,6 +283,12 @@ export class Dijkstra {
         endStation: endStation,
         buses: allRoutes[i],
         cost: pricedRoutes[i].price,
+        transportHour: 0,
+        transportMinute: 0,
+        startHour: 0,
+        startMinute: 0,
+        endHour: 0,
+        endMinute: 0,
         stations: stations,
         returnRoutes: returnRoutes,
       };
