@@ -5,6 +5,8 @@ import { getDistance } from "./LocationIQ";
 import { haversineDistance } from "./test-geocoding-controller";
 import BusAppearance from "../../../../models/bus-appearance-time";
 import moment, { min } from "moment-timezone";
+import BusRoute from "../../../../models/bus-route";
+import BusInfo from "../../../../models/bus-info";
 function convertStringTime(timeString: string): {
   hour: number;
   minute: number;
@@ -37,28 +39,26 @@ function convertDoubleTime(tDouble: number): { hour: number; minute: number } {
 // thì ở trạm đầu tiên của chiều đi thời gian xuất hiện xe sẽ là 5h00, 5h15, 5h30,... 21h00
 // giả sử từ trạm đầu tiên tới trạm thứ 2 mất 5h thì thời gian xuất hiện xe là 5h05, 5h35, ... 20h50
 export async function calculateTime(req: Request, res: Response) {
-  const route: string = req.body.route; // tuyến được chọn để tính time
-  const Vtb: number = req.body.Vtb; // vận tốc trung bình của tuyến
-  const gianCachTrungBinh = req.body.gianCachTrungBinh; //thời gian xuất hiện tuyến tb (minute)
-  const tKDString: string = req.body.tKDString; // thời gian tuyến bắt đầu hoạt động trong ngày
-  const tKTString: string = req.body.tKTString; // thời gian tuyến dừng hoạt động không nhận thêm khách nữa
-  const firstAppearChieuDi = []; // mảng dùng lưu mốc lần đầu xuất hiện của tuyến trong chiều đi
+  const route: string = req.body.route;
+  const Vtb: number = req.body.Vtb;
+  const gianCachTrungBinh = req.body.gianCachTrungBinh;
+  const tKDString: string = req.body.tKDString;
+  const tKTString: string = req.body.tKTString;
+  const firstAppearChieuDi = [];
   const firstAppearChieuVe = [];
   firstAppearChieuDi.push(0);
   firstAppearChieuVe.push(0);
 
-  const buses = await Bus.getBusIn4();
-  let bus: Bus | undefined = undefined;
-  for (let i = 0; i < buses.length; i++) {
-    if (buses[i].bus == route) {
-      bus = buses[i];
-      break;
-    }
-  }
-  if (bus == undefined) return;
+  const busRoute = await BusRoute.getBusRoute(route);
+  const busInfo = await BusInfo.getBusInfo(route);
 
-  let chieuDi = bus.chieuDi;
-  let chieuVe = bus.chieuVe;
+  if (!busRoute || !busInfo) {
+    res.status(404).json({ message: "Bus route or info not found" });
+    return;
+  }
+
+  let chieuDi = busRoute.chieuDi;
+  let chieuVe = busRoute.chieuVe;
   let tDi = 0;
   let tVe = 0;
 
@@ -71,9 +71,10 @@ export async function calculateTime(req: Request, res: Response) {
     );
 
     const deltaT = distance / Vtb;
-    tDi = tDi + deltaT;
+    tDi += deltaT;
     firstAppearChieuDi.push(tDi);
   }
+
   for (let j = 0; j < chieuVe.length - 1; j++) {
     const distance = haversineDistance(
       chieuVe[j].lat,
@@ -82,7 +83,7 @@ export async function calculateTime(req: Request, res: Response) {
       chieuVe[j + 1].long
     );
     const deltaT = distance / Vtb;
-    tVe = tVe + deltaT;
+    tVe += deltaT;
     firstAppearChieuVe.push(tVe);
   }
 
@@ -90,10 +91,11 @@ export async function calculateTime(req: Request, res: Response) {
   const tKT = convertStringTime(tKTString);
 
   for (let j = 0; j < chieuDi.length; j++) {
-    const tArray: { hour: number; minute: number }[] = []; // mảng lưu trữ các thời điểm tuyến đang xét xuất hiện tại trạm j
+    const tArray: { hour: number; minute: number }[] = [];
     const tTemp = convertDoubleTime(firstAppearChieuDi[j]);
-    tTemp.hour = tTemp.hour + tKD.hour;
-    tTemp.minute = tTemp.minute + tKD.minute;
+    tTemp.hour += tKD.hour;
+    tTemp.minute += tKD.minute;
+
     while (
       tTemp.hour < tKT.hour ||
       (tTemp.hour === tKT.hour && tTemp.minute < tKT.minute)
@@ -107,49 +109,39 @@ export async function calculateTime(req: Request, res: Response) {
     }
 
     const stationTime = await BusAppearance.getStationTime(chieuDi[j].name);
-    if (stationTime == null || stationTime == undefined) {
-      // nếu chưa có tí dữ liệu nào về trạm đang xét thì cần khởi tạo
+    if (!stationTime) {
       const appearances: {
         route: string;
-        tArray: {
-          hour: number;
-          minute: number;
-        }[];
-      }[] = [];
+        tArray: { hour: number; minute: number }[];
+      }[] = [{ route: route, tArray }];
 
-      appearances.push({ route: route, tArray: tArray });
-
-      const busAppearance: BusAppearance = new BusAppearance(
-        chieuDi[j].name,
-        appearances
-      );
-      busAppearance.createStationTime(chieuDi[j].name);
+      const busAppearance = new BusAppearance(chieuDi[j].name, appearances);
+      await busAppearance.createStationTime(chieuDi[j].name);
     } else {
-      // cần check xem có db tuyến đó chưa, nếu chưa có ms add thêm
       const appearances = stationTime.appearances;
-      let status = 0; // chưa trùng db
+      let routeExists = false;
+
       for (let k = 0; k < appearances.length; k++) {
-        if (appearances[k].route == route) {
-          status = 1;
+        if (appearances[k].route === route) {
+          routeExists = true;
           break;
         }
       }
-      if (status == 0) {
-        appearances.push({ route: route, tArray: tArray });
-        const busAppearance: BusAppearance = new BusAppearance(
-          chieuDi[j].name,
-          appearances
-        );
-        busAppearance.updateStationTime(chieuDi[j].name, appearances);
+
+      if (!routeExists) {
+        appearances.push({ route: route, tArray });
+        const busAppearance = new BusAppearance(chieuDi[j].name, appearances);
+        await busAppearance.updateStationTime(chieuDi[j].name, appearances);
       }
     }
   }
 
   for (let j = 0; j < chieuVe.length; j++) {
-    const tArray: { hour: number; minute: number }[] = []; // mảng lưu trữ các thời điểm tuyến đang xét xuất hiện tại trạm j
+    const tArray: { hour: number; minute: number }[] = [];
     const tTemp = convertDoubleTime(firstAppearChieuVe[j]);
-    tTemp.hour = tTemp.hour + tKD.hour;
-    tTemp.minute = tTemp.minute + tKD.minute;
+    tTemp.hour += tKD.hour;
+    tTemp.minute += tKD.minute;
+
     while (
       tTemp.hour < tKT.hour ||
       (tTemp.hour === tKT.hour && tTemp.minute < tKT.minute)
@@ -163,44 +155,34 @@ export async function calculateTime(req: Request, res: Response) {
     }
 
     const stationTime = await BusAppearance.getStationTime(chieuVe[j].name);
-    if (stationTime == null || stationTime == undefined) {
-      // nếu chưa có tí dữ liệu nào về trạm đang xét thì cần khởi tạo
+    if (!stationTime) {
       const appearances: {
         route: string;
-        tArray: {
-          hour: number;
-          minute: number;
-        }[];
-      }[] = [];
+        tArray: { hour: number; minute: number }[];
+      }[] = [{ route: route, tArray }];
 
-      appearances.push({ route: route, tArray: tArray });
-
-      const busAppearance: BusAppearance = new BusAppearance(
-        chieuVe[j].name,
-        appearances
-      );
-      busAppearance.createStationTime(chieuVe[j].name);
+      const busAppearance = new BusAppearance(chieuVe[j].name, appearances);
+      await busAppearance.createStationTime(chieuVe[j].name);
     } else {
       const appearances = stationTime.appearances;
-      let status = 0; // chưa trùng db
+      let routeExists = false;
+
       for (let k = 0; k < appearances.length; k++) {
-        if (appearances[k].route == route) {
-          status = 1;
+        if (appearances[k].route === route) {
+          routeExists = true;
           break;
         }
       }
-      if (status == 0) {
-        appearances.push({ route: route, tArray: tArray });
-        const busAppearance: BusAppearance = new BusAppearance(
-          chieuVe[j].name,
-          appearances
-        );
-        busAppearance.updateStationTime(chieuVe[j].name, appearances);
+
+      if (!routeExists) {
+        appearances.push({ route: route, tArray });
+        const busAppearance = new BusAppearance(chieuVe[j].name, appearances);
+        await busAppearance.updateStationTime(chieuVe[j].name, appearances);
       }
     }
   }
-  console.log("success");
 
+  console.log("success");
   res.status(200).json({ message: "success" });
 }
 

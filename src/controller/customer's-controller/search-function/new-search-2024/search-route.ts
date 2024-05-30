@@ -13,6 +13,7 @@ import { NodeVertex } from "./dijstra";
 import { DirectedGraph, readGraphFromFile } from "./create-directed-graph";
 import { searchStationRouteTimeMode1 } from "./calculate-estimate-time";
 import BusStation from "../../../../models/bus-station";
+import BusInfo from "../../../../models/bus-info";
 
 interface BusIn4Struct {
   name: string;
@@ -20,7 +21,7 @@ interface BusIn4Struct {
   lat: number;
   long: number;
 }
-export let busInfoMap: { [key: string]: Bus } = {};
+export let busInfoMap: { [key: string]: BusInfo } = {};
 export async function findRoute(req: Request, res: Response) {
   //không cần dùng userId để phân biệt các tài khoản do cơ chế tự làm đc rồi
   //const startString = req.body.startString;
@@ -128,10 +129,11 @@ export async function findRoute(req: Request, res: Response) {
     let resultRoutes: ResultRoute[] = [];
     let appearTimes = [];
     // chuẩn bị db buses để tiện sp tính tiền xe buýt
-    const buses = await Bus.getBusIn4();
+    const busInfos = await BusInfo.getAllBusInfos();
     busInfoMap = {};
-    buses.forEach((bus) => {
-      busInfoMap[bus.bus] = bus;
+    busInfoMap = {};
+    busInfos.forEach((busInfo) => {
+      busInfoMap[busInfo.bus] = busInfo;
     });
     for (
       let startIndex = 0;
