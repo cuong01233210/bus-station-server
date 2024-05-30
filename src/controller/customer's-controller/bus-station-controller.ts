@@ -1,34 +1,34 @@
 import { Request, Response } from "express";
 import BusStation from "../../models/bus-station";
-import BusStationsByDistrict from "../../models/bus-stations-by-district";
-export const getAllBusStations = async (req: Request, res: Response) => {
-  try {
-    //const busStations = await BusStation.getBusStationIn4();
-    const busStationsByDistrict =
-      await BusStationsByDistrict.getBusStationsByDistrictIn4();
-    res.status(200).json({
-      busStationsByDistrict: busStationsByDistrict,
-    });
-  } catch (error) {
-    res.status(400).json({ message: error });
-  }
-};
+//import BusStationsByDistrict from "../../models/bus-stations-by-district";
+// export const getAllBusStations = async (req: Request, res: Response) => {
+//   try {
+//     //const busStations = await BusStation.getBusStationIn4();
+//     const busStationsByDistrict =
+//       await BusStationsByDistrict.getBusStationsByDistrictIn4();
+//     res.status(200).json({
+//       busStationsByDistrict: busStationsByDistrict,
+//     });
+//   } catch (error) {
+//     res.status(400).json({ message: error });
+//   }
+// };
 
-export const getStationNames = async (req: Request, res: Response) => {
-  try {
-    const busStationOnlyNames =
-      await BusStationsByDistrict.getBusStationOnlyNames();
-    res.status(200).json({ busStationNames: busStationOnlyNames });
-  } catch (error) {
-    res.status(400).json({ message: error });
-  }
-};
+// export const getStationNames = async (req: Request, res: Response) => {
+//   try {
+//     const busStationOnlyNames =
+//       await BusStationsByDistrict.getBusStationOnlyNames();
+//     res.status(200).json({ busStationNames: busStationOnlyNames });
+//   } catch (error) {
+//     res.status(400).json({ message: error });
+//   }
+// };
 export const getAllBusStationsNoDistrict = async (
   req: Request,
   res: Response
 ) => {
   try {
-    const busStations = await BusStation.getBusStationIn4();
+    const busStations = await BusStation.getBusStations();
     res.status(200).json({
       busStations: busStations,
     });
@@ -42,10 +42,9 @@ export const addBusStationNoDistrict = async (req: Request, res: Response) => {
   try {
     const busStation = new BusStation(
       req.body.name,
-      req.body.bus,
+      req.body.buses,
       req.body.lat,
       req.body.long,
-      req.body.district,
       req.body.id
     );
     await busStation.createBusStation();
@@ -64,10 +63,9 @@ export const updateBusStationNoDistrict = async (
   try {
     const busStation = new BusStation(
       req.body.name,
-      req.body.bus,
+      req.body.buses,
       req.body.lat,
       req.body.long,
-      req.body.district,
       req.body.id
     );
     await busStation.updateBusStation(req.body.id);
@@ -86,10 +84,10 @@ export const deleteBusStationNoDistrict = async (
   try {
     const busStation = new BusStation(
       req.body.name,
-      req.body.bus,
+      req.body.buses,
       req.body.lat,
       req.body.long,
-      req.body.district,
+
       req.body.id
     );
     await busStation.deleteBusStation(req.body.id);

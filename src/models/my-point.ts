@@ -12,7 +12,7 @@ export default MyPoint;
 
 export interface StationPoint {
   name: string;
-  district: string;
+  //district: string;
   lat: number;
   long: number;
 }

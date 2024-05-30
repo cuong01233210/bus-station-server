@@ -1,4 +1,4 @@
-import KDTree from "../../../../models/kdTree";
+import KDTree from "../new-search-2024/kdTree";
 
 import MyPoint from "../../../../models/my-point";
 import BestPair from "../../../../models/best-pair";

@@ -1,7 +1,8 @@
-import BestPair from "./best-pair";
-import { MyNode, MyNode2 } from "./my-node";
-import MyPoint from "./my-point";
-import { StationPoint } from "./my-point";
+import BestPair from "../../../../models/best-pair";
+import { MyNode, MyNode2 } from "../../../../models/my-node";
+import MyPoint from "../../../../models/my-point";
+import { StationPoint } from "../../../../models/my-point";
+import fs from "fs";
 class KDTree {
   root: MyNode2 | null;
   data: StationPoint[];
@@ -196,6 +197,36 @@ class KDTree {
     const foundPoints: BestPair[] = [];
     this.findNodesInRadius(queryPoint, radius, this.root, foundPoints);
     return foundPoints.sort((a, b) => a.dist - b.dist);
+  }
+
+  private serializeNode(node: MyNode2 | null): any {
+    if (!node) return null;
+    return {
+      point: node.point,
+      depth: node.depth,
+      left: this.serializeNode(node.left),
+      right: this.serializeNode(node.right),
+    };
+  }
+
+  saveToFile(filePath: string) {
+    if (!this.root) return;
+    const jsonTree = JSON.stringify(this.serializeNode(this.root));
+    fs.writeFileSync(filePath, jsonTree);
+  }
+
+  private deserializeNode(data: any): MyNode2 | null {
+    if (!data) return null;
+    const node = new MyNode2(data.point, null, null, data.depth);
+    node.left = this.deserializeNode(data.left);
+    node.right = this.deserializeNode(data.right);
+    return node;
+  }
+
+  loadFromFile(filePath: string) {
+    const jsonTree = fs.readFileSync(filePath, "utf-8");
+    const treeData = JSON.parse(jsonTree);
+    this.root = this.deserializeNode(treeData);
   }
 }
 

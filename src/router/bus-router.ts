@@ -28,10 +28,10 @@ import * as SearchRouteController from "../controller/customer's-controller/sear
 import * as calculateEstimateTime from "../controller/customer's-controller/search-function/new-search-2024/calculate-estimate-time";
 import * as CreateGraph from "../controller/customer's-controller/search-function/new-search-2024/create-directed-graph";
 import * as PlaceController from "../controller/customer's-controller/place-controller";
+import * as CreateKDTree from "../controller/customer's-controller/search-function/new-search-2024/create-kdtree";
 const router = Router();
 
 router.get("/buses-data", busController.getAllBuses);
-router.get("/bus-stations-data", busStationController.getAllBusStations);
 
 // router.get("/user-coordinate", userCoordinateController.getUserCoordinate);
 // router.patch(
@@ -163,12 +163,12 @@ router.post("/search-route", SearchRouteController.findRoute);
 // router để tìm kiếm thời gian xuất hiện tuyến xe buýt tại trạm
 router.post("/find-bus-appearance-time", calculateEstimateTime.calculateTime);
 
-// router để lấy được chỉ là tên của các trạm xe buýt
-router.get("/get-stations-only-names", busStationController.getStationNames);
-
 // router để lấy chạy sao lưu đồ thị đường đi
 router.post("/save-graph-into-file", CreateGraph.writeGraphToFile);
 
 // router để lấy các địa điểm gợi ý
 router.get("/get-places", PlaceController.getPlaces);
+
+//router để tạo và lưu kdtree vào file json
+router.get("/save-kdtree-into-file", CreateKDTree.createKDTree);
 export default router;

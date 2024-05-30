@@ -9,13 +9,13 @@ class Bus {
   gianCachTrungBinh: number;
   chieuDi: {
     name: string;
-    bus: string[];
+    buses: string[];
     lat: number;
     long: number;
   }[];
   chieuVe: {
     name: string;
-    bus: string[];
+    buses: string[];
     lat: number;
     long: number;
   }[];
@@ -29,13 +29,13 @@ class Bus {
     gianCachTrungBinh: number,
     chieuDi: {
       name: string;
-      bus: string[];
+      buses: string[];
       lat: number;
       long: number;
     }[],
     chieuVe: {
       name: string;
-      bus: string[];
+      buses: string[];
       lat: number;
       long: number;
     }[]
@@ -50,6 +50,7 @@ class Bus {
   }
 
   static async getBusIn4() {
+    let startTime = performance.now();
     const db: Db = BusesDatabase.getDb();
     const documents = await db.collection("routes").find().toArray();
 
@@ -65,6 +66,8 @@ class Bus {
           doc.chieuVe
         )
     );
+    let endTime = performance.now();
+    console.log(`Thời gian đọc từ DB: ${endTime - startTime} milliseconds`);
     return buses;
   }
 

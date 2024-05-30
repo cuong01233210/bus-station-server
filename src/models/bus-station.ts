@@ -1,47 +1,46 @@
-import { ObjectId, Db, Double } from "mongodb";
+import { ObjectId, Db } from "mongodb";
 import { BusStationsDatabase } from "../databases/bus-stations-database";
+
 class BusStation {
   id?: string;
   name: string;
-  bus: Array<string>;
-  lat: Double;
-  long: Double;
-  district: string;
+  buses: string[];
+  lat: number;
+  long: number;
 
   constructor(
     name: string,
-    bus: Array<string>,
-    lat: Double,
-    long: Double,
-    district: string,
+    buses: string[],
+    lat: number,
+    long: number,
     id?: string
   ) {
     this.name = name;
-    this.bus = bus;
+    this.buses = buses;
     this.lat = lat;
     this.long = long;
-    this.district = district;
     this.id = id;
   }
 
-  static async getBusStationIn4() {
+  static async getBusStations() {
     const db: Db = BusStationsDatabase.getDb();
-    console.log(db);
+    console.log("Connected to database:", db.databaseName);
+    await db.collection("busStations").createIndex({ name: 1 });
+
     const documents = await db.collection("busStations").find().toArray();
-    // console.log(documents);
+    console.log("Documents in busStations collection:", documents);
 
     const busStations: BusStation[] = documents.map(
       (doc) =>
         new BusStation(
           doc.name,
-          doc.bus,
+          doc.buses,
           doc.lat,
           doc.long,
-          doc.district,
           doc._id.toString()
         )
     );
-    //console.log(busStations);
+    console.log(busStations);
     return busStations;
   }
 
@@ -60,10 +59,9 @@ class BusStation {
       {
         $set: {
           name: this.name,
-          bus: this.bus,
+          buses: this.buses, // Corrected from 'bus' to 'buses'
           lat: this.lat,
           long: this.long,
-          district: this.district,
         },
       }
     );
@@ -78,7 +76,7 @@ class BusStation {
     console.log(result);
   }
 
-  // lấy các trạm xe buýt theo mảng id truyền vào
+  // Lấy các trạm xe buýt theo mảng id truyền vào
   static async getStationsByIds(busStationIds: string[]) {
     const db: Db = BusStationsDatabase.getDb();
     const documents = await db
@@ -90,14 +88,14 @@ class BusStation {
       (doc) =>
         new BusStation(
           doc.name,
-          doc.bus,
+          doc.buses,
           doc.lat,
           doc.long,
-          doc.district,
           doc._id.toString()
         )
     );
     return busStations;
   }
 }
+
 export default BusStation;
