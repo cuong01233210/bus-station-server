@@ -26,7 +26,11 @@ class BusInfo {
   static async getAllBusInfos() {
     let startTime = performance.now();
     const db: Db = BusesDatabase.getDb();
-    const documents = await db.collection("bus_infos").find().toArray();
+    const documents = await db
+      .collection("bus_infos")
+      .find()
+      .sort({ bus: 1 })
+      .toArray();
 
     const busInfos: BusInfo[] = documents.map(
       (doc) =>

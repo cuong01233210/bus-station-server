@@ -7,6 +7,8 @@ import BusAppearance from "../../../../models/bus-appearance-time";
 import moment, { min } from "moment-timezone";
 import BusRoute from "../../../../models/bus-route";
 import BusInfo from "../../../../models/bus-info";
+import fs from "fs";
+import path from "path";
 function convertStringTime(timeString: string): {
   hour: number;
   minute: number;
@@ -185,6 +187,14 @@ export async function calculateTime(req: Request, res: Response) {
   console.log("success");
   res.status(200).json({ message: "success" });
 }
+function splitActivityTime(activityTime: string) {
+  // Tách chuỗi bằng ký tự '->'
+  const [tKDString, tKTString] = activityTime
+    .split(" -> ")
+    .map((str) => str.trim());
+
+  return { tKDString, tKTString };
+}
 
 // Lấy giờ và phút hiện tại ở Việt Nam
 export function getCurrentHourAndMinuteInVietnam(): {
@@ -263,4 +273,241 @@ export async function searchStationRouteTimeMode1(
   }
 
   return routeTime;
+}
+
+// Define the path to your JSON file
+const filePath = path.join(
+  "/Users/macbookpro/Desktop/Workspace",
+  "busappearance.json"
+);
+
+// Define the structure of your JSON data
+interface BusAppearanceData {
+  name: string;
+  appearances: {
+    route: string;
+    tArray: { hour: number; minute: number }[];
+  }[];
+}
+
+// Function to check if the file exists and initialize it if necessary
+async function ensureFileExists() {
+  return new Promise((resolve, reject) => {
+    fs.access(filePath, fs.constants.F_OK, (err) => {
+      if (err) {
+        fs.writeFile(filePath, "[]", "utf8", (err) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(true);
+          }
+        });
+      } else {
+        resolve(true);
+      }
+    });
+  });
+}
+
+// Function to read data from the JSON file
+async function readJsonFile(): Promise<BusAppearanceData[]> {
+  await ensureFileExists();
+  return new Promise((resolve, reject) => {
+    fs.readFile(filePath, "utf8", (err, data) => {
+      if (err) {
+        reject(err);
+      } else {
+        try {
+          resolve(JSON.parse(data) as BusAppearanceData[]);
+        } catch (parseError) {
+          // If parsing fails, resolve with an empty array and reset the file
+          fs.writeFile(filePath, "[]", "utf8", (writeErr) => {
+            if (writeErr) {
+              reject(writeErr);
+            } else {
+              resolve([]);
+            }
+          });
+        }
+      }
+    });
+  });
+}
+
+// Function to write data to the JSON file
+async function writeJsonFile(data: BusAppearanceData[]) {
+  return new Promise((resolve, reject) => {
+    fs.writeFile(filePath, JSON.stringify(data, null, 2), "utf8", (err) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(true);
+      }
+    });
+  });
+}
+
+// Function to round minutes
+function roundMinutes(time: { hour: number; minute: number }) {
+  time.minute = Math.round(time.minute);
+  if (time.minute >= 60) {
+    time.hour++;
+    time.minute -= 60;
+  }
+  return time;
+}
+
+async function calculateOneRouteTime(busRoute: BusRoute, busInfo: BusInfo) {
+  const Vtb = 25;
+  const route = busInfo.bus;
+  const gianCachTrungBinh = busInfo.gianCachTrungBinh;
+  const { tKDString, tKTString } = splitActivityTime(busInfo.activityTime);
+
+  if (!tKDString || !tKTString) {
+    throw new Error("Activity time is not properly defined");
+  }
+
+  const firstAppearChieuDi: number[] = [];
+  const firstAppearChieuVe: number[] = [];
+  firstAppearChieuDi.push(0);
+  firstAppearChieuVe.push(0);
+  let chieuDi = busRoute.chieuDi;
+  let chieuVe = busRoute.chieuVe;
+  let tDi = 0;
+  let tVe = 0;
+
+  for (let j = 0; j < chieuDi.length - 1; j++) {
+    const distance = haversineDistance(
+      chieuDi[j].lat,
+      chieuDi[j].long,
+      chieuDi[j + 1].lat,
+      chieuDi[j + 1].long
+    );
+
+    const deltaT = distance / Vtb;
+    tDi += deltaT;
+    firstAppearChieuDi.push(tDi);
+  }
+
+  for (let j = 0; j < chieuVe.length - 1; j++) {
+    const distance = haversineDistance(
+      chieuVe[j].lat,
+      chieuVe[j].long,
+      chieuVe[j + 1].lat,
+      chieuVe[j + 1].long
+    );
+    const deltaT = distance / Vtb;
+    tVe += deltaT;
+    firstAppearChieuVe.push(tVe);
+  }
+
+  let tKD, tKT;
+  try {
+    tKD = convertStringTime(tKDString);
+    tKT = convertStringTime(tKTString);
+  } catch (error) {
+    console.error("Error converting time strings:", { tKDString, tKTString });
+    throw error;
+  }
+
+  const jsonData = await readJsonFile();
+  for (let j = 0; j < chieuDi.length; j++) {
+    const tArray: { hour: number; minute: number }[] = [];
+    const tTemp = convertDoubleTime(firstAppearChieuDi[j]);
+    tTemp.hour += tKD.hour;
+    tTemp.minute += tKD.minute;
+
+    while (
+      tTemp.hour < tKT.hour ||
+      (tTemp.hour === tKT.hour && tTemp.minute < tKT.minute)
+    ) {
+      tArray.push(roundMinutes({ hour: tTemp.hour, minute: tTemp.minute }));
+      tTemp.minute += gianCachTrungBinh;
+      if (tTemp.minute >= 60) {
+        tTemp.hour++;
+        tTemp.minute -= 60;
+      }
+    }
+
+    const station = jsonData.find(
+      (station: BusAppearanceData) => station.name === chieuDi[j].name
+    );
+    if (!station) {
+      jsonData.push({
+        name: chieuDi[j].name,
+        appearances: [{ route: route, tArray }],
+      });
+    } else {
+      const appearances = station.appearances;
+      const routeExists = appearances.some(
+        (appearance) => appearance.route === route
+      );
+      if (!routeExists) {
+        appearances.push({ route: route, tArray });
+      }
+    }
+  }
+
+  for (let j = 0; j < chieuVe.length; j++) {
+    const tArray: { hour: number; minute: number }[] = [];
+    const tTemp = convertDoubleTime(firstAppearChieuVe[j]);
+    tTemp.hour += tKD.hour;
+    tTemp.minute += tKD.minute;
+
+    while (
+      tTemp.hour < tKT.hour ||
+      (tTemp.hour === tKT.hour && tTemp.minute < tKT.minute)
+    ) {
+      tArray.push(roundMinutes({ hour: tTemp.hour, minute: tTemp.minute }));
+      tTemp.minute += gianCachTrungBinh;
+      if (tTemp.minute >= 60) {
+        tTemp.hour++;
+        tTemp.minute -= 60;
+      }
+    }
+
+    const station = jsonData.find(
+      (station: BusAppearanceData) => station.name === chieuVe[j].name
+    );
+    if (!station) {
+      jsonData.push({
+        name: chieuVe[j].name,
+        appearances: [{ route: route, tArray }],
+      });
+    } else {
+      const appearances = station.appearances;
+      const routeExists = appearances.some(
+        (appearance) => appearance.route === route
+      );
+      if (!routeExists) {
+        appearances.push({ route: route, tArray });
+      }
+    }
+  }
+
+  await writeJsonFile(jsonData);
+  console.log("tuyen ", route, " is success");
+}
+
+export async function calculateRoutesTime(req: Request, res: Response) {
+  const busRoutes = await BusRoute.getAllBusRoutes();
+  const busInfos = await BusInfo.getAllBusInfos();
+  for (let i = 0; i < busInfos.length; i++) {
+    try {
+      await calculateOneRouteTime(busRoutes[i], busInfos[i]);
+    } catch (error) {
+      console.error("Error processing route ", busInfos[i].bus, ": ", error);
+      console.log("tuyen ", busInfos[i].bus, " is failed");
+    }
+  }
+  res.status(200).json({ message: "success" });
+}
+
+export async function getApprearanceTime(req: Request, res: Response) {
+  try {
+    const appTime = await BusAppearance.getAllStationTimes();
+    res.status(200).json({ appTime: appTime });
+  } catch (error) {
+    res.status(400).json({ message: "error" });
+  }
 }
