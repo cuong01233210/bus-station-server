@@ -40,7 +40,7 @@ class BusRoute {
   static async getAllBusRoutes() {
     let startTime = performance.now();
     const db: Db = BusesDatabase.getDb();
-    const documents = await db.collection("bus_routes").find().toArray();
+    const documents = await db.collection("bus_routes").find().sort({ bus: 1 }).toArray();
 
     const busRoutes: BusRoute[] = documents.map(
       (doc) => new BusRoute(doc.bus, doc.chieuDi, doc.chieuVe)

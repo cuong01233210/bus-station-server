@@ -24,10 +24,14 @@ class BusStation {
 
   static async getBusStations() {
     const db: Db = BusStationsDatabase.getDb();
-    console.log("Connected to database:", db.databaseName);
+
     await db.collection("busStations").createIndex({ name: 1 });
 
-    const documents = await db.collection("busStations").find().toArray();
+    const documents = await db
+      .collection("busStations")
+      .find()
+      .sort({ name: 1 })
+      .toArray();
     console.log("Documents in busStations collection:", documents);
 
     const busStations: BusStation[] = documents.map(
