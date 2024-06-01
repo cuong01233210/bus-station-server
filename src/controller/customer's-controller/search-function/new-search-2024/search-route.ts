@@ -11,13 +11,11 @@ import { Dijkstra, ResultRoute } from "./dijstra";
 import { Vertex } from "./dijstra";
 import { NodeVertex } from "./dijstra";
 import { DirectedGraph, readGraphFromFile } from "./create-directed-graph";
-import {
-  findStartTime,
-  searchStationRouteTimeMode1,
-} from "./calculate-estimate-time";
+
 import BusStation from "../../../../models/bus-station";
 import BusInfo from "../../../../models/bus-info";
 import BusAppearance from "../../../../models/bus-appearance-time";
+import { findStartTime } from "./calculate-estimate-time";
 
 interface BusIn4Struct {
   name: string;
@@ -35,7 +33,8 @@ export async function findRoute(req: Request, res: Response) {
   const startPlace = req.body.startPlace;
   const endPlace = req.body.endPlace;
   const searchMode = req.body.searchMode;
-  const timeFilterMode = req.body.timeFilterMode; // biến xác định chế độ lọc thời gian xe buýt đến trạm
+  const userInputHour = req.body.userInputHour;
+  const userInputMinute = req.body.userInputMinute;
   let startTime = performance.now();
 
   let startIn4: StationPoint = {
@@ -168,8 +167,8 @@ export async function findRoute(req: Request, res: Response) {
                 const { startHour, startMinute } = await findStartTime(
                   startPlace.lat,
                   startPlace.long,
-                  10,
-                  47,
+                  userInputHour,
+                  userInputMinute,
                   results[i].buses[0],
                   results[i].startStation
                 );
@@ -188,7 +187,7 @@ export async function findRoute(req: Request, res: Response) {
                 results[i].endHour = endHour;
                 results[i].endMinute = endMinute;
               }
-              resultRoutes.push(...results); // Thêm toàn bộ `results` vào `resultRoutes`
+              resultRoutes.push(...results);
             }
           }
         }
@@ -202,13 +201,3 @@ export async function findRoute(req: Request, res: Response) {
     res.status(500).json({ message: error });
   }
 }
-// tóm lại là ổn rồi, sau 1 ngày check thì thuật toán ko sai mà do test case đen vào đúng TH ko có kq
-// do đó cần phải làm thêm trường hợp ko ra kq này là xong
-/*
-console.log(
-    dijkstra.findShortestWay(
-      "Đối Diện 447 Ngọc Lâm - Vườn Hoa Gia Lâm",
-      "Đài Tưởng Niệm Khâm Thiên - 45 Khâm Thiên"
-    )
-  );
-  */

@@ -207,74 +207,6 @@ export function getCurrentHourAndMinuteInVietnam(): {
   const minute = currentTime.minute();
   return { hour, minute };
 }
-// hàm tìm kiếm thời điểm có xe sắp tới
-// ý tưởng:
-// bước 1: dùng tên trạm cần tuyến gần nhất để search
-// bước 2: sau khi search được dữ liệu cần thiết trong db rồi thì tiếp tục sử dụng mảng tuyến xe buýt mình mong đợi duyệt qua
-// chú ý: ở bước 2 để đỡ cực thì mình setup ngầm tối đa 3 tuyến lúc search thôi
-// bước 3: ứng với mỗi tuyến thu được ở bước 2, chọc vào phần dữ liệu mảng thời gian tuyến đó xuất hiện
-// sau đó so sánh với thời gian thực, nếu nó gần nhất với thời gian thực trong tlai thì chọn thôi
-// bước 4: lúc trả về thì so sánh 3 phần tử thời gian đó, cái nào nhỏ nhất thì lấy và báo cho người dùng
-// bước 5: có thể lấy thời gian tìm được ở bước 4 + giãn cách trung bình của tuyến đó để báo cho người dùng (thế là phải rebuild db ngại thật @@)
-
-export async function searchStationRouteTimeMode1(
-  stationName: string,
-  routes: string[],
-  userLat: number,
-  userLong: number,
-  stationLat: number,
-  stationLong: number
-): Promise<{ [key: string]: { hour: number; minute: number }[] }> {
-  const stationTime = await BusAppearance.getStationTime(stationName);
-  let { hour, minute } = getCurrentHourAndMinuteInVietnam();
-
-  // xác định thời gian người dùng di chuyển được từ vị trí người dùng ra trạm
-  const dis = haversineDistance(userLat, userLong, stationLat, stationLong);
-  const walkingTime = dis / 5;
-  const roundedWalkingTime = Math.ceil(walkingTime);
-  //console.log("roundedWalkingTime: ", roundedWalkingTime);
-  minute = minute + roundedWalkingTime;
-  if (minute > 60) {
-    minute = minute - 60;
-    hour = hour + 1;
-    if (hour == 24) hour = 0;
-  }
-
-  // từ đó thời gian gợi ý xe tối thiểu là thời gian hiện tại + thời gian ng dùng ra trạm
-  const routeTime: { [route: string]: { hour: number; minute: number }[] } = {};
-
-  const appearances = stationTime.appearances;
-  for (let i = 0; i < appearances.length; i++) {
-    for (let j = 0; j < routes.length; j++) {
-      if (appearances[i].route == routes[j]) {
-        const tArray = appearances[i].tArray;
-        const route = routes[j];
-        for (let k = 0; k < tArray.length; k++) {
-          const timeDiff =
-            (tArray[k].hour - hour) * 60 + (tArray[k].minute - minute);
-          if (timeDiff > 0) {
-            const times = [];
-            times.push({ hour: tArray[k].hour, minute: tArray[k].minute });
-            if (k + 1 < tArray.length)
-              times.push({
-                hour: tArray[k + 1].hour,
-                minute: tArray[k + 1].minute,
-              });
-            if (k + 2 < tArray.length)
-              times.push({
-                hour: tArray[k + 2].hour,
-                minute: tArray[k + 2].minute,
-              });
-            routeTime[route] = times;
-            break;
-          }
-        }
-      }
-    }
-  }
-
-  return routeTime;
-}
 
 // Define the path to your JSON file
 const filePath = path.join(
@@ -562,9 +494,9 @@ export async function findStartTime(
       }
       return false;
     });
-    if(tArray.length > 0){
-      startHour = tArray[0].hour
-      startMinute = tArray[0].minute
+    if (tArray.length > 0) {
+      startHour = tArray[0].hour;
+      startMinute = tArray[0].minute;
     }
     // console.log(userInputHour, " ", userInputMinute);
     //console.log(tArray)
