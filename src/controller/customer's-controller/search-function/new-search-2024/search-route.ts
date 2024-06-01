@@ -173,9 +173,20 @@ export async function findRoute(req: Request, res: Response) {
                   results[i].buses[0],
                   results[i].startStation
                 );
-                console.log(startHour, " ", startMinute);
+
                 results[i].startHour = startHour;
                 results[i].startMinute = startMinute;
+                let endMinute = startMinute + results[i].transportMinute;
+                let endHour = startHour + results[i].transportHour;
+                while (endMinute >= 60) {
+                  endMinute -= 60;
+                  endHour += 1;
+                }
+                if (endHour >= 24) {
+                  endHour -= 24;
+                }
+                results[i].endHour = endHour;
+                results[i].endMinute = endMinute;
               }
               resultRoutes.push(...results); // Thêm toàn bộ `results` vào `resultRoutes`
             }
