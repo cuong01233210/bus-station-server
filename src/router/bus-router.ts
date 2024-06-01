@@ -6,9 +6,6 @@ import * as busStationController from "../controller/customer's-controller/bus-s
 import { body } from "express-validator";
 import UserCoordinate from "../models/user-coordinate";
 // import * as userCoordinateController from "../controller/customer's-controller/search-function/old-search-2023/user-coordinate-controller";
-import * as kdTreeController from "../controller/customer's-controller/search-function/old-search-2023/kdTree-controller";
-import * as userStartStringController from "../controller/customer's-controller/search-function/old-search-2023/user-start-string-controller";
-import * as userEndStringController from "../controller/customer's-controller/search-function/old-search-2023/user-end-string-controller";
 
 import * as commentController from "../controller/customer's-controller/comment-controller";
 import authValidator from "../middleware/auth-validation";
@@ -32,36 +29,6 @@ import * as CreateKDTree from "../controller/customer's-controller/search-functi
 const router = Router();
 
 router.get("/buses-data", busController.getAllBuses);
-
-// router.get("/user-coordinate", userCoordinateController.getUserCoordinate);
-// router.patch(
-//   "/user-coordinate/:user-coorID",
-//   userCoordinateController.updateUserCoordinate
-// );
-
-// router.get("/testKDTree", kdTreeController.testKDtree);
-
-router.get("/user-start-string", userStartStringController.getUserStartString);
-router.patch(
-  "/user-start-string/:userStartStringID",
-  userStartStringController.updateUserStartString
-);
-
-router.get("/user-start-string", userStartStringController.getUserStartString);
-// router.patch(
-//   "/user-start-string/:userStartStringID",
-//   userStartStringController.updateUserStartString
-// );
-
-router.get("/user-end-string", userEndStringController.getUserEndString);
-// router.patch(
-//   "/user-end-string/:userEndStringID",
-//   userEndStringController.updateUserEndString
-// );
-
-//router.patch("/user-input-string", userInputStringController.updateUserString);
-
-//router.get("/test-geocoding", testGeocodingController.callGetUsersRoute);
 
 router.post("/add-comment", authValidator, commentController.addComment);
 //router.patch("/");
