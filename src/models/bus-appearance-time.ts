@@ -67,6 +67,30 @@ class BusAppearance {
     return stationTimes[0];
   }
 
+  static async getTArrayForStationAndRoute(stationName: string, route: string) {
+    const usersDb: Db = BusAppearanceDatabase.getDb();
+
+    const document = await usersDb
+      .collection("busAppearanceTime")
+      .findOne({ stationName: stationName });
+    if (!document) {
+      throw new Error(`Station with name ${stationName} not found`);
+    }
+
+    const appearance = document.appearances.find(
+      (appearance: {
+        route: string;
+        tArray: { hour: number; minute: number }[];
+      }) => appearance.route === route
+    );
+
+    if (!appearance) {
+      throw new Error(`Route ${route} not found for station ${stationName}`);
+    }
+
+    return appearance.tArray;
+  }
+
   async updateStationTime(
     stationName: string,
     appearances: {

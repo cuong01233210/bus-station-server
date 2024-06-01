@@ -167,6 +167,7 @@ router.post(
   calculateEstimateTime.calculateRoutesTime
 );
 router.get("/get-all-appearance", calculateEstimateTime.getApprearanceTime);
+router.get("/get-one-appearance", calculateEstimateTime.getOneTime);
 // router để lấy chạy sao lưu đồ thị đường đi
 router.post("/save-graph-into-file", CreateGraph.writeGraphToFile);
 

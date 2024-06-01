@@ -100,6 +100,27 @@ class BusStation {
     );
     return busStations;
   }
+
+  // Get a bus station by name
+  static async getBusStationByName(stationName: string) {
+    const db: Db = BusStationsDatabase.getDb();
+
+    const document = await db
+      .collection("busStations")
+      .findOne({ name: stationName });
+
+    if (!document) {
+      throw new Error(`Bus station with name ${stationName} not found`);
+    }
+
+    return new BusStation(
+      document.name,
+      document.buses,
+      document.lat,
+      document.long,
+      document._id.toString()
+    );
+  }
 }
 
 export default BusStation;
