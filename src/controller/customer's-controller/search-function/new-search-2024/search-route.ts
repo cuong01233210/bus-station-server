@@ -11,9 +11,13 @@ import { Dijkstra, ResultRoute } from "./dijstra";
 import { Vertex } from "./dijstra";
 import { NodeVertex } from "./dijstra";
 import { DirectedGraph, readGraphFromFile } from "./create-directed-graph";
-import { searchStationRouteTimeMode1 } from "./calculate-estimate-time";
+import {
+  findStartTime,
+  searchStationRouteTimeMode1,
+} from "./calculate-estimate-time";
 import BusStation from "../../../../models/bus-station";
 import BusInfo from "../../../../models/bus-info";
+import BusAppearance from "../../../../models/bus-appearance-time";
 
 interface BusIn4Struct {
   name: string;
@@ -160,6 +164,19 @@ export async function findRoute(req: Request, res: Response) {
             );
 
             if (!exists) {
+              for (let i = 0; i < results.length; i++) {
+                const { startHour, startMinute } = await findStartTime(
+                  startPlace.lat,
+                  startPlace.long,
+                  10,
+                  47,
+                  results[i].buses[0],
+                  results[i].startStation
+                );
+                console.log(startHour, " ", startMinute);
+                results[i].startHour = startHour;
+                results[i].startMinute = startMinute;
+              }
               resultRoutes.push(...results); // Thêm toàn bộ `results` vào `resultRoutes`
             }
           }

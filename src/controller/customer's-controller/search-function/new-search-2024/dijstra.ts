@@ -221,14 +221,14 @@ export class Dijkstra {
         }
 
         stations.unshift(currentVertex);
-        console.log(
-          "Trạm: ",
-          currentVertex,
-          " Tuyến ",
-          this.vertices[currentVertex].buses,
-          " loại hình di chuyển: ",
-          this.vertices[currentVertex].pathType
-        );
+        // console.log(
+        //   "Trạm: ",
+        //   currentVertex,
+        //   " Tuyến ",
+        //   this.vertices[currentVertex].buses,
+        //   " loại hình di chuyển: ",
+        //   this.vertices[currentVertex].pathType
+        // );
         currentVertex = frontNode;
       } else {
         // console.log("Không tìm thấy tuyến đường/ trạm xe buýt phù hơp");
@@ -236,12 +236,12 @@ export class Dijkstra {
       }
     }
 
-    console.log(
-      "Trạm: ",
-      currentVertex,
-      " Tuyến ",
-      this.vertices[currentVertex].buses
-    );
+    // console.log(
+    //   "Trạm: ",
+    //   currentVertex,
+    //   " Tuyến ",
+    //   this.vertices[currentVertex].buses
+    // );
 
     if (tempVehical == "bus") {
       deltaS = Math.round(

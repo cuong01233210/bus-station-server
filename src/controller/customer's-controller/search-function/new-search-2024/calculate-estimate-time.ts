@@ -9,6 +9,7 @@ import BusRoute from "../../../../models/bus-route";
 import BusInfo from "../../../../models/bus-info";
 import fs from "fs";
 import path from "path";
+import BusStation from "../../../../models/bus-station";
 function convertStringTime(timeString: string): {
   hour: number;
   minute: number;
@@ -283,7 +284,7 @@ const filePath = path.join(
 
 // Define the structure of your JSON data
 interface BusAppearanceData {
-  name: string;
+  stationName: string;
   appearances: {
     route: string;
     tArray: { hour: number; minute: number }[];
@@ -430,11 +431,11 @@ async function calculateOneRouteTime(busRoute: BusRoute, busInfo: BusInfo) {
     }
 
     const station = jsonData.find(
-      (station: BusAppearanceData) => station.name === chieuDi[j].name
+      (station: BusAppearanceData) => station.stationName === chieuDi[j].name
     );
     if (!station) {
       jsonData.push({
-        name: chieuDi[j].name,
+        stationName: chieuDi[j].name,
         appearances: [{ route: route, tArray }],
       });
     } else {
@@ -467,11 +468,11 @@ async function calculateOneRouteTime(busRoute: BusRoute, busInfo: BusInfo) {
     }
 
     const station = jsonData.find(
-      (station: BusAppearanceData) => station.name === chieuVe[j].name
+      (station: BusAppearanceData) => station.stationName === chieuVe[j].name
     );
     if (!station) {
       jsonData.push({
-        name: chieuVe[j].name,
+        stationName: chieuVe[j].name,
         appearances: [{ route: route, tArray }],
       });
     } else {
@@ -510,4 +511,63 @@ export async function getApprearanceTime(req: Request, res: Response) {
   } catch (error) {
     res.status(400).json({ message: "error" });
   }
+}
+
+export async function getOneTime(req: Request, res: Response) {
+  try {
+    const appearance = await BusAppearance.getStationTime(req.body.stationName);
+    res.status(200).json({ appearance: appearance });
+  } catch (error) {
+    res.status(400).json({ message: "error" });
+  }
+}
+
+export async function findStartTime(
+  startPlaceLat: number,
+  startPlaceLong: number,
+  userInputHour: number,
+  userInputMinute: number,
+  route: string,
+  stationName: string
+) {
+  let startHour = -1;
+  let startMinute = -1;
+  try {
+    let tArray = await BusAppearance.getTArrayForStationAndRoute(
+      stationName,
+      route
+    );
+    // xác định thời gian người dùng di chuyển được từ vị trí người dùng ra trạm
+    const stationInfo = await BusStation.getBusStationByName(stationName);
+    const dis = haversineDistance(
+      startPlaceLat,
+      startPlaceLong,
+      stationInfo.lat,
+      stationInfo.long
+    );
+    const walkingTime = dis / 5;
+    const roundedWalkingTime = Math.ceil(walkingTime);
+    //console.log("roundedWalkingTime: ", roundedWalkingTime);
+    userInputMinute = userInputMinute + roundedWalkingTime;
+    while (userInputMinute >= 60) {
+      userInputMinute = userInputMinute - 60;
+      userInputHour = userInputHour + 1;
+      if (userInputHour == 24) userInputHour = 0;
+    }
+    tArray = tArray.filter((time: { hour: number; minute: number }) => {
+      if (time.hour > userInputHour) {
+        return true;
+      } else if (time.hour === userInputHour) {
+        return time.minute >= userInputMinute;
+      }
+      return false;
+    });
+    if(tArray.length > 0){
+      startHour = tArray[0].hour
+      startMinute = tArray[0].minute
+    }
+    // console.log(userInputHour, " ", userInputMinute);
+    //console.log(tArray)
+  } catch (error) {}
+  return { startHour, startMinute };
 }
