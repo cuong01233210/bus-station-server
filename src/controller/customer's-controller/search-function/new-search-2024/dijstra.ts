@@ -122,7 +122,7 @@ export class Dijkstra {
     let startStation: string = start;
     let endStation: string = finish;
     let transportHour: number = 0;
-    let TransferTime;
+    let transportMinute : number = 0;
 
     while (currentVertex != start) {
       if (this.vertices[currentVertex] && this.vertices[currentVertex].buses) {
@@ -168,6 +168,7 @@ export class Dijkstra {
                   transportS: deltaS,
                   pathType: tempVehical,
                 };
+                transportMinute += returnRoute.transportTime
                 returnRoutes.unshift(returnRoute);
 
                 saveBuses = this.vertices[frontNode].buses;
@@ -195,6 +196,7 @@ export class Dijkstra {
                 transportS: deltaS,
                 pathType: tempVehical,
               };
+              transportMinute += returnRoute.transportTime
               returnRoutes.unshift(returnRoute);
 
               saveBuses = this.vertices[frontNode].buses;
@@ -210,6 +212,7 @@ export class Dijkstra {
                 transportS: deltaS,
                 pathType: tempVehical,
               };
+              transportMinute += returnRoute.transportTime
               returnRoutes.unshift(returnRoute);
 
               saveBuses = this.vertices[frontNode].buses;
@@ -260,11 +263,16 @@ export class Dijkstra {
         transportS: deltaS,
         pathType: tempVehical,
       };
+      transportMinute += returnRoute.transportTime
       returnRoutes.unshift(returnRoute);
       startStation = currentVertex;
       stations.unshift(currentVertex);
     }
 
+    while (transportMinute >= 60){
+      transportHour += 1;
+      transportMinute -= 60;
+    }
     console.log();
 
     let allRoutes = getAllRoutes(returnRoutes);
@@ -283,8 +291,8 @@ export class Dijkstra {
         endStation: endStation,
         buses: allRoutes[i],
         cost: pricedRoutes[i].price,
-        transportHour: 0,
-        transportMinute: 0,
+        transportHour: transportHour,
+        transportMinute: transportMinute,
         startHour: 0,
         startMinute: 0,
         endHour: 0,
