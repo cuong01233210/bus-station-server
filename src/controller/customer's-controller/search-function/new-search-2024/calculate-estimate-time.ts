@@ -47,8 +47,8 @@ export async function calculateTime(req: Request, res: Response) {
   const gianCachTrungBinh = req.body.gianCachTrungBinh;
   const tKDString: string = req.body.tKDString;
   const tKTString: string = req.body.tKTString;
-  const firstAppearChieuDi = [];
-  const firstAppearChieuVe = [];
+  const firstAppearChieuDi: number[] = [];
+  const firstAppearChieuVe: number[] = [];
   firstAppearChieuDi.push(0);
   firstAppearChieuVe.push(0);
 
