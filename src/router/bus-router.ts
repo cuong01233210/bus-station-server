@@ -26,6 +26,7 @@ import * as calculateEstimateTime from "../controller/customer's-controller/sear
 import * as CreateGraph from "../controller/customer's-controller/search-function/new-search-2024/create-directed-graph";
 import * as PlaceController from "../controller/customer's-controller/place-controller";
 import * as CreateKDTree from "../controller/customer's-controller/search-function/new-search-2024/create-kdtree";
+import * as ConnectionStationController from "../controller/customer's-controller/search-function/new-search-2024/connection-stations";
 const router = Router();
 
 router.get("/buses-data", busController.getAllBuses);
@@ -143,4 +144,14 @@ router.get("/get-places", PlaceController.getPlaces);
 
 //router để tạo và lưu kdtree vào file json
 router.get("/save-kdtree-into-file", CreateKDTree.createKDTree);
+
+//router để tạo và lưu kết nối giữa các trạm xe buýt
+router.get(
+  "/save-connection-into-file",
+  ConnectionStationController.createConnectedStations
+);
+router.get(
+  "/get-connected-stations",
+  ConnectionStationController.getConnectedStations
+);
 export default router;

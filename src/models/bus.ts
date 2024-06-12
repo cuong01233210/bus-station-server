@@ -52,7 +52,11 @@ class Bus {
   static async getBusIn4() {
     let startTime = performance.now();
     const db: Db = BusesDatabase.getDb();
-    const documents = await db.collection("routes").find().toArray();
+    const documents = await db
+      .collection("routes")
+      .find()
+      .sort({ bus: 1 })
+      .toArray();
 
     const buses: Bus[] = documents.map(
       (doc) =>

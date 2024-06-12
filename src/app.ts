@@ -34,6 +34,7 @@ async function databaseInit() {
   await AppDatabase.initialize();
   app.listen(8000);
 }
+
 // passDB: flqOFCtNjd7A6lDH
 
 // mongodb+srv://findBusStation2:<password>@cluster0.qoqmjli.mongodb.net/
