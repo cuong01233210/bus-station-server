@@ -122,7 +122,7 @@ export class Dijkstra {
     let startStation: string = start;
     let endStation: string = finish;
     let transportHour: number = 0;
-    let transportMinute : number = 0;
+    let transportMinute: number = 0;
 
     while (currentVertex != start) {
       if (this.vertices[currentVertex] && this.vertices[currentVertex].buses) {
@@ -168,7 +168,7 @@ export class Dijkstra {
                   transportS: deltaS,
                   pathType: tempVehical,
                 };
-                transportMinute += returnRoute.transportTime
+                transportMinute += returnRoute.transportTime;
                 returnRoutes.unshift(returnRoute);
 
                 saveBuses = this.vertices[frontNode].buses;
@@ -196,7 +196,7 @@ export class Dijkstra {
                 transportS: deltaS,
                 pathType: tempVehical,
               };
-              transportMinute += returnRoute.transportTime
+              transportMinute += returnRoute.transportTime;
               returnRoutes.unshift(returnRoute);
 
               saveBuses = this.vertices[frontNode].buses;
@@ -212,7 +212,7 @@ export class Dijkstra {
                 transportS: deltaS,
                 pathType: tempVehical,
               };
-              transportMinute += returnRoute.transportTime
+              transportMinute += returnRoute.transportTime;
               returnRoutes.unshift(returnRoute);
 
               saveBuses = this.vertices[frontNode].buses;
@@ -263,13 +263,13 @@ export class Dijkstra {
         transportS: deltaS,
         pathType: tempVehical,
       };
-      transportMinute += returnRoute.transportTime
+      transportMinute += returnRoute.transportTime;
       returnRoutes.unshift(returnRoute);
       startStation = currentVertex;
       stations.unshift(currentVertex);
     }
 
-    while (transportMinute >= 60){
+    while (transportMinute >= 60) {
       transportHour += 1;
       transportMinute -= 60;
     }
