@@ -10,7 +10,7 @@ import authRouter from "./router/auth-router";
 import { AppInfoDatabase } from "./databases/app-info-database";
 import { AppDatabase } from "./databases/app-database";
 const app: Application = express();
-
+const port = process.env.PORT || 8000;
 app.use(express.json());
 // app.use((req: Request, res: Response, next: NextFunction) => {
 //   console.log("first middleware");
@@ -32,7 +32,7 @@ async function databaseInit() {
   await AppInfoDatabase.initialize();
   await BusAppearanceDatabase.initialize();
   await AppDatabase.initialize();
-  app.listen(8000);
+  app.listen(port);
 }
 
 // passDB: flqOFCtNjd7A6lDH
