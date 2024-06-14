@@ -21,6 +21,7 @@ const auth_router_1 = __importDefault(require("./router/auth-router"));
 const app_info_database_1 = require("./databases/app-info-database");
 const app_database_1 = require("./databases/app-database");
 const app = (0, express_1.default)();
+const port = process.env.PORT || 8000;
 app.use(express_1.default.json());
 // app.use((req: Request, res: Response, next: NextFunction) => {
 //   console.log("first middleware");
@@ -41,7 +42,7 @@ function databaseInit() {
         yield app_info_database_1.AppInfoDatabase.initialize();
         yield bus_appearance_time_database_1.BusAppearanceDatabase.initialize();
         yield app_database_1.AppDatabase.initialize();
-        app.listen(8000);
+        app.listen(port);
     });
 }
 // passDB: flqOFCtNjd7A6lDH
