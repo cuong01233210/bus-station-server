@@ -5,7 +5,7 @@ class LoginUser {
   //name: string;
   email: string;
   password: string;
-  role: string; // 1: quan ly, 0: ng dung
+  role: string; // 1: quan ly, 0: ng dung, 2: admin
 
   constructor(email: string, password: string, role: string, id?: string) {
     this.id = id;

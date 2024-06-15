@@ -41,11 +41,12 @@ export const getAllBusesByBusNameArray = async (
   res: Response
 ) => {
   try {
-    const sbuses = req.body.buses;
+    const sbuses = req.body.sbuses;
     console.log(sbuses);
     const buses = await Bus.getUserBusesPreferenceByBuses(sbuses);
     res.status(200).json({
       buses: buses.map((bus) => ({
+        id: bus.id ? bus.id : "",
         bus: bus.bus,
         price: bus.price,
         activityTime: bus.activityTime,
@@ -54,7 +55,6 @@ export const getAllBusesByBusNameArray = async (
         //  chieuVe: bus.chieuVe.map((ve) => ve.name),
       })),
     });
-    // res.status(200).json({ buses: buses });
   } catch (error) {
     res.status(400).json({ message: "failed to load" });
   }
@@ -64,6 +64,7 @@ export const getAllBusNames = async (req: Request, res: Response) => {
     const buses = await Bus.getBusIn4();
     res.status(200).json({
       buses: buses.map((bus) => ({
+        id: bus.id,
         bus: bus.bus,
         price: bus.price,
         activityTime: bus.activityTime,
