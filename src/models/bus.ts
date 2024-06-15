@@ -2,6 +2,7 @@ import { BusesDatabase } from "../databases/buses-database";
 import { ObjectId, Db, Double } from "mongodb";
 
 class Bus {
+  id?: string;
   bus: string;
   price: number;
   activityTime: string;
@@ -38,7 +39,8 @@ class Bus {
       buses: string[];
       lat: number;
       long: number;
-    }[]
+    }[],
+    id?: string
   ) {
     this.bus = bus;
     this.price = price;
@@ -47,6 +49,7 @@ class Bus {
     this.gianCachTrungBinh = gianCachTrungBinh;
     this.chieuDi = chieuDi;
     this.chieuVe = chieuVe;
+    this.id = id;
   }
 
   static async getBusIn4() {
@@ -67,7 +70,8 @@ class Bus {
           doc.gianCachChayXe,
           doc.gianCachTrungBinh,
           doc.chieuDi,
-          doc.chieuVe
+          doc.chieuVe,
+          doc._id.toString()
         )
     );
     let endTime = performance.now();
@@ -96,6 +100,7 @@ class Bus {
     const documents = await db
       .collection("routes")
       .find({ bus: { $in: sbuses } })
+      .sort({ bus: 1 })
       .toArray();
 
     const buses: Bus[] = documents.map(
@@ -107,7 +112,8 @@ class Bus {
           doc.gianCachChayXe,
           doc.gianCachTrungBinh,
           doc.chieuDi,
-          doc.chieuVe
+          doc.chieuVe,
+          doc._id.toString()
         )
     );
 

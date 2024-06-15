@@ -7,9 +7,9 @@ export async function getAllBusPreference(req: Request, res: Response) {
     const userBusesPreference = await UserBusPreference.getUserBusesPreference(
       userId
     );
-    // console.log(userBusesPreference.map((pref) => pref.bus));
+    //console.log(userBusesPreference.map((pref) => pref.bus));
     res.status(200).json({
-      buses: userBusesPreference.map((pref) => pref.bus),
+      sbuses: userBusesPreference.map((pref) => pref.bus),
     });
   } catch (error) {
     res.status(400).json({ message: "fail" });

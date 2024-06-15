@@ -32,7 +32,7 @@ class BusStation {
       .find()
       .sort({ name: 1 })
       .toArray();
-    console.log("Documents in busStations collection:", documents);
+    // console.log("Documents in busStations collection:", documents);
 
     const busStations: BusStation[] = documents.map(
       (doc) =>
@@ -44,7 +44,7 @@ class BusStation {
           doc._id.toString()
         )
     );
-    console.log(busStations);
+    //.log(busStations);
     return busStations;
   }
 
@@ -52,7 +52,7 @@ class BusStation {
     const db: Db = BusStationsDatabase.getDb();
     delete this.id;
     const result = await db.collection("busStations").insertOne(this);
-    console.log(result);
+    //console.log(result);
   }
 
   async updateBusStation(id: string) {
@@ -69,7 +69,7 @@ class BusStation {
         },
       }
     );
-    console.log(result);
+    // console.log(result);
   }
 
   async deleteBusStation(id: string) {
@@ -77,7 +77,7 @@ class BusStation {
     const result = await db
       .collection("busStations")
       .deleteOne({ _id: new ObjectId(id) });
-    console.log(result);
+    // console.log(result);
   }
 
   // Lấy các trạm xe buýt theo mảng id truyền vào
