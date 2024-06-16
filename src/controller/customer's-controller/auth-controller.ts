@@ -93,9 +93,49 @@ export const loginController = async (req: Request, res: Response) => {
 export const getStaffsController = async (req: Request, res: Response) => {
   try {
     const staffs = await LoginUser.getStaffs();
-    console.log(staffs);
     res.status(200).json(staffs);
   } catch (error) {
     res.status(400).json({ message: "error" });
   }
+};
+
+export const addStaffController = async (req: Request, res: Response) => {
+  const error = validationResult(req);
+
+  if (!error.isEmpty()) {
+    const errorMessage = error.array()[0].msg;
+    console.log(error);
+    res.status(400).json({ message: errorMessage });
+    return;
+  }
+  const { id, email, password, role, name, sex, dateOfBirth, phoneNumber } =
+    req.body;
+  const loginUser = await LoginUser.getUser(email);
+
+  if (loginUser !== LoginUser.empty) {
+    res.status(400).json({ message: "Email này đã dùng để đăng ký rồi" });
+    return;
+  }
+
+  const hashedPassword = await bcrypt.hash(password, 12);
+  const newLoginUser = new LoginUser(email, hashedPassword, role);
+  const userId = await newLoginUser.createUser();
+
+  // create new account in db
+  //const userId = res.locals.userId;
+  try {
+    const newUser = new UserIn4(
+      userId,
+      name,
+      sex,
+      dateOfBirth,
+      phoneNumber,
+      email
+    );
+    const newUsers = await newUser.createAccount(userId);
+  } catch (error) {
+    console.log(error);
+  }
+  //res.locals.email = email;
+  res.status(200).json({ message: "success" });
 };
