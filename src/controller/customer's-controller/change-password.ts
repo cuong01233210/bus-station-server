@@ -14,7 +14,7 @@ const changePasswordController = async (req: Request, res: Response) => {
     return;
   }
 
-  const { email, oldPassword, newPassword } = req.body;
+  const { email, oldPassword, newPassword, reNewPassword } = req.body;
   console.log("email: ", email);
   console.log("old password: ", oldPassword);
   console.log("new password: ", newPassword);
@@ -24,7 +24,13 @@ const changePasswordController = async (req: Request, res: Response) => {
     res.status(400).json({ message: "Không tìm thấy tài khoản email này" });
     return;
   }
-
+  const hasInputCheck = newPassword === reNewPassword;
+  if (!hasInputCheck) {
+    res.status(400).json({ message: "Mật khẩu mới không khớp" });
+    return;
+  } else {
+    console.log("new password match");
+  }
   const isEqual = await bcrypt.compare(oldPassword, loginUser.password);
   if (!isEqual) {
     res.status(400).json({ message: "Bạn đã nhập sai mật khẩu hiện tại" });
@@ -33,6 +39,15 @@ const changePasswordController = async (req: Request, res: Response) => {
     console.log("correct old password");
   }
 
+  const hasInputCheck2 = oldPassword !== newPassword;
+  if (!hasInputCheck2) {
+    res
+      .status(400)
+      .json({ message: "Mật khẩu mới không được trùng với mật khẩu cũ" });
+    return;
+  } else {
+    console.log("new password is not the same as old password");
+  }
   const hashedPassword = await bcrypt.hash(newPassword, 12);
 
   loginUser.updatePassword(email, hashedPassword);
@@ -43,7 +58,7 @@ const changePasswordController = async (req: Request, res: Response) => {
     },
     "mySecretKey"
   );
-  res.status(200).json({ token: token, userId: loginUser.id });
+  res.status(200).json({ token: token, userId: loginUser.id, role: "" });
 };
 
 export default changePasswordController;

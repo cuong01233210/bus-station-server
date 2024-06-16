@@ -41,8 +41,10 @@ router.patch(
   [
     body("newPassword")
       .trim()
-      .isLength({ min: 5 })
-      .withMessage("Bạn nhập mật khẩu quá ngắn"),
+      .isLength({ min: 6 })
+      .withMessage(
+        "Bạn nhập mật khẩu quá ngắn, mật khẩu phải có ít nhất 6 ký tự"
+      ),
     body("email")
       .trim()
       .isEmail()
