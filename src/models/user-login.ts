@@ -61,5 +61,22 @@ class LoginUser {
       return false;
     }
   }
+
+  static async getStaffs() {
+    const db: Db = AppDatabase.getDb();
+    const documents = await db
+      .collection("users")
+      .find({ role: "1" })
+      .toArray();
+    const staffs = documents.map((document) => {
+      return new LoginUser(
+        document.email,
+        document.password,
+        document.role,
+        document._id.toString()
+      );
+    });
+    return staffs;
+  }
 }
 export default LoginUser;

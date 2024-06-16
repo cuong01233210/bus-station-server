@@ -89,3 +89,13 @@ export const loginController = async (req: Request, res: Response) => {
   // res.locals.email = email;
   res.status(200).json({ token: token, userId: loginUser.id, role: role });
 };
+
+export const getStaffsController = async (req: Request, res: Response) => {
+  try {
+    const staffs = await LoginUser.getStaffs();
+    console.log(staffs);
+    res.status(200).json(staffs);
+  } catch (error) {
+    res.status(400).json({ message: "error" });
+  }
+};

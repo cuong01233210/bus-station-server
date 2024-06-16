@@ -1,6 +1,7 @@
 import { Router } from "express";
 import * as authController from "../controller/customer's-controller/auth-controller";
 import { body } from "express-validator";
+import authValidator from "../middleware/auth-validation";
 const authRouter = Router();
 
 authRouter.put(
@@ -38,6 +39,13 @@ authRouter.post(
       .withMessage("Mật khẩu của bạn quá ngắn"),
   ],
   authController.loginController
+);
+
+// router để lấy được cái tài khoản của nhân viên
+authRouter.get(
+  "/get-staffs",
+  authValidator,
+  authController.getStaffsController
 );
 
 export default authRouter;
