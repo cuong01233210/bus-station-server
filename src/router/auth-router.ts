@@ -64,4 +64,10 @@ authRouter.post(
   authController.addStaffController
 );
 
+authRouter.post("/get-staff-infor", authValidator, authController.getStaffInfo);
+authRouter.delete(
+  "/delete-staff",
+  authValidator,
+  authController.deleteStaffController
+);
 export default authRouter;
