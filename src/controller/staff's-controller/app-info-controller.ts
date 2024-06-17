@@ -3,9 +3,15 @@ import AppInfo from "../../models/app-info";
 
 export async function readAppInfo(req: Request, res: Response) {
   try {
-    const appInfos = await AppInfo.getAppInfo();
+    const appInfo = await AppInfo.getAppInfo();
     // console.log(allComments);
-    res.status(200).json({ appInfos: appInfos });
+    res
+      .status(200)
+      .json({
+        version: appInfo.version,
+        updated: appInfo.updated,
+        content: appInfo.content,
+      });
   } catch (error) {
     console.error(error);
     res
@@ -36,7 +42,7 @@ export async function updateAppInfo(req: Request, res: Response) {
       req.body.updated,
       req.body.content
     );
-    await appInfo.updateAppInfo(req.body.id);
+    await appInfo.updateAppInfo();
     console.log(req.body);
     res.status(200).json({ message: "update appInfo successfully" });
   } catch (error) {
