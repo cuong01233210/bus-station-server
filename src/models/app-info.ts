@@ -18,11 +18,25 @@ class AppInfo {
     await db.collection("app-info").insertOne({ ...this });
   }
 
-  async updateAppInfo(id: string) {
+  async updateAppInfo() {
     const db: Db = AppInfoDatabase.getDb();
-    await db
-      .collection("app-info")
-      .updateOne({ _id: new ObjectId(id) }, { $set: { ...this } });
+    const document = await db.collection("app-info").findOne({});
+    if (document) {
+      await db
+        .collection("app-info")
+        .updateOne(
+          { _id: new ObjectId(document._id) },
+          {
+            $set: {
+              version: this.version,
+              updated: this.updated,
+              content: this.content,
+            },
+          }
+        );
+    } else {
+      throw new Error("No app info document found to update");
+    }
   }
 
   static async getAppInfo() {
@@ -31,7 +45,7 @@ class AppInfo {
     const appInfos: AppInfo[] = documents.map(
       (doc) => new AppInfo(doc.version, doc.updated, doc.content)
     );
-    return appInfos;
+    return appInfos[0];
   }
 }
 export default AppInfo;
