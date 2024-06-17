@@ -78,5 +78,13 @@ class LoginUser {
     });
     return staffs;
   }
+
+  static async deleteUser(email: string) {
+    const db: Db = AppDatabase.getDb();
+    const deleteResult = await db.collection("users").deleteOne({
+      email: email,
+    });
+    return deleteResult.deletedCount === 1;
+  }
 }
 export default LoginUser;

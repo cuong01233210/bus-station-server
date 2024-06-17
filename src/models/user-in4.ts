@@ -70,17 +70,16 @@ class UserIn4 {
   //   return user;
   // }
 
-  async updateUserIn4(userId: string) {
+  async updateUserIn4(email: string) {
     // const db: Db = UsersDatabase.getDb();
     const db: Db = AppDatabase.getDb();
     console.log(this.userId);
     console.log(this.name);
     console.log(this.dateOfBirth);
     await db.collection("informations").findOneAndUpdate(
-      { userId: userId }, // Sử dụng userId truyền vào thay vì this.userId
+      { email: email }, // Sử dụng userId truyền vào thay vì this.userId
       {
         $set: {
-          userId: userId,
           name: this.name,
           sex: this.sex,
           dateOfBirth: this.dateOfBirth,
@@ -90,8 +89,30 @@ class UserIn4 {
       },
       { returnDocument: "after" } // Ensure to get the updated document after the update
     );
-    const user = await UserIn4.getUserIn4(userId);
-    return user;
+    // const user = await UserIn4.getUserIn4(this.userId);
+    // return user;
+  }
+
+  static async deleteUser(email: string) {
+    const db: Db = AppDatabase.getDb();
+    await db.collection("informations").deleteOne({ email: email });
+  }
+
+  static async getUserInfor(email: string) {
+    const db: Db = AppDatabase.getDb();
+    const document = await db
+      .collection("informations")
+      .findOne({ email: email });
+    if (document != null) {
+      return new UserIn4(
+        document.userId,
+        document.name,
+        document.sex,
+        document.dateOfBirth,
+        document.phoneNumber,
+        document.email
+      );
+    }
   }
 }
 export default UserIn4;

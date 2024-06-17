@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import e, { Request, Response } from "express";
 import { Result, ValidationError, validationResult } from "express-validator";
 import UserIn4 from "../../models/user-in4";
 
@@ -138,4 +138,27 @@ export const addStaffController = async (req: Request, res: Response) => {
   }
   //res.locals.email = email;
   res.status(200).json({ message: "success" });
+};
+
+export const deleteStaffController = async (req: Request, res: Response) => {
+  const { email } = req.body;
+  try {
+    await LoginUser.deleteUser(email);
+    await UserIn4.deleteUser(email);
+    res.status(200).json({ message: "success" });
+  } catch (error) {
+    res.status(400).json({ message: "error" });
+  }
+};
+
+export const getStaffInfo = async (req: Request, res: Response) => {
+  const email = req.body.email;
+  try {
+    console.log(email);
+    const staffInfo = await UserIn4.getUserInfor(email);
+    console.log(staffInfo);
+    res.status(200).json(staffInfo);
+  } catch (error) {
+    res.status(400).json({ message: "error" });
+  }
 };
