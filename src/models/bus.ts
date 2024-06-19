@@ -120,15 +120,17 @@ class Bus {
     return buses;
   }
   async createBus() {
+    const { id, ...busData } = this; // Loại bỏ trường id
     const db: Db = BusesDatabase.getDb();
-    await db.collection("routes").insertOne({ ...this });
+    await db.collection("routes").insertOne({ ...busData });
   }
 
   async updateBus(bus: string) {
+    const { id, ...busData } = this; // Loại bỏ trường id
     const db: Db = BusesDatabase.getDb();
     await db
       .collection("routes")
-      .updateOne({ bus: bus }, { $set: { ...this } });
+      .updateOne({ bus: bus }, { $set: { ...busData } });
   }
 
   static async deleteBus(bus: string) {
