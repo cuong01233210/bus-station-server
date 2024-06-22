@@ -72,32 +72,35 @@ class BusStation {
     // console.log(result);
   }
 
-  async deleteBusStation(id: string) {
+  async deleteBusStation(name: string) {
     const db: Db = BusStationsDatabase.getDb();
-    const result = await db
-      .collection("busStations")
-      .deleteOne({ _id: new ObjectId(id) });
+    const result = await db.collection("busStations").deleteOne({ name: name });
     // console.log(result);
   }
 
-  // Lấy các trạm xe buýt theo mảng id truyền vào
-  static async getStationsByIds(busStationIds: string[]) {
+  // Lấy các trạm xe buýt theo mảng name truyền vào
+  static async getStationsByNames(busStationNames: string[]) {
+    console.log("da vao ham getStationsByNames");
     const db: Db = BusStationsDatabase.getDb();
+
+    // Kiểm tra đầu vào
+    console.log("Tên trạm đầu vào:", busStationNames);
+
     const documents = await db
       .collection("busStations")
-      .find({ _id: { $in: busStationIds.map((id) => new ObjectId(id)) } })
+      .find({ name: { $in: busStationNames } })
       .toArray();
 
+    // Kiểm tra kết quả truy vấn
+    console.log("Tài liệu từ cơ sở dữ liệu:", documents);
+
     const busStations: BusStation[] = documents.map(
-      (doc) =>
-        new BusStation(
-          doc.name,
-          doc.buses,
-          doc.lat,
-          doc.long,
-          doc._id.toString()
-        )
+      (doc) => new BusStation(doc.name, doc.buses, doc.lat, doc.long)
     );
+
+    // Kiểm tra kết quả cuối cùng
+    console.log("Các trạm xe buýt:", busStations);
+
     return busStations;
   }
 

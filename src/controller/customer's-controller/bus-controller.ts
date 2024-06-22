@@ -51,6 +51,7 @@ export const getAllBusesByBusNameArray = async (
         price: bus.price,
         activityTime: bus.activityTime,
         gianCachChayXe: bus.gianCachChayXe,
+        gianCachTrungBinh: bus.gianCachTrungBinh,
         //   chieuDi: bus.chieuDi.map((di) => di.name),
         //  chieuVe: bus.chieuVe.map((ve) => ve.name),
       })),
