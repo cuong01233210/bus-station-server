@@ -90,7 +90,7 @@ export const deleteBusStationNoDistrict = async (
 
       req.body.id
     );
-    await busStation.deleteBusStation(req.body.id);
+    await busStation.deleteBusStation(req.body.name);
     res.status(200).json({
       message: "delete bus station successfully",
     });
@@ -101,14 +101,15 @@ export const deleteBusStationNoDistrict = async (
 
 export const getStationsByIds = async (req: Request, res: Response) => {
   try {
-    const stationIds = req.body.stationIds;
-    // console.log(stationIds);
-    const busStations = await BusStation.getStationsByIds(stationIds);
-    //console.log(busStations);
+    const stationIds = req.body.stationIds; // Bên SwiftUI đang coi name là id
+
+    const busStations = await BusStation.getStationsByNames(stationIds);
+
     res.status(200).json({
       busStations: busStations,
     });
   } catch (error) {
+    console.error("Lỗi khi gọi getStationsByNames:", error);
     res.status(400).json({ message: error });
   }
 };
