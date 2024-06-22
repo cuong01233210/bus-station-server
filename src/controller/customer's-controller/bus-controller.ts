@@ -69,6 +69,7 @@ export const getAllBusNames = async (req: Request, res: Response) => {
         price: bus.price,
         activityTime: bus.activityTime,
         gianCachChayXe: bus.gianCachChayXe,
+        gianCachTrungBinh: bus.gianCachTrungBinh,
         //   chieuDi: bus.chieuDi.map((di) => di.name),
         //  chieuVe: bus.chieuVe.map((ve) => ve.name),
       })),
@@ -83,8 +84,8 @@ export const getOneBusRoute = async (req: Request, res: Response) => {
   try {
     const bus = await Bus.getOnlyOneBus(req.params.bus);
     res.status(200).json({
-      chieuDi: bus.chieuDi.map((di: { name: string }) => di.name),
-      chieuVe: bus.chieuVe.map((ve: { name: string }) => ve.name),
+      chieuDi: bus.chieuDi,
+      chieuVe: bus.chieuVe,
     });
   } catch (error) {
     res.status(400).json({ message: "failed to load" });
