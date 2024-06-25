@@ -13,6 +13,7 @@ import { Vertex } from "./dijstra";
 import { NodeVertex } from "./dijstra";
 import {
   DirectedGraph,
+  Edge,
   readGraphFromFile,
   readGraphFromFile2,
 } from "./create-directed-graph";
@@ -261,13 +262,6 @@ export async function findRoute2(req: Request, res: Response) {
   console.log("Các điểm gần nhất với trạm xuất phát:");
   for (let index = 0; index < nearestStartNodes.length; index++) {
     console.log(`Trạm ${index + 1}: ${nearestStartNodes[index].point?.name}`);
-    const lat = nearestStartNodes[index].point?.lat;
-    const long = nearestStartNodes[index].point?.long;
-    if (lat != null && long != null) {
-      console.log(
-        haversineDistance(startPlace.lat, startPlace.long, lat, long)
-      );
-    }
   }
 
   // Tìm 2 trạm gần nhất với điểm đích
@@ -300,14 +294,15 @@ export async function findRoute2(req: Request, res: Response) {
               edgeToEnd
             );
             if (edgeToEnd.pathType == "walk") {
-              const { startHour, startMinute } = await findStartTime(
-                startPlace.lat,
-                startPlace.long,
-                userInputHour,
-                userInputMinute,
-                "walk",
-                startStation.name
-              );
+              const { startHour, startMinute, roundedWalkingTime } =
+                await findStartTime(
+                  startPlace.lat,
+                  startPlace.long,
+                  userInputHour,
+                  userInputMinute,
+                  "walk",
+                  startStation.name
+                );
               let transportMinute = Math.ceil(
                 (edgeToEnd.weight * 60) / 5 / 1000
               );
@@ -331,6 +326,18 @@ export async function findRoute2(req: Request, res: Response) {
                 transportS: edgeToEnd.weight,
                 pathType: "walk",
               };
+              const returnRoutes: ReturnRoute[] = [];
+              if (startPlace.name != startStation.name) {
+                returnRoutes.unshift({
+                  source: startPlace.name,
+                  destination: startStation.name,
+                  buses: ["walk"],
+                  transportTime: roundedWalkingTime,
+                  transportS: roundedWalkingTime * 5,
+                  pathType: "walk",
+                });
+              }
+              returnRoutes.push(returnRoute);
               resultRoutes.push({
                 startStation: startStation.name, // trạm xuất phát và đích
                 endStation: endStation.name,
@@ -343,19 +350,20 @@ export async function findRoute2(req: Request, res: Response) {
                 endHour: endHour,
                 endMinute: endMinute,
                 stations: [startStation.name, endStation.name], //
-                returnRoutes: [returnRoute], //
+                returnRoutes: returnRoutes, //
               });
             } else if (edgeToEnd.pathType == "bus") {
               const commonBuses = edgeToEnd.buses;
               for (let i = 0; i < commonBuses.length; i++) {
-                const { startHour, startMinute } = await findStartTime(
-                  startPlace.lat,
-                  startPlace.long,
-                  userInputHour,
-                  userInputMinute,
-                  commonBuses[i],
-                  startStation.name
-                );
+                const { startHour, startMinute, roundedWalkingTime } =
+                  await findStartTime(
+                    startPlace.lat,
+                    startPlace.long,
+                    userInputHour,
+                    userInputMinute,
+                    commonBuses[i],
+                    startStation.name
+                  );
                 let transportMinute = Math.ceil(
                   (edgeToEnd.weight * 60) / 22.5 / 1000
                 );
@@ -407,6 +415,7 @@ export async function findRoute2(req: Request, res: Response) {
                     }
                   }
                 }
+                const returnRoutes: ReturnRoute[] = [];
                 const returnRoute: ReturnRoute = {
                   source: startStation.name,
                   destination: endStation.name,
@@ -415,6 +424,17 @@ export async function findRoute2(req: Request, res: Response) {
                   transportS: edgeToEnd.weight,
                   pathType: "bus",
                 };
+                if (startPlace.name != startStation.name) {
+                  returnRoutes.unshift({
+                    source: startPlace.name,
+                    destination: startStation.name,
+                    buses: ["walk"],
+                    transportTime: roundedWalkingTime,
+                    transportS: roundedWalkingTime * 5,
+                    pathType: "walk",
+                  });
+                }
+                returnRoutes.push(returnRoute);
                 resultRoutes.push({
                   startStation: startStation.name, // trạm xuất phát và đích
                   endStation: endStation.name,
@@ -427,7 +447,7 @@ export async function findRoute2(req: Request, res: Response) {
                   endHour: endHour,
                   endMinute: endMinute,
                   stations: stations, //
-                  returnRoutes: [returnRoute], //
+                  returnRoutes: returnRoutes, //
                 });
               }
             } else {
@@ -443,6 +463,161 @@ export async function findRoute2(req: Request, res: Response) {
     }
   }
 
+  if (resultRoutes.length == 0) {
+    const invertedGraph = readGraphFromFile2("InvertIndirectGraph.json");
+    if (!invertedGraph) {
+      res.status(500).json({ error: "Failed to read the graph from file" });
+      return;
+    }
+    const invertedAdjacencyList = invertedGraph.adjacencyList;
+    if (!invertedAdjacencyList || invertedAdjacencyList.size === 0) {
+      res.status(500).json({ error: "Graph data is empty or invalid" });
+      return;
+    }
+    const fullUcvs: Edge[] = [];
+
+    for (let endIndex = 0; endIndex < nearestEndNodes.length; endIndex++) {
+      let endStation = nearestEndNodes[endIndex].point;
+      if (endStation != null) {
+        const invertEdgesFromEnd = invertedAdjacencyList.get(endStation.name);
+        if (invertEdgesFromEnd) {
+          // const edgeToStart = invertEdgesFromEnd.find(
+          //   (edge) => startStation && edge.vertex == endStation.name
+          // );
+          const ucv = invertEdgesFromEnd.find(
+            (edge) => edge.pathType == "walk"
+          );
+          if (ucv) {
+            let shouldAdd = true;
+            for (let j = 0; j < fullUcvs.length; j++) {
+              if (fullUcvs[j].vertex === ucv.vertex) {
+                shouldAdd = false;
+                break;
+              }
+            }
+            if (shouldAdd) {
+              fullUcvs.push(ucv);
+            }
+          }
+        }
+      }
+    }
+    console.log(fullUcvs);
+    for (let startIndex = 0; startIndex < 2; startIndex++) {
+      for (let ucvIndex = 0; ucvIndex < fullUcvs.length; ucvIndex++) {
+        let startStation = nearestStartNodes[startIndex].point;
+        if (startStation != null) {
+          const edgesFromStart = adjacencyList.get(startStation.name);
+          if (edgesFromStart) {
+            const edgeToEnd = edgesFromStart.find(
+              (edge) => edge.vertex == fullUcvs[ucvIndex].vertex
+            );
+            if (edgeToEnd) {
+              if (edgeToEnd.pathType == "bus") {
+                const commonBuses = edgeToEnd.buses;
+                for (let i = 0; i < commonBuses.length; i++) {
+                  const { startHour, startMinute, roundedWalkingTime } =
+                    await findStartTime(
+                      startPlace.lat,
+                      startPlace.long,
+                      userInputHour,
+                      userInputMinute,
+                      commonBuses[i],
+                      startStation.name
+                    );
+                  let transportMinute = Math.ceil(
+                    (edgeToEnd.weight * 60) / 22.5 / 1000
+                  );
+                  let transportHour = 0;
+                  if (transportMinute >= 60) {
+                    transportHour = Math.floor(transportMinute / 60);
+                    transportMinute = transportMinute % 60;
+                  }
+                  let endMinute = startMinute + transportMinute;
+                  let endHour =
+                    startHour + Math.floor(endMinute / 60) + transportHour;
+                  endMinute = endMinute % 60;
+                  if (endHour >= 24) {
+                    endHour -= 24;
+                  }
+                  //xác định danh sách các trạm trên đoạn đường đi đó
+                  const currentBus = await Bus.getOnlyOneBus(commonBuses[i]);
+                  let startIndex = -1;
+                  let endIndex = -1;
+                  let stations = [];
+
+                  for (let j = 0; j < currentBus.chieuDi.length; j++) {
+                    if (currentBus.chieuDi[j].name == startStation.name) {
+                      stations.push(currentBus.chieuDi[j].name);
+                      startIndex = j;
+                    }
+                    if (startIndex < j && startIndex != -1) {
+                      stations.push(currentBus.chieuDi[j].name);
+                    }
+                    if (currentBus.chieuDi[j].name == edgeToEnd.vertex) {
+                      endIndex = j;
+
+                      break;
+                    }
+                  }
+                  if (startIndex == -1 || endIndex == -1) {
+                    for (let j = 0; j < currentBus.chieuVe.length; j++) {
+                      if (currentBus.chieuVe[j].name == startStation.name) {
+                        stations.push(currentBus.chieuVe[j].name);
+                        startIndex = j;
+                      }
+                      if (startIndex < j && startIndex != -1) {
+                        stations.push(currentBus.chieuVe[j].name);
+                      }
+                      if (currentBus.chieuVe[j].name == edgeToEnd.vertex) {
+                        endIndex = j;
+
+                        break;
+                      }
+                    }
+                  }
+                  const returnRoute: ReturnRoute = {
+                    source: startStation.name,
+                    destination: edgeToEnd.vertex,
+                    buses: [commonBuses[i]],
+                    transportTime: (edgeToEnd.weight * 60) / 22.5 / 1000,
+                    transportS: edgeToEnd.weight,
+                    pathType: "bus",
+                  };
+                  const returnRoutes: ReturnRoute[] = [];
+                  if (startPlace.name != startStation.name) {
+                    returnRoutes.unshift({
+                      source: startPlace.name,
+                      destination: startStation.name,
+                      buses: ["walk"],
+                      transportTime: roundedWalkingTime,
+                      transportS: roundedWalkingTime * 5,
+                      pathType: "walk",
+                    });
+                  }
+                  returnRoutes.push(returnRoute);
+                  resultRoutes.push({
+                    startStation: startStation.name, // trạm xuất phát và đích
+                    endStation: edgeToEnd.vertex,
+                    buses: [commonBuses[i]], // các xe buýt cần dùng ;
+                    cost: currentBus.price, // giá tiền
+                    transportHour: transportHour, // thời gian cần để di chuyển
+                    transportMinute: transportMinute,
+                    startHour: startHour,
+                    startMinute: startMinute,
+                    endHour: endHour,
+                    endMinute: endMinute,
+                    stations: stations, //
+                    returnRoutes: [returnRoute], //
+                  });
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
   const endTime = performance.now();
   console.log(`Path found in ${endTime - startTime} milliseconds:`);
 
