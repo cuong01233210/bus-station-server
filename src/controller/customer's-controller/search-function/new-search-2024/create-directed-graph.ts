@@ -1,7 +1,7 @@
 import Bus from "../../../../models/bus";
 import { haversineDistance } from "./test-geocoding-controller";
 import fs from "fs";
-import { Request, Response } from "express";
+import e, { Request, Response } from "express";
 import BusRoute from "../../../../models/bus-route";
 // ý tưởng
 // dùng list liền kề (adjacencyList) + map để lưu trữ dữ liệu theo các cạnh
@@ -147,9 +147,85 @@ export class DirectedGraph {
       }
     });
   }
+
+  createGraph2(busRoutes: BusRoute[], state: number) {
+    busRoutes.forEach((busRoute) => {
+      // Add edges for all pairs of stops in chieuDi
+      for (let i = 0; i < busRoute.chieuDi.length; i++) {
+        this.addVertex(busRoute.chieuDi[i].name);
+        for (let j = i + 1; j < busRoute.chieuDi.length; j++) {
+          this.addEdge(
+            busRoute.chieuDi[j].name,
+            busRoute.chieuDi[i].name,
+            busRoute.chieuDi[j].lat,
+            busRoute.chieuDi[j].long,
+            busRoute.chieuDi[i].lat,
+            busRoute.chieuDi[i].long,
+            busRoute.bus,
+            "bus"
+          );
+        }
+      }
+
+      // Add edges for all pairs of stops in chieuVe
+      for (let i = 0; i < busRoute.chieuVe.length; i++) {
+        this.addVertex(busRoute.chieuVe[i].name);
+        for (let j = i + 1; j < busRoute.chieuVe.length; j++) {
+          this.addEdge(
+            busRoute.chieuVe[j].name,
+            busRoute.chieuVe[i].name,
+            busRoute.chieuVe[j].lat,
+            busRoute.chieuVe[j].long,
+            busRoute.chieuVe[i].lat,
+            busRoute.chieuVe[i].long,
+            busRoute.bus,
+            "bus"
+          );
+        }
+      }
+
+      // Add walking edges between chieuDi and chieuVe stops if state === 2
+      if (state === 3) {
+        busRoute.chieuDi.forEach((stopDi) => {
+          busRoute.chieuVe.forEach((stopVe) => {
+            const dist =
+              haversineDistance(
+                stopDi.lat,
+                stopDi.long,
+                stopVe.lat,
+                stopVe.long
+              ) * 1000;
+
+            if (dist < 200) {
+              this.addEdge(
+                stopDi.name,
+                stopVe.name,
+                stopDi.lat,
+                stopDi.long,
+                stopVe.lat,
+                stopVe.long,
+                "Walk",
+                "walk"
+              );
+              this.addEdge(
+                stopVe.name,
+                stopDi.name,
+                stopVe.lat,
+                stopVe.long,
+                stopDi.lat,
+                stopDi.long,
+                "Walk",
+                "walk"
+              );
+            }
+          });
+        });
+      }
+    });
+  }
 }
 
-type Edge = {
+export type Edge = {
   vertex: string;
   weight: number;
   buses: string[];
@@ -185,7 +261,9 @@ export async function writeGraphToFile(req: Request, res: Response) {
   try {
     const busRoutes = await BusRoute.getAllBusRoutes(); // Get BusRoutes instead of Buses
     const graph = new DirectedGraph();
-    graph.createGraph(busRoutes, state);
+    if (state == 1 || state == 2) graph.createGraph(busRoutes, state);
+    else graph.createGraph2(busRoutes, state);
+    // graph.createGraph(busRoutes, state);
     const adjacencyListString = serializeGraph(graph.adjacencyList);
     fs.writeFileSync(filename, adjacencyListString, "utf8");
     res.status(200).send("Graph data saved successfully.");
@@ -219,4 +297,21 @@ export function readGraphFromFile(filename: string) {
   const graph = new DirectedGraph();
   graph.adjacencyList = adjacencyList;
   return graph;
+}
+
+export function readGraphFromFile2(filename: string) {
+  const fileContent = fs.readFileSync(filename, "utf8");
+  const serializedData = JSON.parse(fileContent);
+  const adjacencyList = deserializeGraph2(serializedData);
+  const graph = new DirectedGraph();
+  graph.adjacencyList = adjacencyList;
+  return graph;
+}
+
+function deserializeGraph2(serializedData: any): Map<string, Edge[]> {
+  const adjacencyList = new Map<string, Edge[]>();
+  for (const [key, value] of Object.entries(serializedData)) {
+    adjacencyList.set(key, value as Edge[]);
+  }
+  return adjacencyList;
 }

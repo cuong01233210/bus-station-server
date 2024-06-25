@@ -78,7 +78,7 @@ exports.updateBusStationNoDistrict = updateBusStationNoDistrict;
 const deleteBusStationNoDistrict = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const busStation = new bus_station_1.default(req.body.name, req.body.buses, req.body.lat, req.body.long, req.body.id);
-        yield busStation.deleteBusStation(req.body.id);
+        yield busStation.deleteBusStation(req.body.name);
         res.status(200).json({
             message: "delete bus station successfully",
         });
@@ -90,15 +90,14 @@ const deleteBusStationNoDistrict = (req, res) => __awaiter(void 0, void 0, void 
 exports.deleteBusStationNoDistrict = deleteBusStationNoDistrict;
 const getStationsByIds = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const stationIds = req.body.stationIds;
-        // console.log(stationIds);
-        const busStations = yield bus_station_1.default.getStationsByIds(stationIds);
-        //console.log(busStations);
+        const stationIds = req.body.stationIds; // Bên SwiftUI đang coi name là id
+        const busStations = yield bus_station_1.default.getStationsByNames(stationIds);
         res.status(200).json({
             busStations: busStations,
         });
     }
     catch (error) {
+        console.error("Lỗi khi gọi getStationsByNames:", error);
         res.status(400).json({ message: error });
     }
 });

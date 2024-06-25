@@ -226,7 +226,6 @@ class Dijkstra {
     }
     findShortestWay(start, finish) {
         let nodes = {};
-        let visitedVertex = [];
         for (let i in this.vertices) {
             if (this.vertices[i].name === start) {
                 this.vertices[i].weight = 0;

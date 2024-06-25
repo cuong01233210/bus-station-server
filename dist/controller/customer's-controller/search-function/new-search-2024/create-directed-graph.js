@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.readGraphFromFile = exports.writeGraphToFile = exports.DirectedGraph = void 0;
+exports.readGraphFromFile2 = exports.readGraphFromFile = exports.writeGraphToFile = exports.DirectedGraph = void 0;
 const test_geocoding_controller_1 = require("./test-geocoding-controller");
 const fs_1 = __importDefault(require("fs"));
 const bus_route_1 = __importDefault(require("../../../../models/bus-route"));
@@ -102,6 +102,36 @@ class DirectedGraph {
             }
         });
     }
+    createGraph2(busRoutes, state) {
+        busRoutes.forEach((busRoute) => {
+            // Add edges for all pairs of stops in chieuDi
+            for (let i = 0; i < busRoute.chieuDi.length; i++) {
+                this.addVertex(busRoute.chieuDi[i].name);
+                for (let j = i + 1; j < busRoute.chieuDi.length; j++) {
+                    this.addEdge(busRoute.chieuDi[j].name, busRoute.chieuDi[i].name, busRoute.chieuDi[j].lat, busRoute.chieuDi[j].long, busRoute.chieuDi[i].lat, busRoute.chieuDi[i].long, busRoute.bus, "bus");
+                }
+            }
+            // Add edges for all pairs of stops in chieuVe
+            for (let i = 0; i < busRoute.chieuVe.length; i++) {
+                this.addVertex(busRoute.chieuVe[i].name);
+                for (let j = i + 1; j < busRoute.chieuVe.length; j++) {
+                    this.addEdge(busRoute.chieuVe[j].name, busRoute.chieuVe[i].name, busRoute.chieuVe[j].lat, busRoute.chieuVe[j].long, busRoute.chieuVe[i].lat, busRoute.chieuVe[i].long, busRoute.bus, "bus");
+                }
+            }
+            // Add walking edges between chieuDi and chieuVe stops if state === 2
+            if (state === 3) {
+                busRoute.chieuDi.forEach((stopDi) => {
+                    busRoute.chieuVe.forEach((stopVe) => {
+                        const dist = (0, test_geocoding_controller_1.haversineDistance)(stopDi.lat, stopDi.long, stopVe.lat, stopVe.long) * 1000;
+                        if (dist < 200) {
+                            this.addEdge(stopDi.name, stopVe.name, stopDi.lat, stopDi.long, stopVe.lat, stopVe.long, "Walk", "walk");
+                            this.addEdge(stopVe.name, stopDi.name, stopVe.lat, stopVe.long, stopDi.lat, stopDi.long, "Walk", "walk");
+                        }
+                    });
+                });
+            }
+        });
+    }
 }
 exports.DirectedGraph = DirectedGraph;
 function serializeGraph(adjacencyList) {
@@ -125,7 +155,11 @@ function writeGraphToFile(req, res) {
         try {
             const busRoutes = yield bus_route_1.default.getAllBusRoutes(); // Get BusRoutes instead of Buses
             const graph = new DirectedGraph();
-            graph.createGraph(busRoutes, state);
+            if (state == 1 || state == 2)
+                graph.createGraph(busRoutes, state);
+            else
+                graph.createGraph2(busRoutes, state);
+            // graph.createGraph(busRoutes, state);
             const adjacencyListString = serializeGraph(graph.adjacencyList);
             fs_1.default.writeFileSync(filename, adjacencyListString, "utf8");
             res.status(200).send("Graph data saved successfully.");
@@ -159,3 +193,19 @@ function readGraphFromFile(filename) {
     return graph;
 }
 exports.readGraphFromFile = readGraphFromFile;
+function readGraphFromFile2(filename) {
+    const fileContent = fs_1.default.readFileSync(filename, "utf8");
+    const serializedData = JSON.parse(fileContent);
+    const adjacencyList = deserializeGraph2(serializedData);
+    const graph = new DirectedGraph();
+    graph.adjacencyList = adjacencyList;
+    return graph;
+}
+exports.readGraphFromFile2 = readGraphFromFile2;
+function deserializeGraph2(serializedData) {
+    const adjacencyList = new Map();
+    for (const [key, value] of Object.entries(serializedData)) {
+        adjacencyList.set(key, value);
+    }
+    return adjacencyList;
+}

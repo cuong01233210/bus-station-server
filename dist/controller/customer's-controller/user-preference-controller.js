@@ -20,9 +20,9 @@ function getAllBusPreference(req, res) {
         const userId = res.locals.userId;
         try {
             const userBusesPreference = yield user_buses_preference_1.default.getUserBusesPreference(userId);
-            // console.log(userBusesPreference.map((pref) => pref.bus));
+            //console.log(userBusesPreference.map((pref) => pref.bus));
             res.status(200).json({
-                buses: userBusesPreference.map((pref) => pref.bus),
+                sbuses: userBusesPreference.map((pref) => pref.bus),
             });
         }
         catch (error) {

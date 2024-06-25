@@ -50,20 +50,21 @@ const getAllBuses = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
 exports.getAllBuses = getAllBuses;
 const getAllBusesByBusNameArray = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const sbuses = req.body.buses;
+        const sbuses = req.body.sbuses;
         console.log(sbuses);
         const buses = yield bus_1.default.getUserBusesPreferenceByBuses(sbuses);
         res.status(200).json({
             buses: buses.map((bus) => ({
+                id: bus.id ? bus.id : "",
                 bus: bus.bus,
                 price: bus.price,
                 activityTime: bus.activityTime,
                 gianCachChayXe: bus.gianCachChayXe,
+                gianCachTrungBinh: bus.gianCachTrungBinh,
                 //   chieuDi: bus.chieuDi.map((di) => di.name),
                 //  chieuVe: bus.chieuVe.map((ve) => ve.name),
             })),
         });
-        // res.status(200).json({ buses: buses });
     }
     catch (error) {
         res.status(400).json({ message: "failed to load" });
@@ -75,10 +76,12 @@ const getAllBusNames = (req, res) => __awaiter(void 0, void 0, void 0, function*
         const buses = yield bus_1.default.getBusIn4();
         res.status(200).json({
             buses: buses.map((bus) => ({
+                id: bus.id,
                 bus: bus.bus,
                 price: bus.price,
                 activityTime: bus.activityTime,
                 gianCachChayXe: bus.gianCachChayXe,
+                gianCachTrungBinh: bus.gianCachTrungBinh,
                 //   chieuDi: bus.chieuDi.map((di) => di.name),
                 //  chieuVe: bus.chieuVe.map((ve) => ve.name),
             })),
@@ -94,8 +97,8 @@ const getOneBusRoute = (req, res) => __awaiter(void 0, void 0, void 0, function*
     try {
         const bus = yield bus_1.default.getOnlyOneBus(req.params.bus);
         res.status(200).json({
-            chieuDi: bus.chieuDi.map((di) => di.name),
-            chieuVe: bus.chieuVe.map((ve) => ve.name),
+            chieuDi: bus.chieuDi,
+            chieuVe: bus.chieuVe,
         });
     }
     catch (error) {

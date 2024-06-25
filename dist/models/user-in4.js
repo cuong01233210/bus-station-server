@@ -59,17 +59,16 @@ class UserIn4 {
     //   const user = await UserIn4.getUserIn4(userId);
     //   return user;
     // }
-    updateUserIn4(userId) {
+    updateUserIn4(email) {
         return __awaiter(this, void 0, void 0, function* () {
             // const db: Db = UsersDatabase.getDb();
             const db = app_database_1.AppDatabase.getDb();
             console.log(this.userId);
             console.log(this.name);
             console.log(this.dateOfBirth);
-            yield db.collection("informations").findOneAndUpdate({ userId: userId }, // Sử dụng userId truyền vào thay vì this.userId
+            yield db.collection("informations").findOneAndUpdate({ email: email }, // Sử dụng userId truyền vào thay vì this.userId
             {
                 $set: {
-                    userId: userId,
                     name: this.name,
                     sex: this.sex,
                     dateOfBirth: this.dateOfBirth,
@@ -78,8 +77,25 @@ class UserIn4 {
                 },
             }, { returnDocument: "after" } // Ensure to get the updated document after the update
             );
-            const user = yield UserIn4.getUserIn4(userId);
-            return user;
+            // const user = await UserIn4.getUserIn4(this.userId);
+            // return user;
+        });
+    }
+    static deleteUser(email) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const db = app_database_1.AppDatabase.getDb();
+            yield db.collection("informations").deleteOne({ email: email });
+        });
+    }
+    static getUserInfor(email) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const db = app_database_1.AppDatabase.getDb();
+            const document = yield db
+                .collection("informations")
+                .findOne({ email: email });
+            if (document != null) {
+                return new UserIn4(document.userId, document.name, document.sex, document.dateOfBirth, document.phoneNumber, document.email);
+            }
         });
     }
 }
