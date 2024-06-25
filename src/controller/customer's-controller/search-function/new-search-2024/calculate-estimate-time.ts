@@ -464,6 +464,7 @@ export async function findStartTime(
 ) {
   let startHour = -1;
   let startMinute = -1;
+  let roundedWalkingTime = 0;
   try {
     let tArray = await BusAppearance.getTArrayForStationAndRoute(
       stationName,
@@ -478,7 +479,7 @@ export async function findStartTime(
       stationInfo.long
     );
     const walkingTime = dis / 5;
-    const roundedWalkingTime = Math.ceil(walkingTime);
+     roundedWalkingTime = Math.ceil(walkingTime);
     //console.log("roundedWalkingTime: ", roundedWalkingTime);
     userInputMinute = userInputMinute + roundedWalkingTime;
     while (userInputMinute >= 60) {
@@ -501,5 +502,5 @@ export async function findStartTime(
     // console.log(userInputHour, " ", userInputMinute);
     //console.log(tArray)
   } catch (error) {}
-  return { startHour, startMinute };
+  return { startHour, startMinute, roundedWalkingTime };
 }

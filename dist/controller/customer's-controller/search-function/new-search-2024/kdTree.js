@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const my_node_1 = require("../../../../models/my-node");
 const fs_1 = __importDefault(require("fs"));
+const test_geocoding_controller_1 = require("./test-geocoding-controller");
 class KDTree {
     constructor(root = null, data) {
         this.root = root;
@@ -54,7 +55,8 @@ class KDTree {
     findNearestPoints2(queryPoint, node, bestPairs, n) {
         if (!node)
             return bestPairs;
-        let dist = this.euclideanDistance(node.point, queryPoint);
+        // let dist: number = this.euclideanDistance(node.point, queryPoint);
+        let dist = (0, test_geocoding_controller_1.haversineDistance)(node.point.lat, node.point.long, queryPoint.lat, queryPoint.long) * 1000;
         let insertionIndex = bestPairs.length;
         for (let i = 0; i < bestPairs.length; i++) {
             if (dist < bestPairs[i].dist) {
@@ -93,7 +95,7 @@ class KDTree {
     findNearestPoint(queryPoint, node, bestPair) {
         if (!node)
             return bestPair;
-        let dist = this.euclideanDistance(node.point, queryPoint);
+        let dist = (0, test_geocoding_controller_1.haversineDistance)(node.point.lat, node.point.long, queryPoint.lat, queryPoint.long) * 1000;
         if (dist < bestPair.dist) {
             bestPair.dist = dist;
             bestPair.point = node.point;
@@ -133,7 +135,7 @@ class KDTree {
     findNodesInRadius(queryPoint, radius, node, foundPoints) {
         if (!node)
             return;
-        let dist = this.euclideanDistance(node.point, queryPoint);
+        let dist = (0, test_geocoding_controller_1.haversineDistance)(node.point.lat, node.point.long, queryPoint.lat, queryPoint.long) * 1000;
         if (dist <= radius * 1000) {
             // Chuyển km sang mét
             foundPoints.push({ point: node.point, dist });

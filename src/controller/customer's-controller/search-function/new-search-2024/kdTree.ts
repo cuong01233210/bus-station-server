@@ -3,6 +3,7 @@ import { MyNode, MyNode2 } from "../../../../models/my-node";
 import MyPoint from "../../../../models/my-point";
 import { StationPoint } from "../../../../models/my-point";
 import fs from "fs";
+import { haversineDistance } from "./test-geocoding-controller";
 class KDTree {
   root: MyNode2 | null;
   data: StationPoint[];
@@ -50,13 +51,6 @@ class KDTree {
     this.printNLR(this.root, 0);
   }
 
-  private euclideanDistance(a: StationPoint, b: StationPoint): number {
-    let dist: number = 0;
-    dist += Math.pow(a.lat - b.lat, 2);
-    dist += Math.pow(a.long - b.long, 2);
-    return Math.sqrt(dist);
-  }
-
   private findNearestPoints2(
     queryPoint: StationPoint,
     node: MyNode2 | null,
@@ -65,7 +59,14 @@ class KDTree {
   ): BestPair[] {
     if (!node) return bestPairs;
 
-    let dist: number = this.euclideanDistance(node.point, queryPoint);
+    // let dist: number = this.euclideanDistance(node.point, queryPoint);
+    let dist: number =
+      haversineDistance(
+        node.point.lat,
+        node.point.long,
+        queryPoint.lat,
+        queryPoint.long
+      ) * 1000;
     let insertionIndex: number = bestPairs.length;
 
     for (let i = 0; i < bestPairs.length; i++) {
@@ -116,7 +117,13 @@ class KDTree {
   ): BestPair {
     if (!node) return bestPair;
 
-    let dist: number = this.euclideanDistance(node.point, queryPoint);
+    let dist: number =
+      haversineDistance(
+        node.point.lat,
+        node.point.long,
+        queryPoint.lat,
+        queryPoint.long
+      ) * 1000;
     if (dist < bestPair.dist) {
       bestPair.dist = dist;
       bestPair.point = node.point;
@@ -171,7 +178,13 @@ class KDTree {
   ): void {
     if (!node) return;
 
-    let dist: number = this.euclideanDistance(node.point, queryPoint);
+    let dist: number =
+      haversineDistance(
+        node.point.lat,
+        node.point.long,
+        queryPoint.lat,
+        queryPoint.long
+      ) * 1000;
     if (dist <= radius * 1000) {
       // Chuyển km sang mét
       foundPoints.push({ point: node.point, dist });

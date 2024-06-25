@@ -17,9 +17,15 @@ const app_info_1 = __importDefault(require("../../models/app-info"));
 function readAppInfo(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            const appInfos = yield app_info_1.default.getAppInfo();
+            const appInfo = yield app_info_1.default.getAppInfo();
             // console.log(allComments);
-            res.status(200).json({ appInfos: appInfos });
+            res
+                .status(200)
+                .json({
+                version: appInfo.version,
+                updated: appInfo.updated,
+                content: appInfo.content,
+            });
         }
         catch (error) {
             console.error(error);
@@ -48,7 +54,7 @@ function updateAppInfo(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const appInfo = new app_info_1.default(req.body.version, req.body.updated, req.body.content);
-            yield appInfo.updateAppInfo(req.body.id);
+            yield appInfo.updateAppInfo();
             console.log(req.body);
             res.status(200).json({ message: "update appInfo successfully" });
         }

@@ -130,6 +130,7 @@ router.patch("/update-app-info", appInfoController.updateAppInfo);
 
 //router để tìm kiếm tuyến đường trường hợp đi liền không nhảy tuyến 2024
 router.post("/search-route", SearchRouteController.findRoute);
+router.post("/search-route-2", SearchRouteController.findRoute2);
 
 // router để tìm kiếm thời gian xuất hiện tuyến xe buýt tại trạm
 router.post("/find-bus-appearance-time", calculateEstimateTime.calculateTime);

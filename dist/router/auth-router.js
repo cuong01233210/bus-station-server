@@ -22,10 +22,14 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const authController = __importStar(require("../controller/customer's-controller/auth-controller"));
 const express_validator_1 = require("express-validator");
+const auth_validation_1 = __importDefault(require("../middleware/auth-validation"));
 const authRouter = (0, express_1.Router)();
 authRouter.put("/signup", [
     (0, express_validator_1.body)("name")
@@ -53,4 +57,19 @@ authRouter.post("/login", [
         .isLength({ min: 5 })
         .withMessage("Mật khẩu của bạn quá ngắn"),
 ], authController.loginController);
+// router để lấy được cái tài khoản của nhân viên
+authRouter.get("/get-staffs", auth_validation_1.default, authController.getStaffsController);
+authRouter.post("/add-staff", [
+    (0, express_validator_1.body)("email")
+        .trim()
+        .isEmail()
+        .withMessage("Xin hãy nhập đúng định dạng email")
+        .normalizeEmail(),
+    (0, express_validator_1.body)("phoneNumber")
+        .trim()
+        .isMobilePhone("vi-VN")
+        .withMessage("Xin hãy nhập đúng định dạng số điện thoại"),
+], authController.addStaffController);
+authRouter.post("/get-staff-infor", auth_validation_1.default, authController.getStaffInfo);
+authRouter.delete("/delete-staff", auth_validation_1.default, authController.deleteStaffController);
 exports.default = authRouter;

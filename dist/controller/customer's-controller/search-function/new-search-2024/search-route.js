@@ -12,8 +12,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.findRoute = exports.busInfoMap = void 0;
+exports.findRoute3 = exports.findRoute2 = exports.findRoute = exports.busInfoMap = void 0;
 const kdTree_1 = __importDefault(require("./kdTree"));
+const test_geocoding_controller_1 = require("./test-geocoding-controller");
 const dijstra_1 = require("./dijstra");
 const dijstra_2 = require("./dijstra");
 const create_directed_graph_1 = require("./create-directed-graph");
@@ -49,21 +50,6 @@ function findRoute(req, res) {
             endIn4: endIn4,
         };
         try {
-            // const busStations = await BusStation.getBusStations();
-            // //console.log(busStations);
-            // //console.log("inputIn4: ", inputIn4);
-            // let stationPoints: StationPoint[] = [];
-            // let busStationsLength = busStations.length;
-            // for (let i = 0; i < busStationsLength; i++) {
-            //   const point = {
-            //     name: busStations[i].name,
-            //     lat: busStations[i].lat,
-            //     long: busStations[i].long,
-            //   };
-            //   //console.log(point);
-            //   stationPoints.push(point);
-            // }
-            //console.log(stationPoints.length);
             // dựng cây kd tree với tất cả các trạm xe buýt
             // Tạo lại cây từ file JSON
             const tree = new kdTree_1.default(null, []);
@@ -173,3 +159,134 @@ function findRoute(req, res) {
     });
 }
 exports.findRoute = findRoute;
+function findRoute2(req, res) {
+    var _a, _b, _c, _d;
+    return __awaiter(this, void 0, void 0, function* () {
+        const startPlace = req.body.startPlace;
+        const endPlace = req.body.endPlace;
+        const searchMode = req.body.searchMode;
+        const userInputHour = req.body.userInputHour;
+        const userInputMinute = req.body.userInputMinute;
+        const startTime = performance.now();
+        // Đọc đồ thị từ file
+        const graph = (0, create_directed_graph_1.readGraphFromFile2)("IndirectGraph.json");
+        if (!graph) {
+            res.status(500).json({ error: "Failed to read the graph from file" });
+            return;
+        }
+        const adjacencyList = graph.adjacencyList;
+        if (!adjacencyList || adjacencyList.size === 0) {
+            res.status(500).json({ error: "Graph data is empty or invalid" });
+            return;
+        }
+        let startIn4 = {
+            name: startPlace.name,
+            lat: startPlace.lat,
+            long: startPlace.long,
+        };
+        let endIn4 = {
+            name: endPlace.name,
+            lat: endPlace.lat,
+            long: endPlace.long,
+        };
+        let inputIn4 = {
+            startIn4: startIn4,
+            endIn4: endIn4,
+        };
+        const tree = new kdTree_1.default(null, []);
+        tree.loadFromFile("kdtree.json");
+        // Tìm 2 trạm gần nhất với điểm xuất phát
+        const nearestStartNodes = tree.nearestNodes(inputIn4.startIn4, 2);
+        // In ra các điểm gần nhất
+        console.log("Các điểm gần nhất với trạm xuất phát:");
+        for (let index = 0; index < nearestStartNodes.length; index++) {
+            console.log(`Trạm ${index + 1}: ${(_a = nearestStartNodes[index].point) === null || _a === void 0 ? void 0 : _a.name}`);
+            const lat = (_b = nearestStartNodes[index].point) === null || _b === void 0 ? void 0 : _b.lat;
+            const long = (_c = nearestStartNodes[index].point) === null || _c === void 0 ? void 0 : _c.long;
+            if (lat != null && long != null) {
+                console.log((0, test_geocoding_controller_1.haversineDistance)(startPlace.lat, startPlace.long, lat, long));
+            }
+        }
+        // const nearestStartNode = tree.nearestDis(inputIn4.startIn4);
+        // console.log("Trạm gần nhất với trạm xuất phát:");
+        // console.log(nearestStartNode.point?.name);
+        // const lat = nearestStartNode.point?.lat;
+        // const long = nearestStartNode.point?.long;
+        // if (lat != null && long != null) {
+        //   console.log(haversineDistance(startPlace.lat, startPlace.long, lat, long));
+        // }
+        // Tìm 2 trạm gần nhất với điểm đích
+        const nearestEndNodes = tree.nearestNodes(inputIn4.endIn4, 2);
+        console.log("Các điểm gần nhất với trạm xuất đích:");
+        for (let index = 0; index < nearestEndNodes.length; index++) {
+            console.log(`Trạm ${index + 1}: ${(_d = nearestEndNodes[index].point) === null || _d === void 0 ? void 0 : _d.name}`);
+        }
+        let resultRoutes = [];
+        for (let startIndex = 0; startIndex < nearestStartNodes.length; startIndex++) {
+            for (let endIndex = 0; endIndex < nearestEndNodes.length; endIndex++) {
+                let startStation = nearestStartNodes[startIndex].point;
+                let endStation = nearestEndNodes[endIndex].point;
+                if (startStation != null && endStation != null) {
+                    // Kiểm tra xem trong adjacencyList của startPlace có chứa edge đến endPlace không
+                    const edgesFromStart = adjacencyList.get(startStation.name);
+                    if (edgesFromStart) {
+                        const edgeToEnd = edgesFromStart.find((edge) => endStation && edge.vertex == endStation.name);
+                        if (edgeToEnd) {
+                            console.log(edgeToEnd);
+                            console.log(`Có cạnh đi từ ${startStation.name} đến ${endStation.name}:`, edgeToEnd);
+                        }
+                        else {
+                            console.log(`Không có đường đi 1 tuyến từ ${startStation.name} đến ${endStation.name}`);
+                        }
+                    }
+                    else {
+                        console.log(`Không tìm được ${startStation.name}`);
+                    }
+                }
+            }
+        }
+        const endTime = performance.now();
+        console.log(`Path found in ${endTime - startTime} milliseconds:`);
+        res.status(200).json({ adjacencyList: adjacencyList.size });
+    });
+}
+exports.findRoute2 = findRoute2;
+function findRoute3(req, res) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const startPlace = req.body.startPlace;
+        const endPlace = req.body.endPlace;
+        const searchMode = req.body.searchMode;
+        const userInputHour = req.body.userInputHour;
+        const userInputMinute = req.body.userInputMinute;
+        const startTime = performance.now();
+        // Đọc đồ thị từ file
+        const graph = (0, create_directed_graph_1.readGraphFromFile2)("IndirectGraph.json");
+        if (!graph) {
+            res.status(500).json({ error: "Failed to read the graph from file" });
+            return;
+        }
+        const adjacencyList = graph.adjacencyList;
+        if (!adjacencyList || adjacencyList.size === 0) {
+            res.status(500).json({ error: "Graph data is empty or invalid" });
+            return;
+        }
+        // Kiểm tra xem trong adjacencyList của startPlace có chứa edge đến endPlace không
+        const edgesFromStart = adjacencyList.get("BX Gia Lâm");
+        if (edgesFromStart) {
+            const edgeToEnd = edgesFromStart.find((edge) => edge.vertex === "Công ty CP Công trình GT 873 - Nguyễn Trãi");
+            if (edgeToEnd) {
+                console.log(`Edge found from ${startPlace} to ${endPlace}:`, edgeToEnd);
+            }
+            else {
+                console.log(`No direct edge found from ${startPlace} to ${endPlace}`);
+            }
+        }
+        else {
+            console.log(`No edges found from ${startPlace}`);
+        }
+        const endTime = performance.now();
+        console.log(`Path found in ${endTime - startTime} milliseconds:`);
+        res.status(200).json({ adjacencyList: adjacencyList.size });
+    });
+}
+exports.findRoute3 = findRoute3;

@@ -24,7 +24,7 @@ const changePasswordController = (req, res) => __awaiter(void 0, void 0, void 0,
         res.status(400).json({ message: errorMessage });
         return;
     }
-    const { email, oldPassword, newPassword } = req.body;
+    const { email, oldPassword, newPassword, reNewPassword } = req.body;
     console.log("email: ", email);
     console.log("old password: ", oldPassword);
     console.log("new password: ", newPassword);
@@ -32,6 +32,14 @@ const changePasswordController = (req, res) => __awaiter(void 0, void 0, void 0,
     if (loginUser === user_login_1.default.empty) {
         res.status(400).json({ message: "Không tìm thấy tài khoản email này" });
         return;
+    }
+    const hasInputCheck = newPassword === reNewPassword;
+    if (!hasInputCheck) {
+        res.status(400).json({ message: "Mật khẩu mới không khớp" });
+        return;
+    }
+    else {
+        console.log("new password match");
     }
     const isEqual = yield bcryptjs_1.default.compare(oldPassword, loginUser.password);
     if (!isEqual) {
@@ -41,12 +49,22 @@ const changePasswordController = (req, res) => __awaiter(void 0, void 0, void 0,
     else {
         console.log("correct old password");
     }
+    const hasInputCheck2 = oldPassword !== newPassword;
+    if (!hasInputCheck2) {
+        res
+            .status(400)
+            .json({ message: "Mật khẩu mới không được trùng với mật khẩu cũ" });
+        return;
+    }
+    else {
+        console.log("new password is not the same as old password");
+    }
     const hashedPassword = yield bcryptjs_1.default.hash(newPassword, 12);
     loginUser.updatePassword(email, hashedPassword);
     const token = jsonwebtoken_1.default.sign({
         email: email,
         userId: loginUser.id,
     }, "mySecretKey");
-    res.status(200).json({ token: token, userId: loginUser.id });
+    res.status(200).json({ token: token, userId: loginUser.id, role: "" });
 });
 exports.default = changePasswordController;

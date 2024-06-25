@@ -8,10 +8,21 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __rest = (this && this.__rest) || function (s, e) {
+    var t = {};
+    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
+        t[p] = s[p];
+    if (s != null && typeof Object.getOwnPropertySymbols === "function")
+        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
+            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
+                t[p[i]] = s[p[i]];
+        }
+    return t;
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const buses_database_1 = require("../databases/buses-database");
 class Bus {
-    constructor(bus, price, activityTime, gianCachChayXe, gianCachTrungBinh, chieuDi, chieuVe) {
+    constructor(bus, price, activityTime, gianCachChayXe, gianCachTrungBinh, chieuDi, chieuVe, id) {
         this.bus = bus;
         this.price = price;
         this.activityTime = activityTime;
@@ -19,6 +30,7 @@ class Bus {
         this.gianCachTrungBinh = gianCachTrungBinh;
         this.chieuDi = chieuDi;
         this.chieuVe = chieuVe;
+        this.id = id;
     }
     static getBusIn4() {
         return __awaiter(this, void 0, void 0, function* () {
@@ -29,7 +41,7 @@ class Bus {
                 .find()
                 .sort({ bus: 1 })
                 .toArray();
-            const buses = documents.map((doc) => new Bus(doc.bus, doc.price, doc.activityTime, doc.gianCachChayXe, doc.gianCachTrungBinh, doc.chieuDi, doc.chieuVe));
+            const buses = documents.map((doc) => new Bus(doc.bus, doc.price, doc.activityTime, doc.gianCachChayXe, doc.gianCachTrungBinh, doc.chieuDi, doc.chieuVe, doc._id.toString()));
             let endTime = performance.now();
             console.log(`Thời gian đọc từ DB: ${endTime - startTime} milliseconds`);
             return buses;
@@ -52,23 +64,26 @@ class Bus {
             const documents = yield db
                 .collection("routes")
                 .find({ bus: { $in: sbuses } })
+                .sort({ bus: 1 })
                 .toArray();
-            const buses = documents.map((doc) => new Bus(doc.bus, doc.price, doc.activityTime, doc.gianCachChayXe, doc.gianCachTrungBinh, doc.chieuDi, doc.chieuVe));
+            const buses = documents.map((doc) => new Bus(doc.bus, doc.price, doc.activityTime, doc.gianCachChayXe, doc.gianCachTrungBinh, doc.chieuDi, doc.chieuVe, doc._id.toString()));
             return buses;
         });
     }
     createBus() {
         return __awaiter(this, void 0, void 0, function* () {
+            const _a = this, { id } = _a, busData = __rest(_a, ["id"]); // Loại bỏ trường id
             const db = buses_database_1.BusesDatabase.getDb();
-            yield db.collection("routes").insertOne(Object.assign({}, this));
+            yield db.collection("routes").insertOne(Object.assign({}, busData));
         });
     }
     updateBus(bus) {
         return __awaiter(this, void 0, void 0, function* () {
+            const _a = this, { id } = _a, busData = __rest(_a, ["id"]); // Loại bỏ trường id
             const db = buses_database_1.BusesDatabase.getDb();
             yield db
                 .collection("routes")
-                .updateOne({ bus: bus }, { $set: Object.assign({}, this) });
+                .updateOne({ bus: bus }, { $set: Object.assign({}, busData) });
         });
     }
     static deleteBus(bus) {

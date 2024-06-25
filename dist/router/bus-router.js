@@ -53,8 +53,8 @@ const todoValidator = (0, express_validator_1.body)("task").trim().notEmpty();
 router.patch("/change-password", [
     (0, express_validator_1.body)("newPassword")
         .trim()
-        .isLength({ min: 5 })
-        .withMessage("Bạn nhập mật khẩu quá ngắn"),
+        .isLength({ min: 6 })
+        .withMessage("Bạn nhập mật khẩu quá ngắn, mật khẩu phải có ít nhất 6 ký tự"),
     (0, express_validator_1.body)("email")
         .trim()
         .isEmail()
@@ -93,6 +93,7 @@ router.post("/add-app-info", appInfoController.createAppInfo);
 router.patch("/update-app-info", appInfoController.updateAppInfo);
 //router để tìm kiếm tuyến đường trường hợp đi liền không nhảy tuyến 2024
 router.post("/search-route", SearchRouteController.findRoute);
+router.post("/search-route-2", SearchRouteController.findRoute2);
 // router để tìm kiếm thời gian xuất hiện tuyến xe buýt tại trạm
 router.post("/find-bus-appearance-time", calculateEstimateTime.calculateTime);
 router.post("/find-buses-appearance-time", calculateEstimateTime.calculateRoutesTime);

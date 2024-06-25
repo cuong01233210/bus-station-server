@@ -28,9 +28,9 @@ class BusStation {
                 .find()
                 .sort({ name: 1 })
                 .toArray();
-            console.log("Documents in busStations collection:", documents);
+            // console.log("Documents in busStations collection:", documents);
             const busStations = documents.map((doc) => new BusStation(doc.name, doc.buses, doc.lat, doc.long, doc._id.toString()));
-            console.log(busStations);
+            //.log(busStations);
             return busStations;
         });
     }
@@ -39,7 +39,7 @@ class BusStation {
             const db = bus_stations_database_1.BusStationsDatabase.getDb();
             delete this.id;
             const result = yield db.collection("busStations").insertOne(this);
-            console.log(result);
+            //console.log(result);
         });
     }
     updateBusStation(id) {
@@ -54,27 +54,32 @@ class BusStation {
                     long: this.long,
                 },
             });
-            console.log(result);
+            // console.log(result);
         });
     }
-    deleteBusStation(id) {
+    deleteBusStation(name) {
         return __awaiter(this, void 0, void 0, function* () {
             const db = bus_stations_database_1.BusStationsDatabase.getDb();
-            const result = yield db
-                .collection("busStations")
-                .deleteOne({ _id: new mongodb_1.ObjectId(id) });
-            console.log(result);
+            const result = yield db.collection("busStations").deleteOne({ name: name });
+            // console.log(result);
         });
     }
-    // Lấy các trạm xe buýt theo mảng id truyền vào
-    static getStationsByIds(busStationIds) {
+    // Lấy các trạm xe buýt theo mảng name truyền vào
+    static getStationsByNames(busStationNames) {
         return __awaiter(this, void 0, void 0, function* () {
+            console.log("da vao ham getStationsByNames");
             const db = bus_stations_database_1.BusStationsDatabase.getDb();
+            // Kiểm tra đầu vào
+            console.log("Tên trạm đầu vào:", busStationNames);
             const documents = yield db
                 .collection("busStations")
-                .find({ _id: { $in: busStationIds.map((id) => new mongodb_1.ObjectId(id)) } })
+                .find({ name: { $in: busStationNames } })
                 .toArray();
-            const busStations = documents.map((doc) => new BusStation(doc.name, doc.buses, doc.lat, doc.long, doc._id.toString()));
+            // Kiểm tra kết quả truy vấn
+            console.log("Tài liệu từ cơ sở dữ liệu:", documents);
+            const busStations = documents.map((doc) => new BusStation(doc.name, doc.buses, doc.lat, doc.long));
+            // Kiểm tra kết quả cuối cùng
+            console.log("Các trạm xe buýt:", busStations);
             return busStations;
         });
     }

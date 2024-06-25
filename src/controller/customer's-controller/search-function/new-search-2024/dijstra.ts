@@ -307,7 +307,6 @@ export class Dijkstra {
 
   findShortestWay(start: string, finish: string): ResultRoute[] {
     let nodes: any = {};
-    let visitedVertex: string[] = [];
 
     for (let i in this.vertices) {
       if (this.vertices[i].name === start) {

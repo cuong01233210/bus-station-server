@@ -64,6 +64,28 @@ class LoginUser {
             }
         });
     }
+    static getStaffs() {
+        return __awaiter(this, void 0, void 0, function* () {
+            const db = app_database_1.AppDatabase.getDb();
+            const documents = yield db
+                .collection("users")
+                .find({ role: "1" })
+                .toArray();
+            const staffs = documents.map((document) => {
+                return new LoginUser(document.email, document.password, document.role, document._id.toString());
+            });
+            return staffs;
+        });
+    }
+    static deleteUser(email) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const db = app_database_1.AppDatabase.getDb();
+            const deleteResult = yield db.collection("users").deleteOne({
+                email: email,
+            });
+            return deleteResult.deletedCount === 1;
+        });
+    }
 }
 LoginUser.empty = new LoginUser("", "", "", "");
 exports.default = LoginUser;

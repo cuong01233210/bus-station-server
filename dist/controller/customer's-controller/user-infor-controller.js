@@ -41,18 +41,17 @@ const updateUserInfor = (req, res) => __awaiter(void 0, void 0, void 0, function
     const dateOfBirth = req.body.dateOfBirth;
     const phoneNumber = req.body.phoneNumber;
     const email = req.body.email;
-    // console.log("da vao trong ham update user in4");
-    // console.log(userId);
-    // // console.log(userIn4);
-    // console.log(name);
-    // console.log(sex);
-    // console.log(dateOfBirth);
-    // console.log(phoneNumber);
-    // console.log(email);
+    console.log("da vao trong ham update user in4");
+    console.log(userId);
+    // console.log(userIn4);
+    console.log(name);
+    console.log(sex);
+    console.log(dateOfBirth);
+    console.log(phoneNumber);
+    console.log(email);
     const userIn4 = new user_in4_1.default(userId, name, sex, dateOfBirth, phoneNumber, email);
     try {
-        const user = yield userIn4.updateUserIn4(userId);
-        console.log(user);
+        yield userIn4.updateUserIn4(email);
         res.status(200).json({ message: "Successfully updated" });
     }
     catch (error) {
@@ -61,20 +60,3 @@ const updateUserInfor = (req, res) => __awaiter(void 0, void 0, void 0, function
     }
 });
 exports.updateUserInfor = updateUserInfor;
-// export const updateTodo = async (req: Request, res: Response) => {
-//   const result = validationResult(req);
-//   if (!result.isEmpty()) {
-//     res.status(400).json({ message: "can't add empty todo" });
-//     return;
-//   }
-//   const { todoId } = req.params;
-//   const { task, isDone } = req.body;
-//   const userId = res.locals.userId;
-//   const todo = new Todo(userId, task, isDone, todoId);
-//   try {
-//     const todos = await todo.updateTodo(userId);
-//     res.status(200).json({ message: "Successfully updated", todos: todos });
-//   } catch (error) {
-//     res.status(400).json({ message: "failed to edit" });
-//   }
-// };
