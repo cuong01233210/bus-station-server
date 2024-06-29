@@ -41,9 +41,9 @@ const preferController = __importStar(require("../controller/customer's-controll
 const appInfoController = __importStar(require("../controller/staff's-controller/app-info-controller"));
 const SearchRouteController = __importStar(require("../controller/customer's-controller/search-function/new-search-2024/search-route"));
 const calculateEstimateTime = __importStar(require("../controller/customer's-controller/search-function/new-search-2024/calculate-estimate-time"));
-const CreateGraph = __importStar(require("../controller/customer's-controller/search-function/new-search-2024/create-directed-graph"));
+const CreateGraphController = __importStar(require("../controller/customer's-controller/search-function/new-search-2024/create-directed-graph"));
 const PlaceController = __importStar(require("../controller/customer's-controller/place-controller"));
-const CreateKDTree = __importStar(require("../controller/customer's-controller/search-function/new-search-2024/create-kdtree"));
+const CreateKDTreeController = __importStar(require("../controller/customer's-controller/search-function/new-search-2024/create-kdtree"));
 const ConnectionStationController = __importStar(require("../controller/customer's-controller/search-function/new-search-2024/connection-stations"));
 const router = (0, express_1.Router)();
 router.get("/buses-data", busController.getAllBuses);
@@ -100,11 +100,11 @@ router.post("/find-buses-appearance-time", calculateEstimateTime.calculateRoutes
 router.get("/get-all-appearance", calculateEstimateTime.getApprearanceTime);
 router.get("/get-one-appearance", calculateEstimateTime.getOneTime);
 // router để lấy chạy sao lưu đồ thị đường đi
-router.post("/save-graph-into-file", CreateGraph.writeGraphToFile);
+router.post("/save-graph-into-file", CreateGraphController.writeGraphToFile);
 // router để lấy các địa điểm gợi ý
 router.get("/get-places", PlaceController.getPlaces);
 //router để tạo và lưu kdtree vào file json
-router.get("/save-kdtree-into-file", CreateKDTree.createKDTree);
+router.get("/save-kdtree-into-file", CreateKDTreeController.createKDTree);
 //router để tạo và lưu kết nối giữa các trạm xe buýt
 router.get("/save-connection-into-file", ConnectionStationController.createConnectedStations);
 router.get("/get-connected-stations", ConnectionStationController.getConnectedStations);
