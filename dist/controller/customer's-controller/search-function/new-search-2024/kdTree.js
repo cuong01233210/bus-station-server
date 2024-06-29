@@ -46,12 +46,6 @@ class KDTree {
     printTree() {
         this.printNLR(this.root, 0);
     }
-    euclideanDistance(a, b) {
-        let dist = 0;
-        dist += Math.pow(a.lat - b.lat, 2);
-        dist += Math.pow(a.long - b.long, 2);
-        return Math.sqrt(dist);
-    }
     findNearestPoints2(queryPoint, node, bestPairs, n) {
         if (!node)
             return bestPairs;

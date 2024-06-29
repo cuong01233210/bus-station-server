@@ -395,13 +395,14 @@ function findStartTime(startPlaceLat, startPlaceLong, userInputHour, userInputMi
     return __awaiter(this, void 0, void 0, function* () {
         let startHour = -1;
         let startMinute = -1;
+        let roundedWalkingTime = 0;
         try {
             let tArray = yield bus_appearance_time_1.default.getTArrayForStationAndRoute(stationName, route);
             // xác định thời gian người dùng di chuyển được từ vị trí người dùng ra trạm
             const stationInfo = yield bus_station_1.default.getBusStationByName(stationName);
             const dis = (0, test_geocoding_controller_1.haversineDistance)(startPlaceLat, startPlaceLong, stationInfo.lat, stationInfo.long);
             const walkingTime = dis / 5;
-            const roundedWalkingTime = Math.ceil(walkingTime);
+            roundedWalkingTime = Math.ceil(walkingTime);
             //console.log("roundedWalkingTime: ", roundedWalkingTime);
             userInputMinute = userInputMinute + roundedWalkingTime;
             while (userInputMinute >= 60) {
@@ -427,7 +428,7 @@ function findStartTime(startPlaceLat, startPlaceLong, userInputHour, userInputMi
             //console.log(tArray)
         }
         catch (error) { }
-        return { startHour, startMinute };
+        return { startHour, startMinute, roundedWalkingTime };
     });
 }
 exports.findStartTime = findStartTime;
