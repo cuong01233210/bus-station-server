@@ -23,9 +23,9 @@ import * as appInfoController from "../controller/staff's-controller/app-info-co
 
 import * as SearchRouteController from "../controller/customer's-controller/search-function/new-search-2024/search-route";
 import * as calculateEstimateTime from "../controller/customer's-controller/search-function/new-search-2024/calculate-estimate-time";
-import * as CreateGraph from "../controller/customer's-controller/search-function/new-search-2024/create-directed-graph";
+import * as CreateGraphController from "../controller/customer's-controller/search-function/new-search-2024/create-directed-graph";
 import * as PlaceController from "../controller/customer's-controller/place-controller";
-import * as CreateKDTree from "../controller/customer's-controller/search-function/new-search-2024/create-kdtree";
+import * as CreateKDTreeController from "../controller/customer's-controller/search-function/new-search-2024/create-kdtree";
 import * as ConnectionStationController from "../controller/customer's-controller/search-function/new-search-2024/connection-stations";
 
 const router = Router();
@@ -141,13 +141,13 @@ router.post(
 router.get("/get-all-appearance", calculateEstimateTime.getApprearanceTime);
 router.get("/get-one-appearance", calculateEstimateTime.getOneTime);
 // router để lấy chạy sao lưu đồ thị đường đi
-router.post("/save-graph-into-file", CreateGraph.writeGraphToFile);
+router.post("/save-graph-into-file", CreateGraphController.writeGraphToFile);
 
 // router để lấy các địa điểm gợi ý
 router.get("/get-places", PlaceController.getPlaces);
 
 //router để tạo và lưu kdtree vào file json
-router.get("/save-kdtree-into-file", CreateKDTree.createKDTree);
+router.get("/save-kdtree-into-file", CreateKDTreeController.createKDTree);
 
 //router để tạo và lưu kết nối giữa các trạm xe buýt
 router.get(
