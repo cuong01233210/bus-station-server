@@ -322,8 +322,8 @@ export async function findRoute2(req: Request, res: Response) {
                 source: startStation.name,
                 destination: endStation.name,
                 buses: ["walk"],
-                transportTime: (edgeToEnd.weight * 60) / 5 / 1000,
-                transportS: edgeToEnd.weight,
+                transportTime: Math.ceil((edgeToEnd.weight * 60) / 5 / 1000),
+                transportS: Math.ceil(edgeToEnd.weight),
                 pathType: "walk",
               };
               const returnRoutes: ReturnRoute[] = [];
@@ -332,12 +332,35 @@ export async function findRoute2(req: Request, res: Response) {
                   source: startPlace.name,
                   destination: startStation.name,
                   buses: ["walk"],
-                  transportTime: roundedWalkingTime,
-                  transportS: roundedWalkingTime * 5,
+                  transportTime: Math.ceil(roundedWalkingTime),
+                  transportS: Math.ceil(roundedWalkingTime * 5),
                   pathType: "walk",
                 });
               }
               returnRoutes.push(returnRoute);
+              if (
+                endStation.name != endPlace.name &&
+                endStation.lat != endPlace.lat &&
+                endStation.long != endPlace.long
+              ) {
+                const transportS = Math.ceil(
+                  haversineDistance(
+                    endStation.lat,
+                    endStation.long,
+                    endPlace.lat,
+                    endPlace.long
+                  )
+                );
+                const transportTime = Math.ceil(transportS / 5 / 1000);
+                returnRoutes.push({
+                  source: endStation.name,
+                  destination: endPlace.name,
+                  buses: ["walk"],
+                  transportTime: transportTime,
+                  transportS: transportS,
+                  pathType: "walk",
+                });
+              }
               resultRoutes.push({
                 startStation: startStation.name, // trạm xuất phát và đích
                 endStation: endStation.name,
@@ -420,21 +443,51 @@ export async function findRoute2(req: Request, res: Response) {
                   source: startStation.name,
                   destination: endStation.name,
                   buses: [commonBuses[i]],
-                  transportTime: (edgeToEnd.weight * 60) / 22.5 / 1000,
-                  transportS: edgeToEnd.weight,
+                  transportTime: Math.ceil(
+                    (edgeToEnd.weight * 60) / 22.5 / 1000
+                  ),
+                  transportS: Math.ceil(edgeToEnd.weight),
                   pathType: "bus",
                 };
-                if (startPlace.name != startStation.name) {
+                if (
+                  startPlace.name != startStation.name &&
+                  startPlace.lat != startStation.lat &&
+                  startPlace.long != startStation.long
+                ) {
                   returnRoutes.unshift({
                     source: startPlace.name,
                     destination: startStation.name,
                     buses: ["walk"],
-                    transportTime: roundedWalkingTime,
-                    transportS: roundedWalkingTime * 5,
+                    transportTime: Math.ceil(roundedWalkingTime),
+                    transportS: Math.ceil(roundedWalkingTime * 5),
                     pathType: "walk",
                   });
                 }
                 returnRoutes.push(returnRoute);
+                if (
+                  endStation.name != endPlace.name &&
+                  endStation.lat != endPlace.lat &&
+                  endStation.long != endPlace.long
+                ) {
+                  const transportS = Math.ceil(
+                    haversineDistance(
+                      endStation.lat,
+                      endStation.long,
+                      endPlace.lat,
+                      endPlace.long
+                    )
+                  );
+                  const transportTime = Math.ceil(transportS / 5 / 1000);
+                  returnRoutes.push({
+                    source: endStation.name,
+                    destination: endPlace.name,
+                    buses: ["walk"],
+                    transportTime: transportTime,
+                    transportS: transportS,
+                    pathType: "walk",
+                  });
+                }
+
                 resultRoutes.push({
                   startStation: startStation.name, // trạm xuất phát và đích
                   endStation: endStation.name,
@@ -580,8 +633,10 @@ export async function findRoute2(req: Request, res: Response) {
                     source: startStation.name,
                     destination: edgeToEnd.vertex,
                     buses: [commonBuses[i]],
-                    transportTime: (edgeToEnd.weight * 60) / 22.5 / 1000,
-                    transportS: edgeToEnd.weight,
+                    transportTime: Math.ceil(
+                      (edgeToEnd.weight * 60) / 22.5 / 1000
+                    ),
+                    transportS: Math.ceil(edgeToEnd.weight),
                     pathType: "bus",
                   };
                   const returnRoutes: ReturnRoute[] = [];
@@ -590,12 +645,13 @@ export async function findRoute2(req: Request, res: Response) {
                       source: startPlace.name,
                       destination: startStation.name,
                       buses: ["walk"],
-                      transportTime: roundedWalkingTime,
-                      transportS: roundedWalkingTime * 5,
+                      transportTime: Math.ceil(roundedWalkingTime),
+                      transportS: Math.ceil(roundedWalkingTime) * 5,
                       pathType: "walk",
                     });
                   }
                   returnRoutes.push(returnRoute);
+
                   resultRoutes.push({
                     startStation: startStation.name, // trạm xuất phát và đích
                     endStation: edgeToEnd.vertex,
