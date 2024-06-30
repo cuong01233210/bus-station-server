@@ -34,7 +34,6 @@ const express_validator_1 = require("express-validator");
 const commentController = __importStar(require("../controller/customer's-controller/comment-controller"));
 const auth_validation_1 = __importDefault(require("../middleware/auth-validation"));
 const change_password_1 = __importDefault(require("../controller/customer's-controller/change-password"));
-const LocationIQ_1 = require("../controller/customer's-controller/search-function/new-search-2024/LocationIQ");
 const user_infor_controller_1 = require("../controller/customer's-controller/user-infor-controller");
 const check_comment_1 = require("../controller/staff's-controller/check-comment");
 const preferController = __importStar(require("../controller/customer's-controller/user-preference-controller"));
@@ -44,7 +43,6 @@ const calculateEstimateTime = __importStar(require("../controller/customer's-con
 const CreateGraphController = __importStar(require("../controller/customer's-controller/search-function/new-search-2024/create-directed-graph"));
 const PlaceController = __importStar(require("../controller/customer's-controller/place-controller"));
 const CreateKDTreeController = __importStar(require("../controller/customer's-controller/search-function/new-search-2024/create-kdtree"));
-const ConnectionStationController = __importStar(require("../controller/customer's-controller/search-function/new-search-2024/connection-stations"));
 const router = (0, express_1.Router)();
 router.get("/buses-data", busController.getAllBuses);
 router.post("/add-comment", auth_validation_1.default, commentController.addComment);
@@ -61,7 +59,6 @@ router.patch("/change-password", [
         .withMessage("Xin hãy nhập đúng định dạng email")
         .normalizeEmail(),
 ], change_password_1.default);
-router.get("/test-location-iq", LocationIQ_1.testLocationIQ);
 router.get("/getInfor", auth_validation_1.default, user_infor_controller_1.getUserInfor);
 router.patch("/update-user-infor", auth_validation_1.default, user_infor_controller_1.updateUserInfor);
 router.get("/get-all-comments", check_comment_1.readComments);
@@ -105,7 +102,4 @@ router.post("/save-graph-into-file", CreateGraphController.writeGraphToFile);
 router.get("/get-places", PlaceController.getPlaces);
 //router để tạo và lưu kdtree vào file json
 router.get("/save-kdtree-into-file", CreateKDTreeController.createKDTree);
-//router để tạo và lưu kết nối giữa các trạm xe buýt
-router.get("/save-connection-into-file", ConnectionStationController.createConnectedStations);
-router.get("/get-connected-stations", ConnectionStationController.getConnectedStations);
 exports.default = router;

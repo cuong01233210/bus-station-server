@@ -137,6 +137,93 @@ class Bus {
     const db: Db = BusesDatabase.getDb();
     await db.collection("routes").deleteOne({ bus: bus });
   }
+
+  static async getAllBusInfos() {
+    let startTime = performance.now();
+    const db: Db = BusesDatabase.getDb();
+    const documents = await db
+      .collection("routes")
+      .find(
+        {},
+        {
+          projection: {
+            bus: 1,
+            price: 1,
+            activityTime: 1,
+            gianCachChayXe: 1,
+            gianCachTrungBinh: 1,
+          },
+        }
+      )
+      .sort({ bus: 1 })
+      .toArray();
+
+    const busInfos: Bus[] = documents.map(
+      (doc) =>
+        new Bus(
+          doc.bus,
+          doc.price,
+          doc.activityTime,
+          doc.gianCachChayXe,
+          doc.gianCachTrungBinh,
+          [],
+          [],
+          doc._id.toString()
+        )
+    );
+    let endTime = performance.now();
+    console.log(`Thời gian đọc từ DB: ${endTime - startTime} milliseconds`);
+    return busInfos;
+  }
+
+  static async getBusInfo(bus: string) {
+    const db: Db = BusesDatabase.getDb();
+    const document = await db.collection("routes").findOne({ bus: bus });
+    if (document != null) {
+      return new Bus(
+        document.bus,
+        document.price,
+        document.activityTime,
+        document.gianCachChayXe,
+        document.gianCachTrungBinh,
+        [],
+        []
+      );
+    } else return Bus.empty;
+  }
+
+  static async getBusRoute(bus: string) {
+    const db: Db = BusesDatabase.getDb();
+    const document = await db
+      .collection("routes")
+      .findOne({ bus: bus }, { projection: { chieuDi: 1, chieuVe: 1 } });
+    if (document != null) {
+      return new Bus(
+        bus,
+        0, // Default price value
+        "", // Default activityTime value
+        "", // Default gianCachChayXe value
+        0, // Default gianCachTrungBinh value
+        document.chieuDi,
+        document.chieuVe
+      );
+    } else return Bus.empty;
+  }
+
+  static async getAllBusRoutes() {
+    const db: Db = BusesDatabase.getDb();
+    const documents = await db
+      .collection("routes")
+      .find({}, { projection: { bus: 1, chieuDi: 1, chieuVe: 1 } })
+      .sort({ bus: 1 })
+      .toArray();
+
+    const busRoutes: Bus[] = documents.map(
+      (doc) => new Bus(doc.bus, 0, "", "", 0, doc.chieuDi, doc.chieuVe)
+    );
+
+    return busRoutes;
+  }
 }
 
 export default Bus;

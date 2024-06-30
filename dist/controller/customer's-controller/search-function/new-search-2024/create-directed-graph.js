@@ -13,9 +13,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.readGraphFromFile2 = exports.readGraphFromFile = exports.writeGraphToFile = exports.DirectedGraph = void 0;
+const bus_1 = __importDefault(require("../../../../models/bus"));
 const test_geocoding_controller_1 = require("./test-geocoding-controller");
 const fs_1 = __importDefault(require("fs"));
-const bus_route_1 = __importDefault(require("../../../../models/bus-route"));
+//import BusRoute from "../../../../models/bus-route";
 // ý tưởng
 // dùng list liền kề (adjacencyList) + map để lưu trữ dữ liệu theo các cạnh
 // nói chung dùng list để tiện cho việc từ 1 key (điểm xuất phát) dễ dàng nhìn thấy được luôn các đích (des) có thể tới
@@ -153,7 +154,7 @@ function writeGraphToFile(req, res) {
         const state = req.body.state;
         const filename = req.body.filename;
         try {
-            const busRoutes = yield bus_route_1.default.getAllBusRoutes(); // Get BusRoutes instead of Buses
+            const busRoutes = yield bus_1.default.getAllBusRoutes(); // Get BusRoutes instead of Buses
             const graph = new DirectedGraph();
             if (state == 1 || state == 2)
                 graph.createGraph(busRoutes, state);
