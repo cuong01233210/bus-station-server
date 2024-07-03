@@ -1,4 +1,6 @@
 import { busInfoMap } from "./search-route";
+import ReturnRoute from "../../../../models/return-route";
+import ResultRoute from "../../../../models/result-route";
 // phiên bản test với A,B, C
 export interface NodeVertex {
   nameOfVertex: string; // tên node
@@ -9,29 +11,7 @@ export interface ReturnVertex {
   name: string;
   buses: string[];
 }
-export interface ReturnRoute {
-  source: string;
-  destination: string;
-  buses: string[];
-  transportTime: number;
-  transportS: number;
-  pathType: "bus" | "walk";
-}
 
-export interface ResultRoute {
-  startStation: string; // trạm xuất phát và đích
-  endStation: string;
-  buses: string[]; // các xe buýt cần dùng ;
-  cost: number; // giá tiền
-  transportHour: number; // thời gian cần để di chuyển
-  transportMinute: number;
-  startHour: number;
-  startMinute: number;
-  endHour: number;
-  endMinute: number;
-  stations: string[]; //
-  returnRoutes: ReturnRoute[]; //
-}
 // ý tưởng: ban đầu mình chập lại các tuyến đi được từ A -> B
 // A->B là 2 đỉnh của 1 cạnh có đường đi trực tiếp từ A -> B
 // ví dụ có các tuyến 01, 02, 89 đi từ Bến Xe Yên Nghĩa -> 807 Quang Trung - Hà Đông
