@@ -26,7 +26,6 @@ import BusAppearance from "../../../../models/bus-appearance-time";
 import { findStartTime } from "./calculate-estimate-time";
 import { from } from "form-data";
 
-
 export let busInfoMap: { [key: string]: Bus } = {};
 export async function findRoute(req: Request, res: Response) {
   //không cần dùng userId để phân biệt các tài khoản do cơ chế tự làm đc rồi
@@ -138,7 +137,7 @@ export async function findRoute(req: Request, res: Response) {
           console.log("trạm xuất phát", startStation);
           console.log("trạm đích là", endStation);
           if (resultLength <= 5) {
-            let results = dijkstra.findShortestWay(
+            let results = await dijkstra.findShortestWay(
               startStation.name,
               endStation.name
             );
@@ -374,9 +373,19 @@ export async function findRoute2(req: Request, res: Response) {
                   pathType: "walk",
                 });
               }
+              const startStationIn4 = await BusStation.getBusStationByName(
+                startStation.name
+              );
+              const endStationIn4 = await BusStation.getBusStationByName(
+                endStation.name
+              );
               resultRoutes.push({
                 startStation: startStation.name, // trạm xuất phát và đích
                 endStation: endStation.name,
+                startStationLat: startStationIn4.lat,
+                startStationLong: startStationIn4.long,
+                endStationLat: endStationIn4.lat,
+                endStationLong: endStationIn4.long,
                 buses: ["walk"], // các xe buýt cần dùng ;
                 cost: 0, // giá tiền
                 transportHour: transportHour, // thời gian cần để di chuyển
@@ -500,10 +509,19 @@ export async function findRoute2(req: Request, res: Response) {
                     pathType: "walk",
                   });
                 }
-
+                const startStationIn4 = await BusStation.getBusStationByName(
+                  startStation.name
+                );
+                const endStationIn4 = await BusStation.getBusStationByName(
+                  endStation.name
+                );
                 resultRoutes.push({
                   startStation: startStation.name, // trạm xuất phát và đích
                   endStation: endStation.name,
+                  startStationLat: startStationIn4.lat,
+                  startStationLong: startStationIn4.long,
+                  endStationLat: endStationIn4.lat,
+                  endStationLong: endStationIn4.long,
                   buses: [commonBuses[i]], // các xe buýt cần dùng ;
                   cost: currentBus.price, // giá tiền
                   transportHour: transportHour, // thời gian cần để di chuyển
@@ -666,10 +684,19 @@ export async function findRoute2(req: Request, res: Response) {
                     });
                   }
                   returnRoutes.push(returnRoute);
-
+                  const startStationIn4 = await BusStation.getBusStationByName(
+                    startStation.name
+                  );
+                  const endStationIn4 = await BusStation.getBusStationByName(
+                    edgeToEnd.vertex
+                  );
                   resultRoutes.push({
                     startStation: startStation.name, // trạm xuất phát và đích
                     endStation: edgeToEnd.vertex,
+                    startStationLat: startStationIn4.lat,
+                    startStationLong: startStationIn4.long,
+                    endStationLat: endStationIn4.lat,
+                    endStationLong: endStationIn4.long,
                     buses: [commonBuses[i]], // các xe buýt cần dùng ;
                     cost: currentBus.price, // giá tiền
                     transportHour: transportHour, // thời gian cần để di chuyển
