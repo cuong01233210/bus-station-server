@@ -8,7 +8,9 @@ import { haversineDistance } from "./test-geocoding-controller";
 import Bus from "../../../../models/bus";
 import { InputRawIn4 } from "../../../../models/input-in4";
 
-import { Dijkstra, ResultRoute, ReturnRoute } from "./dijstra";
+import { Dijkstra } from "./dijstra";
+import { ResultRoute } from "../../../../models/result-route";
+import { ReturnRoute } from "../../../../models/return-route";
 import { Vertex } from "./dijstra";
 import { NodeVertex } from "./dijstra";
 import {
@@ -22,13 +24,9 @@ import BusStation from "../../../../models/bus-station";
 //import BusInfo from "../../../../models/bus-info";
 import BusAppearance from "../../../../models/bus-appearance-time";
 import { findStartTime } from "./calculate-estimate-time";
+import { from } from "form-data";
 
-interface BusIn4Struct {
-  name: string;
-  bus: string[];
-  lat: number;
-  long: number;
-}
+
 export let busInfoMap: { [key: string]: Bus } = {};
 export async function findRoute(req: Request, res: Response) {
   //không cần dùng userId để phân biệt các tài khoản do cơ chế tự làm đc rồi
