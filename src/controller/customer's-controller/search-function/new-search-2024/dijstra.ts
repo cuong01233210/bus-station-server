@@ -1,6 +1,7 @@
 import { busInfoMap } from "./search-route";
 import ReturnRoute from "../../../../models/return-route";
 import ResultRoute from "../../../../models/result-route";
+import BusStation from "../../../../models/bus-station";
 // phiên bản test với A,B, C
 export interface NodeVertex {
   nameOfVertex: string; // tên node
@@ -88,7 +89,10 @@ export class Dijkstra {
     this.vertices[vertex.name] = vertex;
   }
 
-  findPointsOfShortestWay(start: string, finish: string): ResultRoute[] {
+  async findPointsOfShortestWay(
+    start: string,
+    finish: string
+  ): Promise<ResultRoute[]> {
     let currentVertex: string = finish;
 
     let deltaS = 0; // biến lưu tổng quãng đường di chuyển trên cùng 1 loại phương thức liên tục
@@ -266,9 +270,18 @@ export class Dijkstra {
     // bắt đầu tổng hợp các cách đi
     let resultRoutes: ResultRoute[] = [];
     for (let i = 0; i < allRoutes.length; i++) {
+      const startStationIn4 = await BusStation.getBusStationByName(
+        startStation
+      );
+      const endStationIn4 = await BusStation.getBusStationByName(endStation);
+
       let resultRoute: ResultRoute = {
         startStation: startStation,
         endStation: endStation,
+        startStationLat: startStationIn4?.lat || 0,
+        startStationLong: startStationIn4?.long || 0,
+        endStationLat: endStationIn4?.lat || 0,
+        endStationLong: endStationIn4?.long || 0,
         buses: allRoutes[i],
         cost: pricedRoutes[i].price,
         transportHour: transportHour,
@@ -285,7 +298,7 @@ export class Dijkstra {
     return resultRoutes;
   }
 
-  findShortestWay(start: string, finish: string): ResultRoute[] {
+  async findShortestWay(start: string, finish: string): Promise<ResultRoute[]> {
     let nodes: any = {};
 
     for (let i in this.vertices) {
@@ -318,12 +331,10 @@ export class Dijkstra {
       // loại bỏ đỉnh a khỏi ds xét
       delete nodes[sortedVisitedByWeight[0]];
     }
-
-    let resultRoutes: ResultRoute[] = this.findPointsOfShortestWay(
+    let resultRoutes: ResultRoute[] = await this.findPointsOfShortestWay(
       start,
       finish
     );
-
     return resultRoutes;
   }
 }
