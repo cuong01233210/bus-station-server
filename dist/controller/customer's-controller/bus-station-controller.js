@@ -14,28 +14,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getStationsByIds = exports.deleteBusStationNoDistrict = exports.updateBusStationNoDistrict = exports.addBusStationNoDistrict = exports.getAllBusStationsNoDistrict = void 0;
 const bus_station_1 = __importDefault(require("../../models/bus-station"));
-//import BusStationsByDistrict from "../../models/bus-stations-by-district";
-// export const getAllBusStations = async (req: Request, res: Response) => {
-//   try {
-//     //const busStations = await BusStation.getBusStationIn4();
-//     const busStationsByDistrict =
-//       await BusStationsByDistrict.getBusStationsByDistrictIn4();
-//     res.status(200).json({
-//       busStationsByDistrict: busStationsByDistrict,
-//     });
-//   } catch (error) {
-//     res.status(400).json({ message: error });
-//   }
-// };
-// export const getStationNames = async (req: Request, res: Response) => {
-//   try {
-//     const busStationOnlyNames =
-//       await BusStationsByDistrict.getBusStationOnlyNames();
-//     res.status(200).json({ busStationNames: busStationOnlyNames });
-//   } catch (error) {
-//     res.status(400).json({ message: error });
-//   }
-// };
 const getAllBusStationsNoDistrict = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const busStations = yield bus_station_1.default.getBusStations();

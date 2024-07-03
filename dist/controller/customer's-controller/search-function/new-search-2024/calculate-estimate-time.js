@@ -13,11 +13,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.findStartTime = exports.getOneTime = exports.getApprearanceTime = exports.calculateRoutesTime = exports.getCurrentHourAndMinuteInVietnam = exports.calculateTime = void 0;
+const bus_1 = __importDefault(require("../../../../models/bus"));
 const test_geocoding_controller_1 = require("./test-geocoding-controller");
 const bus_appearance_time_1 = __importDefault(require("../../../../models/bus-appearance-time"));
 const moment_timezone_1 = __importDefault(require("moment-timezone"));
-const bus_route_1 = __importDefault(require("../../../../models/bus-route"));
-const bus_info_1 = __importDefault(require("../../../../models/bus-info"));
+//import BusRoute from "../../../../models/bus-route";
+//import BusInfo from "../../../../models/bus-info";
 const fs_1 = __importDefault(require("fs"));
 const path_1 = __importDefault(require("path"));
 const bus_station_1 = __importDefault(require("../../../../models/bus-station"));
@@ -56,8 +57,8 @@ function calculateTime(req, res) {
         const firstAppearChieuVe = [];
         firstAppearChieuDi.push(0);
         firstAppearChieuVe.push(0);
-        const busRoute = yield bus_route_1.default.getBusRoute(route);
-        const busInfo = yield bus_info_1.default.getBusInfo(route);
+        const busRoute = yield bus_1.default.getBusRoute(route);
+        const busInfo = yield bus_1.default.getBusInfo(route);
         if (!busRoute || !busInfo) {
             res.status(404).json({ message: "Bus route or info not found" });
             return;
@@ -173,7 +174,7 @@ function getCurrentHourAndMinuteInVietnam() {
 }
 exports.getCurrentHourAndMinuteInVietnam = getCurrentHourAndMinuteInVietnam;
 // Define the path to your JSON file
-const filePath = path_1.default.join("/Users/macbookpro/Desktop/Workspace", "busappearance.json");
+const filePath = path_1.default.join("src/json-data/", "busappearance.json");
 // Function to check if the file exists and initialize it if necessary
 function ensureFileExists() {
     return __awaiter(this, void 0, void 0, function* () {
@@ -352,8 +353,8 @@ function calculateOneRouteTime(busRoute, busInfo) {
 }
 function calculateRoutesTime(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
-        const busRoutes = yield bus_route_1.default.getAllBusRoutes();
-        const busInfos = yield bus_info_1.default.getAllBusInfos();
+        const busRoutes = yield bus_1.default.getAllBusRoutes();
+        const busInfos = yield bus_1.default.getAllBusInfos();
         for (let i = 0; i < busInfos.length; i++) {
             try {
                 yield calculateOneRouteTime(busRoutes[i], busInfos[i]);

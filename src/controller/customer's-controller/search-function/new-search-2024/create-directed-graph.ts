@@ -2,7 +2,7 @@ import Bus from "../../../../models/bus";
 import { haversineDistance } from "./test-geocoding-controller";
 import fs from "fs";
 import e, { Request, Response } from "express";
-import BusRoute from "../../../../models/bus-route";
+//import BusRoute from "../../../../models/bus-route";
 // ý tưởng
 // dùng list liền kề (adjacencyList) + map để lưu trữ dữ liệu theo các cạnh
 // nói chung dùng list để tiện cho việc từ 1 key (điểm xuất phát) dễ dàng nhìn thấy được luôn các đích (des) có thể tới
@@ -76,7 +76,7 @@ export class DirectedGraph {
     }
   }
 
-  createGraph(busRoutes: BusRoute[], state: number) {
+  createGraph(busRoutes: Bus[], state: number) {
     busRoutes.forEach((busRoute) => {
       busRoute.chieuDi.forEach((stop, index) => {
         this.addVertex(stop.name);
@@ -148,7 +148,7 @@ export class DirectedGraph {
     });
   }
 
-  createGraph2(busRoutes: BusRoute[], state: number) {
+  createGraph2(busRoutes: Bus[], state: number) {
     busRoutes.forEach((busRoute) => {
       // Add edges for all pairs of stops in chieuDi
       for (let i = 0; i < busRoute.chieuDi.length; i++) {
@@ -259,7 +259,7 @@ export async function writeGraphToFile(req: Request, res: Response) {
   const state = req.body.state;
   const filename = req.body.filename;
   try {
-    const busRoutes = await BusRoute.getAllBusRoutes(); // Get BusRoutes instead of Buses
+    const busRoutes = await Bus.getAllBusRoutes(); // Get BusRoutes instead of Buses
     const graph = new DirectedGraph();
     if (state == 1 || state == 2) graph.createGraph(busRoutes, state);
     else graph.createGraph2(busRoutes, state);

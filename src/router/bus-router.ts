@@ -4,7 +4,7 @@ import { Router } from "express";
 import * as busController from "../controller/customer's-controller/bus-controller";
 import * as busStationController from "../controller/customer's-controller/bus-station-controller";
 import { body } from "express-validator";
-import UserCoordinate from "../models/user-coordinate";
+
 // import * as userCoordinateController from "../controller/customer's-controller/search-function/old-search-2023/user-coordinate-controller";
 
 import * as commentController from "../controller/customer's-controller/comment-controller";
@@ -12,7 +12,6 @@ import authValidator from "../middleware/auth-validation";
 
 import changePasswordController from "../controller/customer's-controller/change-password";
 
-import { testLocationIQ } from "../controller/customer's-controller/search-function/new-search-2024/LocationIQ";
 import {
   getUserInfor,
   updateUserInfor,
@@ -26,7 +25,6 @@ import * as calculateEstimateTime from "../controller/customer's-controller/sear
 import * as CreateGraphController from "../controller/customer's-controller/search-function/new-search-2024/create-directed-graph";
 import * as PlaceController from "../controller/customer's-controller/place-controller";
 import * as CreateKDTreeController from "../controller/customer's-controller/search-function/new-search-2024/create-kdtree";
-import * as ConnectionStationController from "../controller/customer's-controller/search-function/new-search-2024/connection-stations";
 
 const router = Router();
 
@@ -54,8 +52,6 @@ router.patch(
   ],
   changePasswordController
 );
-
-router.get("/test-location-iq", testLocationIQ);
 
 router.get("/getInfor", authValidator, getUserInfor);
 router.patch("/update-user-infor", authValidator, updateUserInfor);
@@ -148,15 +144,5 @@ router.get("/get-places", PlaceController.getPlaces);
 
 //router để tạo và lưu kdtree vào file json
 router.get("/save-kdtree-into-file", CreateKDTreeController.createKDTree);
-
-//router để tạo và lưu kết nối giữa các trạm xe buýt
-router.get(
-  "/save-connection-into-file",
-  ConnectionStationController.createConnectedStations
-);
-router.get(
-  "/get-connected-stations",
-  ConnectionStationController.getConnectedStations
-);
 
 export default router;

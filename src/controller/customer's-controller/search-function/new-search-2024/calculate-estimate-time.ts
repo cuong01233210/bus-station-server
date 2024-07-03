@@ -1,12 +1,12 @@
 import { Router } from "express";
 import { Request, Response } from "express";
 import Bus from "../../../../models/bus";
-import { getDistance } from "./LocationIQ";
+
 import { haversineDistance } from "./test-geocoding-controller";
 import BusAppearance from "../../../../models/bus-appearance-time";
 import moment, { min } from "moment-timezone";
-import BusRoute from "../../../../models/bus-route";
-import BusInfo from "../../../../models/bus-info";
+//import BusRoute from "../../../../models/bus-route";
+//import BusInfo from "../../../../models/bus-info";
 import fs from "fs";
 import path from "path";
 import BusStation from "../../../../models/bus-station";
@@ -52,8 +52,8 @@ export async function calculateTime(req: Request, res: Response) {
   firstAppearChieuDi.push(0);
   firstAppearChieuVe.push(0);
 
-  const busRoute = await BusRoute.getBusRoute(route);
-  const busInfo = await BusInfo.getBusInfo(route);
+  const busRoute = await Bus.getBusRoute(route);
+  const busInfo = await Bus.getBusInfo(route);
 
   if (!busRoute || !busInfo) {
     res.status(404).json({ message: "Bus route or info not found" });
@@ -209,10 +209,7 @@ export function getCurrentHourAndMinuteInVietnam(): {
 }
 
 // Define the path to your JSON file
-const filePath = path.join(
-  "/Users/macbookpro/Desktop/Workspace",
-  "busappearance.json"
-);
+const filePath = path.join("src/json-data/", "busappearance.json");
 
 // Define the structure of your JSON data
 interface BusAppearanceData {
@@ -290,7 +287,7 @@ function roundMinutes(time: { hour: number; minute: number }) {
   return time;
 }
 
-async function calculateOneRouteTime(busRoute: BusRoute, busInfo: BusInfo) {
+async function calculateOneRouteTime(busRoute: Bus, busInfo: Bus) {
   const Vtb = 25;
   const route = busInfo.bus;
   const gianCachTrungBinh = busInfo.gianCachTrungBinh;
@@ -423,8 +420,8 @@ async function calculateOneRouteTime(busRoute: BusRoute, busInfo: BusInfo) {
 }
 
 export async function calculateRoutesTime(req: Request, res: Response) {
-  const busRoutes = await BusRoute.getAllBusRoutes();
-  const busInfos = await BusInfo.getAllBusInfos();
+  const busRoutes = await Bus.getAllBusRoutes();
+  const busInfos = await Bus.getAllBusInfos();
   for (let i = 0; i < busInfos.length; i++) {
     try {
       await calculateOneRouteTime(busRoutes[i], busInfos[i]);
@@ -479,7 +476,7 @@ export async function findStartTime(
       stationInfo.long
     );
     const walkingTime = dis / 5;
-     roundedWalkingTime = Math.ceil(walkingTime);
+    roundedWalkingTime = Math.ceil(walkingTime);
     //console.log("roundedWalkingTime: ", roundedWalkingTime);
     userInputMinute = userInputMinute + roundedWalkingTime;
     while (userInputMinute >= 60) {

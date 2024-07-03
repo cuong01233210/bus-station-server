@@ -92,5 +92,68 @@ class Bus {
             yield db.collection("routes").deleteOne({ bus: bus });
         });
     }
+    static getAllBusInfos() {
+        return __awaiter(this, void 0, void 0, function* () {
+            let startTime = performance.now();
+            const db = buses_database_1.BusesDatabase.getDb();
+            const documents = yield db
+                .collection("routes")
+                .find({}, {
+                projection: {
+                    bus: 1,
+                    price: 1,
+                    activityTime: 1,
+                    gianCachChayXe: 1,
+                    gianCachTrungBinh: 1,
+                },
+            })
+                .sort({ bus: 1 })
+                .toArray();
+            const busInfos = documents.map((doc) => new Bus(doc.bus, doc.price, doc.activityTime, doc.gianCachChayXe, doc.gianCachTrungBinh, [], [], doc._id.toString()));
+            let endTime = performance.now();
+            console.log(`Thời gian đọc từ DB: ${endTime - startTime} milliseconds`);
+            return busInfos;
+        });
+    }
+    static getBusInfo(bus) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const db = buses_database_1.BusesDatabase.getDb();
+            const document = yield db.collection("routes").findOne({ bus: bus });
+            if (document != null) {
+                return new Bus(document.bus, document.price, document.activityTime, document.gianCachChayXe, document.gianCachTrungBinh, [], []);
+            }
+            else
+                return Bus.empty;
+        });
+    }
+    static getBusRoute(bus) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const db = buses_database_1.BusesDatabase.getDb();
+            const document = yield db
+                .collection("routes")
+                .findOne({ bus: bus }, { projection: { chieuDi: 1, chieuVe: 1 } });
+            if (document != null) {
+                return new Bus(bus, 0, // Default price value
+                "", // Default activityTime value
+                "", // Default gianCachChayXe value
+                0, // Default gianCachTrungBinh value
+                document.chieuDi, document.chieuVe);
+            }
+            else
+                return Bus.empty;
+        });
+    }
+    static getAllBusRoutes() {
+        return __awaiter(this, void 0, void 0, function* () {
+            const db = buses_database_1.BusesDatabase.getDb();
+            const documents = yield db
+                .collection("routes")
+                .find({}, { projection: { bus: 1, chieuDi: 1, chieuVe: 1 } })
+                .sort({ bus: 1 })
+                .toArray();
+            const busRoutes = documents.map((doc) => new Bus(doc.bus, 0, "", "", 0, doc.chieuDi, doc.chieuVe));
+            return busRoutes;
+        });
+    }
 }
 exports.default = Bus;

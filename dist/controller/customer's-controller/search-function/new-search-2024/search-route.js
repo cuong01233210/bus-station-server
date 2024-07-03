@@ -19,7 +19,6 @@ const bus_1 = __importDefault(require("../../../../models/bus"));
 const dijstra_1 = require("./dijstra");
 const dijstra_2 = require("./dijstra");
 const create_directed_graph_1 = require("./create-directed-graph");
-const bus_info_1 = __importDefault(require("../../../../models/bus-info"));
 const calculate_estimate_time_1 = require("./calculate-estimate-time");
 exports.busInfoMap = {};
 function findRoute(req, res) {
@@ -54,7 +53,7 @@ function findRoute(req, res) {
             // dựng cây kd tree với tất cả các trạm xe buýt
             // Tạo lại cây từ file JSON
             const tree = new kdTree_1.default(null, []);
-            tree.loadFromFile("kdtree.json");
+            tree.loadFromFile("src/json-data/kdtree.json");
             // Tìm 2 trạm gần nhất với điểm xuất phát
             const nearestStartNodes = tree.nearestNodes(inputIn4.startIn4, 2);
             // In ra các điểm gần nhất
@@ -73,10 +72,10 @@ function findRoute(req, res) {
             //graph.createGraph(buses);
             let filename = "";
             if (searchMode == 1) {
-                filename = "basicgraph.json";
+                filename = "src/json-data/basicgraph.json";
             }
             else
-                filename = "canwalkgraph.json";
+                filename = "src/json-data/canwalkgraph.json";
             const graph = (0, create_directed_graph_1.readGraphFromFile)(filename);
             // sử dụng dijstra trên đồ thị có hướng để tìm đường
             let dijkstra = new dijstra_1.Dijkstra(); // khởi tạo đối tượng Dijstra để tìm kiếm đường
@@ -109,7 +108,7 @@ function findRoute(req, res) {
             let appearTimes = [];
             let resultLength = 0;
             // chuẩn bị db buses để tiện sp tính tiền xe buýt
-            const busInfos = yield bus_info_1.default.getAllBusInfos();
+            const busInfos = yield bus_1.default.getAllBusInfos();
             exports.busInfoMap = {};
             exports.busInfoMap = {};
             busInfos.forEach((busInfo) => {
@@ -197,7 +196,7 @@ function findRoute2(req, res) {
         const userInputMinute = req.body.userInputMinute;
         const startTime = performance.now();
         // Đọc đồ thị từ file
-        const graph = (0, create_directed_graph_1.readGraphFromFile2)("IndirectGraph.json");
+        const graph = (0, create_directed_graph_1.readGraphFromFile2)("src/json-data/IndirectGraph.json");
         if (!graph) {
             res.status(500).json({ error: "Failed to read the graph from file" });
             return;
@@ -221,14 +220,28 @@ function findRoute2(req, res) {
             startIn4: startIn4,
             endIn4: endIn4,
         };
+        console.log(inputIn4);
         const tree = new kdTree_1.default(null, []);
-        tree.loadFromFile("kdtree.json");
+        tree.loadFromFile("src/json-data/kdtree.json");
         // Tìm 2 trạm gần nhất với điểm xuất phát
         const nearestStartNodes = tree.nearestNodes(inputIn4.startIn4, 2);
         // In ra các điểm gần nhất
         console.log("Các điểm gần nhất với trạm xuất phát:");
         for (let index = 0; index < nearestStartNodes.length; index++) {
             console.log(`Trạm ${index + 1}: ${(_a = nearestStartNodes[index].point) === null || _a === void 0 ? void 0 : _a.name}`);
+            // let startStationLat = nearestStartNodes[index].point?.lat;
+            // let startStationLong = nearestStartNodes[index].point?.long;
+            // // in ra lat long của trạm nếu tồn tại
+            // if (startStationLat != null && startStationLong != null) {
+            //   console.log(
+            //     haversineDistance(
+            //       startStationLat,
+            //       startStationLong,
+            //       inputIn4.startIn4.lat,
+            //       inputIn4.startIn4.long
+            //     )
+            //   );
+            // }
         }
         // Tìm 2 trạm gần nhất với điểm đích
         const nearestEndNodes = tree.nearestNodes(inputIn4.endIn4, 2);
@@ -244,7 +257,9 @@ function findRoute2(req, res) {
                 if (startStation != null && endStation != null) {
                     // Kiểm tra xem trong adjacencyList của startPlace có chứa edge đến endPlace không
                     const edgesFromStart = adjacencyList.get(startStation.name);
+                    // console.log(edgesFromStart);
                     if (edgesFromStart) {
+                        console.log(endStation.name);
                         const edgeToEnd = edgesFromStart.find((edge) => endStation && edge.vertex == endStation.name);
                         if (edgeToEnd) {
                             console.log(`Có cạnh đi từ ${startStation.name} đến ${endStation.name}:`, edgeToEnd);
@@ -424,7 +439,7 @@ function findRoute2(req, res) {
             }
         }
         if (resultRoutes.length == 0) {
-            const invertedGraph = (0, create_directed_graph_1.readGraphFromFile2)("InvertIndirectGraph.json");
+            const invertedGraph = (0, create_directed_graph_1.readGraphFromFile2)("src/json-data/InvertIndirectGraph.json");
             if (!invertedGraph) {
                 res.status(500).json({ error: "Failed to read the graph from file" });
                 return;
