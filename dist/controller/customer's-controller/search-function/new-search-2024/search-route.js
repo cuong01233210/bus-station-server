@@ -19,6 +19,7 @@ const bus_1 = __importDefault(require("../../../../models/bus"));
 const dijstra_1 = require("./dijstra");
 const dijstra_2 = require("./dijstra");
 const create_directed_graph_1 = require("./create-directed-graph");
+const bus_station_1 = __importDefault(require("../../../../models/bus-station"));
 const calculate_estimate_time_1 = require("./calculate-estimate-time");
 exports.busInfoMap = {};
 function findRoute(req, res) {
@@ -122,7 +123,7 @@ function findRoute(req, res) {
                         console.log("trạm xuất phát", startStation);
                         console.log("trạm đích là", endStation);
                         if (resultLength <= 5) {
-                            let results = dijkstra.findShortestWay(startStation.name, endStation.name);
+                            let results = yield dijkstra.findShortestWay(startStation.name, endStation.name);
                             //thêm các phần tử của results vào resultRoutes
                             if (results.length > 0 && resultLength <= 5) {
                                 let result1 = results[0];
@@ -311,9 +312,15 @@ function findRoute2(req, res) {
                                         pathType: "walk",
                                     });
                                 }
+                                const startStationIn4 = yield bus_station_1.default.getBusStationByName(startStation.name);
+                                const endStationIn4 = yield bus_station_1.default.getBusStationByName(endStation.name);
                                 resultRoutes.push({
                                     startStation: startStation.name,
                                     endStation: endStation.name,
+                                    startStationLat: startStationIn4.lat,
+                                    startStationLong: startStationIn4.long,
+                                    endStationLat: endStationIn4.lat,
+                                    endStationLong: endStationIn4.long,
                                     buses: ["walk"],
                                     cost: 0,
                                     transportHour: transportHour,
@@ -411,9 +418,15 @@ function findRoute2(req, res) {
                                             pathType: "walk",
                                         });
                                     }
+                                    const startStationIn4 = yield bus_station_1.default.getBusStationByName(startStation.name);
+                                    const endStationIn4 = yield bus_station_1.default.getBusStationByName(endStation.name);
                                     resultRoutes.push({
                                         startStation: startStation.name,
                                         endStation: endStation.name,
+                                        startStationLat: startStationIn4.lat,
+                                        startStationLong: startStationIn4.long,
+                                        endStationLat: endStationIn4.lat,
+                                        endStationLong: endStationIn4.long,
                                         buses: [commonBuses[i]],
                                         cost: currentBus.price,
                                         transportHour: transportHour,
@@ -552,9 +565,15 @@ function findRoute2(req, res) {
                                             });
                                         }
                                         returnRoutes.push(returnRoute);
+                                        const startStationIn4 = yield bus_station_1.default.getBusStationByName(startStation.name);
+                                        const endStationIn4 = yield bus_station_1.default.getBusStationByName(edgeToEnd.vertex);
                                         resultRoutes.push({
                                             startStation: startStation.name,
                                             endStation: edgeToEnd.vertex,
+                                            startStationLat: startStationIn4.lat,
+                                            startStationLong: startStationIn4.long,
+                                            endStationLat: endStationIn4.lat,
+                                            endStationLong: endStationIn4.long,
                                             buses: [commonBuses[i]],
                                             cost: currentBus.price,
                                             transportHour: transportHour,
