@@ -23,25 +23,15 @@ import BusStation from "../../../../models/bus-station";
 import BusAppearance from "../../../../models/bus-appearance-time";
 import { findStartTime } from "./calculate-estimate-time";
 
-interface BusIn4Struct {
-  name: string;
-  bus: string[];
-  lat: number;
-  long: number;
-}
 export let busInfoMap: { [key: string]: Bus } = {};
 export async function findRoute(req: Request, res: Response) {
-  //không cần dùng userId để phân biệt các tài khoản do cơ chế tự làm đc rồi
-  //const startString = req.body.startString;
-  //const endString = req.body.endString;
-  //const userInputLat = req.body.lat;
-  //const userInputLong = req.body.long;
   const startPlace = req.body.startPlace;
   const endPlace = req.body.endPlace;
   const searchMode = req.body.searchMode;
   const userInputHour = req.body.userInputHour;
   const userInputMinute = req.body.userInputMinute;
   let startTime = performance.now();
+  const busStations = await BusStation.getBusStationsAsMap();
 
   let startIn4: StationPoint = {
     name: startPlace.name,
@@ -142,7 +132,8 @@ export async function findRoute(req: Request, res: Response) {
           if (resultLength <= 5) {
             let results = dijkstra.findShortestWay(
               startStation.name,
-              endStation.name
+              endStation.name,
+              busStations
             );
             //thêm các phần tử của results vào resultRoutes
             if (results.length > 0 && resultLength <= 5) {
@@ -180,12 +171,17 @@ export async function findRoute(req: Request, res: Response) {
                   results[i].endHour = endHour;
                   results[i].endMinute = endMinute;
                   if (startPlace.name != results[i].returnRoutes[0].source) {
+                    const destinationIn4 = busStations.get(
+                      results[i].startStation
+                    );
                     results[i].returnRoutes.unshift({
                       source: startPlace.name,
                       destination: results[i].startStation,
+                      destinationLat: destinationIn4?.lat || 0,
+                      destinationLong: destinationIn4?.long || 0,
                       buses: ["walk"],
                       transportTime: roundedWalkingTime,
-                      transportS: roundedWalkingTime * 5,
+                      transportS: roundedWalkingTime * 5 ,
                       pathType: "walk",
                     });
                   }
@@ -225,7 +221,7 @@ export async function findRoute2(req: Request, res: Response) {
   const userInputMinute = req.body.userInputMinute;
 
   const startTime = performance.now();
-
+  const busStations = await BusStation.getBusStationsAsMap();
   // Đọc đồ thị từ file
   const graph = readGraphFromFile2("src/json-data/IndirectGraph.json");
   if (!graph) {
@@ -263,19 +259,6 @@ export async function findRoute2(req: Request, res: Response) {
   console.log("Các điểm gần nhất với trạm xuất phát:");
   for (let index = 0; index < nearestStartNodes.length; index++) {
     console.log(`Trạm ${index + 1}: ${nearestStartNodes[index].point?.name}`);
-    // let startStationLat = nearestStartNodes[index].point?.lat;
-    // let startStationLong = nearestStartNodes[index].point?.long;
-    // // in ra lat long của trạm nếu tồn tại
-    // if (startStationLat != null && startStationLong != null) {
-    //   console.log(
-    //     haversineDistance(
-    //       startStationLat,
-    //       startStationLong,
-    //       inputIn4.startIn4.lat,
-    //       inputIn4.startIn4.long
-    //     )
-    //   );
-    // }
   }
 
   // Tìm 2 trạm gần nhất với điểm đích
@@ -333,9 +316,12 @@ export async function findRoute2(req: Request, res: Response) {
               if (endHour >= 24) {
                 endHour -= 24;
               }
+              const destinationIn4 = busStations.get(endStation.name);
               const returnRoute: ReturnRoute = {
                 source: startStation.name,
                 destination: endStation.name,
+                destinationLat: destinationIn4?.lat || 0,
+                destinationLong: destinationIn4?.long || 0,
                 buses: ["walk"],
                 transportTime: Math.ceil((edgeToEnd.weight * 60) / 5 / 1000),
                 transportS: Math.ceil(edgeToEnd.weight),
@@ -343,9 +329,12 @@ export async function findRoute2(req: Request, res: Response) {
               };
               const returnRoutes: ReturnRoute[] = [];
               if (startPlace.name != startStation.name) {
+                const destinationIn4 = busStations.get(startStation.name);
                 returnRoutes.unshift({
                   source: startPlace.name,
                   destination: startStation.name,
+                  destinationLat: destinationIn4?.lat || 0,
+                  destinationLong: destinationIn4?.long || 0,
                   buses: ["walk"],
                   transportTime: Math.ceil(roundedWalkingTime),
                   transportS: Math.ceil(roundedWalkingTime * 5),
@@ -367,9 +356,12 @@ export async function findRoute2(req: Request, res: Response) {
                   )
                 );
                 const transportTime = Math.ceil(transportS / 5 / 1000);
+                const destinationIn4 = busStations.get(endPlace.name);
                 returnRoutes.push({
                   source: endStation.name,
                   destination: endPlace.name,
+                  destinationLat: destinationIn4?.lat || 0,
+                  destinationLong: destinationIn4?.long || 0,
                   buses: ["walk"],
                   transportTime: transportTime,
                   transportS: transportS,
@@ -454,9 +446,12 @@ export async function findRoute2(req: Request, res: Response) {
                   }
                 }
                 const returnRoutes: ReturnRoute[] = [];
+                const destinationIn4 = busStations.get(endStation.name);
                 const returnRoute: ReturnRoute = {
                   source: startStation.name,
                   destination: endStation.name,
+                  destinationLat: destinationIn4?.lat || 0,
+                  destinationLong: destinationIn4?.long || 0,
                   buses: [commonBuses[i]],
                   transportTime: Math.ceil(
                     (edgeToEnd.weight * 60) / 22.5 / 1000
@@ -469,9 +464,12 @@ export async function findRoute2(req: Request, res: Response) {
                   startPlace.lat != startStation.lat &&
                   startPlace.long != startStation.long
                 ) {
+                  const destinationIn4 = busStations.get(startStation.name);
                   returnRoutes.unshift({
                     source: startPlace.name,
                     destination: startStation.name,
+                    destinationLat: destinationIn4?.lat || 0,
+                    destinationLong: destinationIn4?.long || 0,
                     buses: ["walk"],
                     transportTime: Math.ceil(roundedWalkingTime),
                     transportS: Math.ceil(roundedWalkingTime * 5),
@@ -493,9 +491,12 @@ export async function findRoute2(req: Request, res: Response) {
                     )
                   );
                   const transportTime = Math.ceil(transportS / 5 / 1000);
+                  const destinationIn4 = busStations.get(endPlace.name);
                   returnRoutes.push({
                     source: endStation.name,
                     destination: endPlace.name,
+                    destinationLat: destinationIn4?.lat || 0,
+                    destinationLong: destinationIn4?.long || 0,
                     buses: ["walk"],
                     transportTime: transportTime,
                     transportS: transportS,
@@ -646,9 +647,12 @@ export async function findRoute2(req: Request, res: Response) {
                       }
                     }
                   }
+                  const destinationIn4 = busStations.get(edgeToEnd.vertex);
                   const returnRoute: ReturnRoute = {
                     source: startStation.name,
                     destination: edgeToEnd.vertex,
+                    destinationLat: destinationIn4?.lat || 0,
+                    destinationLong: destinationIn4?.long || 0,
                     buses: [commonBuses[i]],
                     transportTime: Math.ceil(
                       (edgeToEnd.weight * 60) / 22.5 / 1000
@@ -658,9 +662,12 @@ export async function findRoute2(req: Request, res: Response) {
                   };
                   const returnRoutes: ReturnRoute[] = [];
                   if (startPlace.name != startStation.name) {
+                    const destinationIn4 = busStations.get(startStation.name);
                     returnRoutes.unshift({
                       source: startPlace.name,
                       destination: startStation.name,
+                      destinationLat: destinationIn4?.lat || 0,
+                      destinationLong: destinationIn4?.long || 0,
                       buses: ["walk"],
                       transportTime: Math.ceil(roundedWalkingTime),
                       transportS: Math.ceil(roundedWalkingTime) * 5,
