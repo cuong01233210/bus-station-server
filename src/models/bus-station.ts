@@ -124,6 +124,32 @@ class BusStation {
       document._id.toString()
     );
   }
+
+  static async getBusStationsAsMap() {
+    const db: Db = BusStationsDatabase.getDb();
+
+    await db.collection("busStations").createIndex({ name: 1 });
+
+    const documents = await db
+      .collection("busStations")
+      .find()
+      .sort({ name: 1 })
+      .toArray();
+
+    const busStationMap: Map<string, BusStation> = new Map();
+    documents.forEach((doc) => {
+      const busStation = new BusStation(
+        doc.name,
+        doc.buses,
+        doc.lat,
+        doc.long,
+        doc._id.toString()
+      );
+      busStationMap.set(doc.name, busStation);
+    });
+
+    return busStationMap;
+  }
 }
 
 export default BusStation;

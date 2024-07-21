@@ -43,6 +43,7 @@ const calculateEstimateTime = __importStar(require("../controller/customer's-con
 const CreateGraphController = __importStar(require("../controller/customer's-controller/search-function/new-search-2024/create-directed-graph"));
 const PlaceController = __importStar(require("../controller/customer's-controller/place-controller"));
 const CreateKDTreeController = __importStar(require("../controller/customer's-controller/search-function/new-search-2024/create-kdtree"));
+const ErrorFormController = __importStar(require("../controller/customer's-controller/search-function/new-search-2024/error-form-controller"));
 const router = (0, express_1.Router)();
 router.get("/buses-data", busController.getAllBuses);
 router.post("/add-comment", auth_validation_1.default, commentController.addComment);
@@ -102,4 +103,7 @@ router.post("/save-graph-into-file", CreateGraphController.writeGraphToFile);
 router.get("/get-places", PlaceController.getPlaces);
 //router để tạo và lưu kdtree vào file json
 router.get("/save-kdtree-into-file", CreateKDTreeController.createKDTree);
+// router để xử lý form báo lỗi
+router.get("/get-all-error-forms", ErrorFormController.getAllErrors);
+router.post("/add-error-form", ErrorFormController.createError);
 exports.default = router;

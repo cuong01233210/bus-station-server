@@ -96,5 +96,22 @@ class BusStation {
             return new BusStation(document.name, document.buses, document.lat, document.long, document._id.toString());
         });
     }
+    static getBusStationsAsMap() {
+        return __awaiter(this, void 0, void 0, function* () {
+            const db = bus_stations_database_1.BusStationsDatabase.getDb();
+            yield db.collection("busStations").createIndex({ name: 1 });
+            const documents = yield db
+                .collection("busStations")
+                .find()
+                .sort({ name: 1 })
+                .toArray();
+            const busStationMap = new Map();
+            documents.forEach((doc) => {
+                const busStation = new BusStation(doc.name, doc.buses, doc.lat, doc.long, doc._id.toString());
+                busStationMap.set(doc.name, busStation);
+            });
+            return busStationMap;
+        });
+    }
 }
 exports.default = BusStation;

@@ -1,20 +1,7 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Dijkstra = exports.Vertex = void 0;
 const search_route_1 = require("./search-route");
-const bus_station_1 = __importDefault(require("../../../../models/bus-station"));
 // ý tưởng: ban đầu mình chập lại các tuyến đi được từ A -> B
 // A->B là 2 đỉnh của 1 cạnh có đường đi trực tiếp từ A -> B
 // ví dụ có các tuyến 01, 02, 89 đi từ Bến Xe Yên Nghĩa -> 807 Quang Trung - Hà Đông
@@ -64,80 +51,57 @@ class Dijkstra {
     addVertex(vertex) {
         this.vertices[vertex.name] = vertex;
     }
-    findPointsOfShortestWay(start, finish) {
-        return __awaiter(this, void 0, void 0, function* () {
-            let currentVertex = finish;
-            let deltaS = 0; // biến lưu tổng quãng đường di chuyển trên cùng 1 loại phương thức liên tục
-            let tempVehical = ""; // lưu phương thức di chuyển trạm n - 1 -> n
-            let frontNode = "";
-            let saveBuses = [];
-            const returnRoutes = [];
-            let destination = ""; // trạm đích của 1 hành trình
-            let stations = []; // mảng chứa đầy đủ tên các trạm đi qua
-            let ceilS = 0; //tổng quãng đường khi được làm tròn
-            let startStation = start;
-            let endStation = finish;
-            let transportHour = 0;
-            let transportMinute = 0;
-            while (currentVertex != start) {
-                if (this.vertices[currentVertex] && this.vertices[currentVertex].buses) {
-                    //arrayWithVertex.unshift(nextVertex);
-                    frontNode = this.vertices[currentVertex].frontNode;
+    findPointsOfShortestWay(start, finish, busStations) {
+        let currentVertex = finish;
+        let deltaS = 0; // biến lưu tổng quãng đường di chuyển trên cùng 1 loại phương thức liên tục
+        let tempVehical = ""; // lưu phương thức di chuyển trạm n - 1 -> n
+        let frontNode = "";
+        let saveBuses = [];
+        const returnRoutes = [];
+        let destination = ""; // trạm đích của 1 hành trình
+        let stations = []; // mảng chứa đầy đủ tên các trạm đi qua
+        let ceilS = 0; //tổng quãng đường khi được làm tròn
+        let startStation = start;
+        let endStation = finish;
+        let transportHour = 0;
+        let transportMinute = 0;
+        while (currentVertex != start) {
+            if (this.vertices[currentVertex] && this.vertices[currentVertex].buses) {
+                //arrayWithVertex.unshift(nextVertex);
+                frontNode = this.vertices[currentVertex].frontNode;
+                if (this.vertices[currentVertex].pathType == "bus") {
+                    startStation = frontNode;
+                }
+                if (tempVehical == "") {
+                    // khởi tạo
                     if (this.vertices[currentVertex].pathType == "bus") {
-                        startStation = frontNode;
-                    }
-                    if (tempVehical == "") {
-                        // khởi tạo
-                        if (this.vertices[currentVertex].pathType == "bus") {
-                            tempVehical = this.vertices[currentVertex].pathType;
-                            destination = currentVertex;
-                            endStation = currentVertex; //cố định được trạm kết thúc
-                            saveBuses.push(...this.vertices[currentVertex].buses);
-                        }
-                        else {
-                            // do mình nếu giữa 2 trạm cuối cùng có thể đi bộ thì mình lấy trạm cuối n -1 thay vì trạm cuối n để báo cho người dùng
-                            saveBuses = ["Walk"];
-                        }
+                        tempVehical = this.vertices[currentVertex].pathType;
+                        destination = currentVertex;
+                        endStation = currentVertex; //cố định được trạm kết thúc
+                        saveBuses.push(...this.vertices[currentVertex].buses);
                     }
                     else {
-                        // nếu trùng nhau pathType
-                        if (tempVehical == this.vertices[currentVertex].pathType) {
-                            if (tempVehical == "bus") {
-                                let tempBuses = this.vertices[currentVertex].buses.filter((item) => saveBuses.includes(item) && item !== "Walk");
-                                if (tempBuses.length == 0) {
-                                    // nếu không còn xe trùng nhau thì phải nhảy tuyến
-                                    // tức là tạo ra thêm 1 hành trình khác
-                                    deltaS = Math.round(this.vertices[destination].weight -
-                                        this.vertices[currentVertex].weight);
-                                    ceilS += deltaS;
-                                    let returnRoute = {
-                                        source: currentVertex,
-                                        destination: destination,
-                                        buses: saveBuses,
-                                        transportTime: Math.ceil((deltaS * 60) / 22.5 / 1000),
-                                        transportS: deltaS,
-                                        pathType: tempVehical,
-                                    };
-                                    transportMinute += returnRoute.transportTime;
-                                    returnRoutes.unshift(returnRoute);
-                                    saveBuses = this.vertices[frontNode].buses;
-                                    destination = currentVertex;
-                                }
-                                else {
-                                    saveBuses = tempBuses; // cập nhật lại những xe buýt trùng nhau
-                                }
-                            }
-                        }
-                        else {
-                            deltaS = Math.round(this.vertices[destination].weight -
-                                this.vertices[currentVertex].weight);
-                            ceilS += deltaS;
-                            // nếu khác nhau pathType
-                            if (tempVehical == "bus") {
-                                saveBuses = this.vertices[currentVertex].buses.filter((item) => saveBuses.includes(item) && item !== "Walk");
+                        // do mình nếu giữa 2 trạm cuối cùng có thể đi bộ thì mình lấy trạm cuối n -1 thay vì trạm cuối n để báo cho người dùng
+                        saveBuses = ["Walk"];
+                    }
+                }
+                else {
+                    // nếu trùng nhau pathType
+                    if (tempVehical == this.vertices[currentVertex].pathType) {
+                        if (tempVehical == "bus") {
+                            let tempBuses = this.vertices[currentVertex].buses.filter((item) => saveBuses.includes(item) && item !== "Walk");
+                            if (tempBuses.length == 0) {
+                                // nếu không còn xe trùng nhau thì phải nhảy tuyến
+                                // tức là tạo ra thêm 1 hành trình khác
+                                deltaS = Math.round(this.vertices[destination].weight -
+                                    this.vertices[currentVertex].weight);
+                                ceilS += deltaS;
+                                const destinationIn4 = busStations.get(destination);
                                 let returnRoute = {
                                     source: currentVertex,
                                     destination: destination,
+                                    destinationLat: (destinationIn4 === null || destinationIn4 === void 0 ? void 0 : destinationIn4.lat) || 0,
+                                    destinationLong: (destinationIn4 === null || destinationIn4 === void 0 ? void 0 : destinationIn4.long) || 0,
                                     buses: saveBuses,
                                     transportTime: Math.ceil((deltaS * 60) / 22.5 / 1000),
                                     transportS: deltaS,
@@ -147,137 +111,168 @@ class Dijkstra {
                                 returnRoutes.unshift(returnRoute);
                                 saveBuses = this.vertices[frontNode].buses;
                                 destination = currentVertex;
-                                tempVehical = "walk";
                             }
-                            else if (tempVehical == "walk") {
-                                let returnRoute = {
-                                    source: currentVertex,
-                                    destination: destination,
-                                    buses: ["Walk"],
-                                    transportTime: Math.ceil((deltaS * 60) / 5 / 1000),
-                                    transportS: deltaS,
-                                    pathType: tempVehical,
-                                };
-                                transportMinute += returnRoute.transportTime;
-                                returnRoutes.unshift(returnRoute);
-                                saveBuses = this.vertices[frontNode].buses;
-                                destination = currentVertex;
-                                tempVehical = "bus";
+                            else {
+                                saveBuses = tempBuses; // cập nhật lại những xe buýt trùng nhau
                             }
                         }
                     }
-                    stations.unshift(currentVertex);
-                    // console.log(
-                    //   "Trạm: ",
-                    //   currentVertex,
-                    //   " Tuyến ",
-                    //   this.vertices[currentVertex].buses,
-                    //   " loại hình di chuyển: ",
-                    //   this.vertices[currentVertex].pathType
-                    // );
-                    currentVertex = frontNode;
-                }
-                else {
-                    // console.log("Không tìm thấy tuyến đường/ trạm xe buýt phù hơp");
-                    return [];
-                }
-            }
-            // console.log(
-            //   "Trạm: ",
-            //   currentVertex,
-            //   " Tuyến ",
-            //   this.vertices[currentVertex].buses
-            // );
-            if (tempVehical == "bus") {
-                deltaS = Math.round(this.vertices[destination].weight - this.vertices[currentVertex].weight);
-                saveBuses = this.vertices[currentVertex].buses.filter((item) => saveBuses.includes(item) && item !== "Walk");
-                ceilS += deltaS;
-                let deltaT = Math.ceil((deltaS * 60) / 22.5 / 1000);
-                let returnRoute = {
-                    source: currentVertex,
-                    destination: destination,
-                    buses: saveBuses,
-                    transportTime: deltaT,
-                    transportS: deltaS,
-                    pathType: tempVehical,
-                };
-                transportMinute += returnRoute.transportTime;
-                returnRoutes.unshift(returnRoute);
-                startStation = currentVertex;
-                stations.unshift(currentVertex);
-            }
-            while (transportMinute >= 60) {
-                transportHour += 1;
-                transportMinute -= 60;
-            }
-            console.log();
-            let allRoutes = getAllRoutes(returnRoutes);
-            console.log(allRoutes);
-            const pricedRoutes = calculateRoutePrices(allRoutes);
-            pricedRoutes.forEach(({ route, price }) => {
-                console.log(`Hành trình: ${route.join(" -> ")}, Giá tiền: ${price} đồng`);
-            });
-            // bắt đầu tổng hợp các cách đi
-            let resultRoutes = [];
-            for (let i = 0; i < allRoutes.length; i++) {
-                const startStationIn4 = yield bus_station_1.default.getBusStationByName(startStation);
-                const endStationIn4 = yield bus_station_1.default.getBusStationByName(endStation);
-                let resultRoute = {
-                    startStation: startStation,
-                    endStation: endStation,
-                    startStationLat: (startStationIn4 === null || startStationIn4 === void 0 ? void 0 : startStationIn4.lat) || 0,
-                    startStationLong: (startStationIn4 === null || startStationIn4 === void 0 ? void 0 : startStationIn4.long) || 0,
-                    endStationLat: (endStationIn4 === null || endStationIn4 === void 0 ? void 0 : endStationIn4.lat) || 0,
-                    endStationLong: (endStationIn4 === null || endStationIn4 === void 0 ? void 0 : endStationIn4.long) || 0,
-                    buses: allRoutes[i],
-                    cost: pricedRoutes[i].price,
-                    transportHour: transportHour,
-                    transportMinute: transportMinute,
-                    startHour: 0,
-                    startMinute: 0,
-                    endHour: 0,
-                    endMinute: 0,
-                    stations: stations,
-                    returnRoutes: returnRoutes,
-                };
-                resultRoutes.push(resultRoute);
-            }
-            return resultRoutes;
-        });
-    }
-    findShortestWay(start, finish) {
-        return __awaiter(this, void 0, void 0, function* () {
-            let nodes = {};
-            for (let i in this.vertices) {
-                if (this.vertices[i].name === start) {
-                    this.vertices[i].weight = 0;
-                }
-                else {
-                    this.vertices[i].weight = Number.MAX_VALUE;
-                }
-                nodes[this.vertices[i].name] = this.vertices[i].weight;
-            }
-            while (Object.keys(nodes).length !== 0) {
-                let sortedVisitedByWeight = Object.keys(nodes).sort((a, b) => this.vertices[a].weight - this.vertices[b].weight); // dòng này để sắp xếp lại đỉnh theo trọng số từ nhỏ -> lớn
-                let currentVertex = this.vertices[sortedVisitedByWeight[0]]; // chọn ra đỉnh có trọng số min a
-                // xét các đỉnh kề b của đỉnh a
-                for (let j of currentVertex.nodes) {
-                    // if (j.pathType == "walk") continue; // tạm thời skip việc sử dụng walk
-                    const calculateWeight = currentVertex.weight + j.weight;
-                    // nếu khoảng cách từ đỉnh gốc tới đỉnh b nhỏ hơn khoảng cách hiện tại được ghi nhận
-                    // thì cập nhật giá trị và cập nhật đỉnh kể a vào khoảng cách hiện tại của b
-                    if (calculateWeight < this.vertices[j.nameOfVertex].weight) {
-                        this.vertices[j.nameOfVertex].weight = calculateWeight;
-                        this.vertices[j.nameOfVertex].frontNode = currentVertex.name;
-                        this.vertices[j.nameOfVertex].pathType = j.pathType; // lưu được cách đi được từ node a -> node b
+                    else {
+                        deltaS = Math.round(this.vertices[destination].weight -
+                            this.vertices[currentVertex].weight);
+                        ceilS += deltaS;
+                        // nếu khác nhau pathType
+                        if (tempVehical == "bus") {
+                            saveBuses = this.vertices[currentVertex].buses.filter((item) => saveBuses.includes(item) && item !== "Walk");
+                            const destinationIn4 = busStations.get(destination);
+                            let returnRoute = {
+                                source: currentVertex,
+                                destination: destination,
+                                destinationLat: (destinationIn4 === null || destinationIn4 === void 0 ? void 0 : destinationIn4.lat) || 0,
+                                destinationLong: (destinationIn4 === null || destinationIn4 === void 0 ? void 0 : destinationIn4.long) || 0,
+                                buses: saveBuses,
+                                transportTime: Math.ceil((deltaS * 60) / 22.5 / 1000),
+                                transportS: deltaS,
+                                pathType: tempVehical,
+                            };
+                            transportMinute += returnRoute.transportTime;
+                            returnRoutes.unshift(returnRoute);
+                            saveBuses = this.vertices[frontNode].buses;
+                            destination = currentVertex;
+                            tempVehical = "walk";
+                        }
+                        else if (tempVehical == "walk") {
+                            const destinationIn4 = busStations.get(destination);
+                            let returnRoute = {
+                                source: currentVertex,
+                                destination: destination,
+                                destinationLat: (destinationIn4 === null || destinationIn4 === void 0 ? void 0 : destinationIn4.lat) || 0,
+                                destinationLong: (destinationIn4 === null || destinationIn4 === void 0 ? void 0 : destinationIn4.long) || 0,
+                                buses: ["Walk"],
+                                transportTime: Math.ceil((deltaS * 60) / 5 / 1000),
+                                transportS: deltaS,
+                                pathType: tempVehical,
+                            };
+                            transportMinute += returnRoute.transportTime;
+                            returnRoutes.unshift(returnRoute);
+                            saveBuses = this.vertices[frontNode].buses;
+                            destination = currentVertex;
+                            tempVehical = "bus";
+                        }
                     }
                 }
-                // loại bỏ đỉnh a khỏi ds xét
-                delete nodes[sortedVisitedByWeight[0]];
+                stations.unshift(currentVertex);
+                // console.log(
+                //   "Trạm: ",
+                //   currentVertex,
+                //   " Tuyến ",
+                //   this.vertices[currentVertex].buses,
+                //   " loại hình di chuyển: ",
+                //   this.vertices[currentVertex].pathType
+                // );
+                currentVertex = frontNode;
             }
-            let resultRoutes = yield this.findPointsOfShortestWay(start, finish);
-            return resultRoutes;
+            else {
+                // console.log("Không tìm thấy tuyến đường/ trạm xe buýt phù hơp");
+                return [];
+            }
+        }
+        // console.log(
+        //   "Trạm: ",
+        //   currentVertex,
+        //   " Tuyến ",
+        //   this.vertices[currentVertex].buses
+        // );
+        if (tempVehical == "bus") {
+            deltaS = Math.round(this.vertices[destination].weight - this.vertices[currentVertex].weight);
+            saveBuses = this.vertices[currentVertex].buses.filter((item) => saveBuses.includes(item) && item !== "Walk");
+            ceilS += deltaS;
+            let deltaT = Math.ceil((deltaS * 60) / 22.5 / 1000);
+            const destinationIn4 = busStations.get(destination);
+            let returnRoute = {
+                source: currentVertex,
+                destination: destination,
+                destinationLat: (destinationIn4 === null || destinationIn4 === void 0 ? void 0 : destinationIn4.lat) || 0,
+                destinationLong: (destinationIn4 === null || destinationIn4 === void 0 ? void 0 : destinationIn4.long) || 0,
+                buses: saveBuses,
+                transportTime: deltaT,
+                transportS: deltaS,
+                pathType: tempVehical,
+            };
+            transportMinute += returnRoute.transportTime;
+            returnRoutes.unshift(returnRoute);
+            startStation = currentVertex;
+            stations.unshift(currentVertex);
+        }
+        while (transportMinute >= 60) {
+            transportHour += 1;
+            transportMinute -= 60;
+        }
+        console.log();
+        let allRoutes = getAllRoutes(returnRoutes);
+        console.log(allRoutes);
+        const pricedRoutes = calculateRoutePrices(allRoutes);
+        pricedRoutes.forEach(({ route, price }) => {
+            console.log(`Hành trình: ${route.join(" -> ")}, Giá tiền: ${price} đồng`);
         });
+        // bắt đầu tổng hợp các cách đi
+        let resultRoutes = [];
+        for (let i = 0; i < allRoutes.length; i++) {
+            const startStationIn4 = busStations.get(startStation);
+            const endStationIn4 = busStations.get(endStation);
+            let resultRoute = {
+                startStation: startStation,
+                endStation: endStation,
+                startStationLat: (startStationIn4 === null || startStationIn4 === void 0 ? void 0 : startStationIn4.lat) || 0,
+                startStationLong: (startStationIn4 === null || startStationIn4 === void 0 ? void 0 : startStationIn4.long) || 0,
+                endStationLat: (endStationIn4 === null || endStationIn4 === void 0 ? void 0 : endStationIn4.lat) || 0,
+                endStationLong: (endStationIn4 === null || endStationIn4 === void 0 ? void 0 : endStationIn4.long) || 0,
+                buses: allRoutes[i],
+                cost: pricedRoutes[i].price,
+                transportHour: transportHour,
+                transportMinute: transportMinute,
+                startHour: 0,
+                startMinute: 0,
+                endHour: 0,
+                endMinute: 0,
+                stations: stations,
+                returnRoutes: returnRoutes,
+            };
+            resultRoutes.push(resultRoute);
+        }
+        return resultRoutes;
+    }
+    findShortestWay(start, finish, busStations) {
+        let nodes = {};
+        for (let i in this.vertices) {
+            if (this.vertices[i].name === start) {
+                this.vertices[i].weight = 0;
+            }
+            else {
+                this.vertices[i].weight = Number.MAX_VALUE;
+            }
+            nodes[this.vertices[i].name] = this.vertices[i].weight;
+        }
+        while (Object.keys(nodes).length !== 0) {
+            let sortedVisitedByWeight = Object.keys(nodes).sort((a, b) => this.vertices[a].weight - this.vertices[b].weight); // dòng này để sắp xếp lại đỉnh theo trọng số từ nhỏ -> lớn
+            let currentVertex = this.vertices[sortedVisitedByWeight[0]]; // chọn ra đỉnh có trọng số min a
+            // xét các đỉnh kề b của đỉnh a
+            for (let j of currentVertex.nodes) {
+                // if (j.pathType == "walk") continue; // tạm thời skip việc sử dụng walk
+                const calculateWeight = currentVertex.weight + j.weight;
+                // nếu khoảng cách từ đỉnh gốc tới đỉnh b nhỏ hơn khoảng cách hiện tại được ghi nhận
+                // thì cập nhật giá trị và cập nhật đỉnh kể a vào khoảng cách hiện tại của b
+                if (calculateWeight < this.vertices[j.nameOfVertex].weight) {
+                    this.vertices[j.nameOfVertex].weight = calculateWeight;
+                    this.vertices[j.nameOfVertex].frontNode = currentVertex.name;
+                    this.vertices[j.nameOfVertex].pathType = j.pathType; // lưu được cách đi được từ node a -> node b
+                }
+            }
+            // loại bỏ đỉnh a khỏi ds xét
+            delete nodes[sortedVisitedByWeight[0]];
+        }
+        let resultRoutes = this.findPointsOfShortestWay(start, finish, busStations);
+        return resultRoutes;
     }
 }
 exports.Dijkstra = Dijkstra;
