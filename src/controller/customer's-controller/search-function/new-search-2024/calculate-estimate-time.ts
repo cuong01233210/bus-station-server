@@ -475,6 +475,16 @@ export async function findStartTime(
       stationInfo.lat,
       stationInfo.long
     );
+    console.log(dis);
+    console.log(
+      startPlaceLat,
+      " ",
+      startPlaceLong,
+      " ",
+      stationInfo.lat,
+      " ",
+      stationInfo.long
+    );
     const walkingTime = dis / 5;
     roundedWalkingTime = Math.ceil(walkingTime);
     //console.log("roundedWalkingTime: ", roundedWalkingTime);

@@ -1,7 +1,8 @@
+import BusStation from "../../../../models/bus-station";
 import { busInfoMap } from "./search-route";
 import ReturnRoute from "../../../../models/return-route";
 import ResultRoute from "../../../../models/result-route";
-import BusStation from "../../../../models/bus-station";
+
 // phiên bản test với A,B, C
 export interface NodeVertex {
   nameOfVertex: string; // tên node
@@ -89,10 +90,11 @@ export class Dijkstra {
     this.vertices[vertex.name] = vertex;
   }
 
-  async findPointsOfShortestWay(
+  findPointsOfShortestWay(
     start: string,
-    finish: string
-  ): Promise<ResultRoute[]> {
+    finish: string,
+    busStations: Map<String, BusStation>
+  ): ResultRoute[] {
     let currentVertex: string = finish;
 
     let deltaS = 0; // biến lưu tổng quãng đường di chuyển trên cùng 1 loại phương thức liên tục
@@ -144,9 +146,12 @@ export class Dijkstra {
                     this.vertices[currentVertex].weight
                 );
                 ceilS += deltaS;
+                const destinationIn4 = busStations.get(destination);
                 let returnRoute: ReturnRoute = {
                   source: currentVertex,
                   destination: destination,
+                  destinationLat: destinationIn4?.lat || 0,
+                  destinationLong: destinationIn4?.long || 0,
                   buses: saveBuses,
                   transportTime: Math.ceil((deltaS * 60) / 22.5 / 1000),
                   transportS: deltaS,
@@ -172,9 +177,12 @@ export class Dijkstra {
               saveBuses = this.vertices[currentVertex].buses.filter(
                 (item: string) => saveBuses.includes(item) && item !== "Walk"
               );
+              const destinationIn4 = busStations.get(destination);
               let returnRoute: ReturnRoute = {
                 source: currentVertex,
                 destination: destination,
+                destinationLat: destinationIn4?.lat || 0,
+                destinationLong: destinationIn4?.long || 0,
                 buses: saveBuses,
                 transportTime: Math.ceil((deltaS * 60) / 22.5 / 1000),
                 transportS: deltaS,
@@ -188,9 +196,12 @@ export class Dijkstra {
 
               tempVehical = "walk";
             } else if (tempVehical == "walk") {
+              const destinationIn4 = busStations.get(destination);
               let returnRoute: ReturnRoute = {
                 source: currentVertex,
                 destination: destination,
+                destinationLat: destinationIn4?.lat || 0,
+                destinationLong: destinationIn4?.long || 0,
                 buses: ["Walk"],
                 transportTime: Math.ceil((deltaS * 60) / 5 / 1000),
                 transportS: deltaS,
@@ -239,9 +250,12 @@ export class Dijkstra {
       );
       ceilS += deltaS;
       let deltaT = Math.ceil((deltaS * 60) / 22.5 / 1000);
+      const destinationIn4 = busStations.get(destination);
       let returnRoute: ReturnRoute = {
         source: currentVertex,
         destination: destination,
+        destinationLat: destinationIn4?.lat || 0,
+        destinationLong: destinationIn4?.long || 0,
         buses: saveBuses,
         transportTime: deltaT,
         transportS: deltaS,
@@ -270,10 +284,8 @@ export class Dijkstra {
     // bắt đầu tổng hợp các cách đi
     let resultRoutes: ResultRoute[] = [];
     for (let i = 0; i < allRoutes.length; i++) {
-      const startStationIn4 = await BusStation.getBusStationByName(
-        startStation
-      );
-      const endStationIn4 = await BusStation.getBusStationByName(endStation);
+      const startStationIn4 = busStations.get(startStation);
+      const endStationIn4 = busStations.get(endStation);
 
       let resultRoute: ResultRoute = {
         startStation: startStation,
@@ -298,7 +310,11 @@ export class Dijkstra {
     return resultRoutes;
   }
 
-  async findShortestWay(start: string, finish: string): Promise<ResultRoute[]> {
+  findShortestWay(
+    start: string,
+    finish: string,
+    busStations: Map<string, BusStation>
+  ): ResultRoute[] {
     let nodes: any = {};
 
     for (let i in this.vertices) {
@@ -331,9 +347,10 @@ export class Dijkstra {
       // loại bỏ đỉnh a khỏi ds xét
       delete nodes[sortedVisitedByWeight[0]];
     }
-    let resultRoutes: ResultRoute[] = await this.findPointsOfShortestWay(
+    let resultRoutes: ResultRoute[] = this.findPointsOfShortestWay(
       start,
-      finish
+      finish,
+      busStations
     );
     return resultRoutes;
   }
